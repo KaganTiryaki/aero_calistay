@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { nav, site } from "@/lib/content";
 import { scrollToId } from "@/lib/scroll";
 import { useScrollLock } from "@/lib/useScrollLock";
@@ -140,7 +140,7 @@ export function StickyNav() {
       {/* mobile overlay menu */}
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             key="mobile-menu"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -161,7 +161,7 @@ export function StickyNav() {
             >
               <nav className="flex flex-col gap-1">
                 {nav.links.map((l, i) => (
-                  <motion.a
+                  <m.a
                     key={l.href}
                     href={l.href}
                     onClick={(e) => go(e, l.href)}
@@ -174,11 +174,11 @@ export function StickyNav() {
                       0{i + 1}
                     </span>
                     {l.label}
-                  </motion.a>
+                  </m.a>
                 ))}
               </nav>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.06 + nav.links.length * 0.06 }}
@@ -207,9 +207,9 @@ export function StickyNav() {
                     </a>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

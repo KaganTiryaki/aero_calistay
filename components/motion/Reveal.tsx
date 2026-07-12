@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { m, useReducedMotion, type Variants } from "motion/react";
 
 /** Reveal-on-scroll wrapper. One motion signature everywhere. */
 export function Reveal({
@@ -28,7 +28,7 @@ export function Reveal({
   };
 
   return (
-    <motion.div
+    <m.div
       className={className}
       variants={v}
       initial="hidden"
@@ -36,6 +36,6 @@ export function Reveal({
       viewport={{ once: true, margin: "-80px" }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

@@ -23,7 +23,7 @@ export function Faq() {
             <SectionHeader index="05" eyebrow="SSS" title="Sıkça Sorulan Sorular" />
             <Reveal delay={0.1}>
               <p className="max-w-xs text-muted">
-                Aradığın yanıt yoksa Instagram'dan (@aero_cal) yazman yeterli.
+                Aradığın yanıt yoksa Instagram&apos;dan (@aero_cal) yazman yeterli.
               </p>
             </Reveal>
           </div>

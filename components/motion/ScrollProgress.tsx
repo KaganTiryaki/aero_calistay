@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useSpring } from "motion/react";
+import { m, useScroll, useSpring } from "motion/react";
 
 /** Thin flowing progress bar at the very top — instrument feel. */
 export function ScrollProgress() {
@@ -12,7 +12,7 @@ export function ScrollProgress() {
   });
 
   return (
-    <motion.div
+    <m.div
       aria-hidden
       style={{ scaleX }}
       className="bg-flow fixed inset-x-0 top-0 z-[101] h-[3px] origin-left"

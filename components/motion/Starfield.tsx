@@ -101,12 +101,20 @@ export function Starfield() {
       }
     };
 
+    // The starfield is always on-screen (fixed, full-viewport) and drifts very
+    // slowly, so a full 60fps redraw of every star each frame is wasted work.
+    // Cap it to ~30fps: keeps the twinkle/parallax smooth while halving the
+    // idle CPU/GPU/battery cost on desktop.
+    const FRAME_MS = 1000 / 30;
     let raf = 0;
     let running = true;
+    let last = 0;
     const loop = (t: number) => {
       if (!running) return;
-      draw(t);
       raf = requestAnimationFrame(loop);
+      if (t - last < FRAME_MS) return;
+      last = t;
+      draw(t);
     };
 
     const onVis = () => {

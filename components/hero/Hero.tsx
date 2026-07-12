@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { m, useReducedMotion, type Variants } from "motion/react";
 import { FlowField } from "./FlowField";
 import { Countdown } from "./Countdown";
 import { MagneticButton } from "@/components/ui/MagneticButton";
@@ -65,35 +65,35 @@ export function Hero() {
       <div aria-hidden className="vignette" />
       <div aria-hidden className="grain-overlay" />
 
-      <motion.div
+      <m.div
         variants={container}
         initial={reduce ? undefined : "hidden"}
         animate={reduce ? undefined : "show"}
         className="relative z-50 flex flex-col items-center"
       >
-        <motion.div variants={item} className="mb-7">
+        <m.div variants={item} className="mb-7">
           <AeroMark
             className="h-16 w-16 drop-shadow-[0_0_24px_rgba(46,197,175,0.35)] md:h-[76px] md:w-[76px]"
             title="AERO"
           />
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           variants={item}
           className="kicker mb-8 flex items-center gap-4 before:h-px before:w-9 before:bg-gradient-to-r before:from-transparent before:to-brand-turq/60 after:h-px after:w-9 after:bg-gradient-to-l after:from-transparent after:to-brand-turq/60"
         >
           {site.school}
-        </motion.div>
+        </m.div>
 
-        <motion.h1
+        <m.h1
           variants={item}
           className="max-w-[16ch] font-display text-[clamp(2.9rem,8vw,7rem)] font-medium leading-[0.98] tracking-[-0.02em] text-ink"
         >
           <span className="text-flow-anim">{firstWord}</span>
           {rest && <> {rest}</>} <span className="text-muted">{site.year}</span>
-        </motion.h1>
+        </m.h1>
 
-        <motion.div variants={item} className="mt-11 flex flex-col items-center gap-5">
+        <m.div variants={item} className="mt-11 flex flex-col items-center gap-5">
           <span className="inline-flex items-center gap-2.5 rounded-full border border-brand-turq/25 bg-brand/[0.07] px-[18px] py-2.5 text-[13.5px] font-medium text-[#bdede5] backdrop-blur-sm">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-turq/70" />
@@ -111,8 +111,8 @@ export function Hero() {
           <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#4e6e6b]">
             {hero.ctaNote}
           </span>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
 
       <div className="absolute inset-x-0 bottom-9 z-50 px-6 text-center font-mono text-[11.5px] uppercase tracking-[0.28em] text-[#3f5c59]">
         {disciplines.map((d, i) => (

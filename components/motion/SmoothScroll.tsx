@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import Lenis from "lenis";
+// Type-only import: erased at compile time, keeps Lenis out of the initial
+// bundle. The runtime module is loaded lazily below (only on desktop).
+import type Lenis from "lenis";
 
 declare global {
   interface Window {
@@ -11,7 +13,9 @@ declare global {
 
 /**
  * Weighted inertial scroll (the highest-ROI "expensive" feel upgrade).
- * Disabled on touch (perf) and when the user prefers reduced motion.
+ * Disabled on touch (perf) and when the user prefers reduced motion — so the
+ * Lenis module is dynamically imported only for the users who actually get it,
+ * shaving it off everyone else's First Load JS.
  */
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -19,19 +23,25 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     if (reduce || coarse) return;
 
-    const lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 1 });
-    window.__lenis = lenis;
-
+    let lenis: Lenis | undefined;
     let raf = 0;
-    const loop = (t: number) => {
-      lenis.raf(t);
+    let cancelled = false;
+
+    import("lenis").then(({ default: Lenis }) => {
+      if (cancelled) return;
+      lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 1 });
+      window.__lenis = lenis;
+      const loop = (t: number) => {
+        lenis!.raf(t);
+        raf = requestAnimationFrame(loop);
+      };
       raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
+    });
 
     return () => {
+      cancelled = true;
       cancelAnimationFrame(raf);
-      lenis.destroy();
+      lenis?.destroy();
       window.__lenis = undefined;
     };
   }, []);
