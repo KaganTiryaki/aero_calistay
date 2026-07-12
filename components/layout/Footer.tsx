@@ -1,5 +1,6 @@
 import { Instagram } from "lucide-react";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
+import { AeroMark } from "@/components/ui/AeroMark";
 import { SectionAtmosphere } from "@/components/ui/SectionAtmosphere";
 import { footer, site } from "@/lib/content";
 
@@ -11,6 +12,7 @@ export function Footer() {
     <footer className="relative overflow-hidden border-t border-hairline/50 px-6 py-16">
       <SectionAtmosphere tone="rise" variant={0} seam={false} />
       <div className="relative z-10 mx-auto max-w-6xl">
+        <AeroMark className="mb-6 h-11 w-11" title="AERO" />
         <p className="mb-12 font-display text-3xl leading-tight text-ink/90 md:text-5xl">
           <span className="text-flow-anim">{firstWord}</span>
           {rest && <> {rest}</>} <span className="text-muted">{site.year}</span>

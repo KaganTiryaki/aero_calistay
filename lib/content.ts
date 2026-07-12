@@ -4,21 +4,20 @@
  */
 
 export const site = {
-  // Başlık formatı: "[event] [year] — [school]". Kurum: AERO.
-  school: "AERO", // resmi ad farklıysa güncelle (ör. "AERO Robotics")
+  school: "AERO", // resmi ad farklıysa güncelle
   event: "Sirkülasyon Çalıştayı",
   year: "'26",
   navMark: "Sirkülasyon '26",
-  // TODO: Google Form linki. Boşsa CTA "yakında" moduna düşer.
-  applyUrl: "",
-  // TODO: son başvuru tarihi (ISO). Geçerli & gelecekteyse hero'da geri sayım görünür; boşsa gizlenir.
-  applyDeadline: "2026-09-15T23:59:59",
+  // Google Form. Form public olduğunda "Gönder → 🔗" linkiyle (forms.gle/... veya
+  // /d/e/.../viewform) doğrula; şu an edit linkinin viewform hâli kullanılıyor.
+  applyUrl: "https://docs.google.com/forms/d/16A0iEPr0CGhkGPzGVKMSVtc1h0PWjeiENQ-RYCnM5Xk/viewform",
+  applyDeadline: "2026-08-02T23:59:59", // ~3 hafta (2 Ağustos 2026); değişirse güncelle
   socials: {
     instagram: "https://www.instagram.com/aero_cal/",
     instagramHandle: "@aero_cal",
     tiktok: "https://www.tiktok.com/@aerocalistay?lang=tr-TR",
     tiktokHandle: "@aerocalistay",
-    email: "", // TODO: resmi e-posta (varsa) — boşsa e-posta satırı gizli kalır
+    email: "aerosirkulasyoncalistayi@gmail.com",
   },
 } as const;
 
@@ -34,180 +33,244 @@ export const nav = {
 } as const;
 
 export const hero = {
-  status: "Ekip başvurularımız açıldı",
+  status: "Ekip başvuruları açık",
   cta: "Ekibe Katıl",
-  ctaNote: "Google Formlar üzerinden · birkaç dakika",
+  ctaNote: "Google Form üzerinden · birkaç dakika",
 } as const;
 
-// name = çarkta görünen etiket · note = seçilince "notepad"te çıkan açıklama.
-// TODO: notları çalıştayın işleyişine göre düzenle.
+// name = çarkta görünen etiket · note = seçilince açılan kısa açıklama.
 export const disciplines = [
   {
     name: "Sanat",
-    note: "Estetiğin ve ifadenin toplumda nasıl dolaştığını, üretildiğini ve zamanla dönüştüğünü ele alır.",
+    note: "İnsanın kendini ifade etme biçimleri: görsel sanatlar, edebiyat, müzik ve estetik.",
   },
   {
     name: "Tarih",
-    note: "Olayların ve fikirlerin zaman içindeki döngüsünü, tekrarını ve bıraktığı mirası izler.",
+    note: "Geçmiş olaylar, toplumlar ve fikirlerin bugünü nasıl şekillendirdiği.",
   },
   {
     name: "Felsefe",
-    note: "Kavramların ve soruların düşünce tarihi boyunca nasıl dolaşıma girdiğini sorgular.",
+    note: "Varlık, bilgi, ahlak ve anlam üzerine temel sorular ve düşünme yöntemleri.",
   },
   {
     name: "Psikoloji",
-    note: "Bireyin iç dünyasında duyguların, düşüncelerin ve davranışların döngüsünü keşfeder.",
+    note: "Zihin ve davranış: insanın nasıl düşündüğü, hissettiği ve karar verdiği.",
   },
   {
     name: "Sosyoloji",
-    note: "Bilginin, gücün ve normların toplumda nasıl dolaştığını ve yeniden üretildiğini inceler.",
+    note: "Toplum, gruplar ve kurumlar; insanların bir arada yaşama biçimleri.",
   },
   {
     name: "Hukuk",
-    note: "Adaletin, kuralların ve hakların toplumsal dolaşımını ve zamanla dönüşümünü tartışır.",
+    note: "Kurallar, haklar ve adalet; toplumsal düzenin nasıl kurulduğu.",
   },
   {
     name: "İlahiyat",
-    note: "İnancın, anlamın ve değerlerin kültürler arasındaki dolaşımını ve etkisini ele alır.",
+    note: "İnanç, din ve anlam arayışının insan ve toplum hayatındaki yeri.",
   },
 ] as const;
 
 export const vision = {
   label: "Vizyonumuz",
-  body: "Gençleri fikir üretmeye teşvik eden, onları kalıpların dışına çıkmaya iten ve farklı bakış açılarını bir araya getirerek zengin bir düşünce ve tartışma ortamı sağlayan bir çalıştay düzenlemek. Yenilikçi ve ilham verici bir etkinlikle, katılımcıların yalnızca bugünlerine değil geleceklerine de yön veren bir deneyim sunmayı hedefliyoruz.",
+  body: "Gençlerin farklı disiplinleri bir arada ele alabildiği, fikirlerini açıkça tartışabildiği bir çalıştay kurmak. Merakı ve üretmeyi önceleyen; katılımcının hem bilgisine hem bakış açısına katkı sağlayan bir ortam hedefliyoruz.",
 } as const;
 
 export const mission = {
   label: "Misyonumuz",
-  body: "Temamız olan sirkülasyonu farklı disiplinlerin ışığında ele alarak katılımcılara derinlikli bir düşünme ve tartışma ortamı sunmak. Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji, Hukuk ve İlahiyat gibi alanların perspektifleriyle; gençlerin bireyin kendisiyle, toplumla ve dünya düzeniyle kurduğu ilişkiyi sorgulamalarını teşvik ediyor; muhakeme, müzakere ve eleştirel düşünme becerilerinin gelişimine katkı hedefliyoruz.",
+  body: "“Sirkülasyon” temasını yedi farklı disiplinle ele almak: Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji, Hukuk ve İlahiyat. Katılımcıların bu alanlar üzerinden düşünme, tartışma ve fikir üretme becerilerini geliştirmesini; farklı bakış açılarını bir arada değerlendirmesini istiyoruz.",
 } as const;
 
 export const teams = {
   eyebrow: "Kadromuz",
   title: "Ekiplerimiz",
   intro:
-    "Çalıştayı hayata geçiren ekipler ve başkanları. Başvurduğunda, ilgilendiğin ekibe başkanının yönetiminde yardımcı üye olarak katılırsın.",
+    "Çalıştayı hazırlayan ekipler ve başkanları. Başvurduğunda, ilgilendiğin ekibe başkanıyla birlikte yardımcı üye olarak katılırsın.",
   groupPhotoCaption: "Çalıştay Ekibi · 2026",
   modalHint: "Ne yaptığını gör",
-  // TODO: başkan isimleri + blurb/görevleri düzenle, eksik ekipleri ekle (grid otomatik büyür).
-  // Her ekibin kendi fotoğraf slotu var; görsel gelince public/ekipler/ altına koyarız.
-  // blurb: ekibin bir cümlelik özeti · tasks: yardımcı üyenin üstlendiği işler (karta tıklayınca modalda görünür).
+  // lead: birden fazla isim " · " ile ayrılır (kartta "Başkanlar" olarak görünür).
   committees: [
     {
       name: "Organizasyon",
-      lead: "[Başkan]",
-      blurb: "Çalıştayın genel planlamasını, zaman çizelgesini ve ekipler arası koordinasyonu yürüten çekirdek ekip.",
-      tasks: ["Etkinlik akışını ve programı planlama", "Ekipler arası koordinasyon", "Gün içi operasyonun yönetimi"],
+      lead: "Öykü Kolçak · Mehmet İbrahim Güler",
+      blurb: "Çalıştayın genel planını, zaman çizelgesini ve ekipler arası koordinasyonu yürüten çekirdek ekip.",
+      tasks: ["Program & zaman planı", "Ekipler arası koordinasyon", "Gün içi operasyon"],
+    },
+    {
+      name: "Halkla İlişkiler",
+      lead: "Nilsu Tunalı · Merve Öktem",
+      blurb: "Kurumlar ve katılımcılarla iletişimi, iş birliklerini ve dış ilişkileri yürüten ekip.",
+      tasks: ["Kurum & katılımcı iletişimi", "İş birlikleri", "Davet ve takip"],
+    },
+    {
+      name: "Akademi",
+      lead: "Asya Koşak · Cantürk Özcan",
+      blurb: "Çalıştayın akademik içeriğini hazırlayan ekip: disiplinler, oturumlar ve masa düzeni.",
+      tasks: ["Oturum & içerik hazırlığı", "Disiplin masaları", "Konuşmacı koordinasyonu"],
+    },
+    {
+      name: "Finans",
+      lead: "Duru Kurt",
+      blurb: "Çalıştayın bütçesini yöneten ekip: gelir-gider, sponsorluk ve harcama takibi.",
+      tasks: ["Bütçe planı", "Sponsorluk", "Harcama takibi"],
+    },
+    {
+      name: "Medya",
+      lead: "Eren Azaplar · Ebrar Aygün",
+      blurb: "Sosyal medya, içerik ve fotoğraf/video üreten ekip.",
+      tasks: ["Sosyal medya içerikleri", "Fotoğraf & video", "İçerik takvimi"],
+    },
+    {
+      name: "Saha",
+      lead: "Deniz Seven Elmalı · Egehan Fatih Baydili",
+      blurb: "Etkinlik günü mekân, yerleşim, malzeme ve saha işleyişinden sorumlu ekip.",
+      tasks: ["Mekân & yerleşim", "Malzeme & ikram", "Gün içi saha desteği"],
+    },
+    {
+      name: "Teknik",
+      lead: "Kağan Tiryaki",
+      blurb: "Web sitesi, kayıt sistemleri ve etkinlik günü teknik desteği sağlayan ekip.",
+      tasks: ["Web sitesi & dijital araçlar", "Kayıt & form sistemleri", "Teknik destek"],
     },
     {
       name: "Basın",
-      lead: "[Başkan]",
-      blurb: "Çalıştayın sesini duyuran ekip: sosyal medya, duyurular ve dış iletişim.",
-      tasks: ["Instagram içerik takvimi", "Duyuru ve metin yazımı", "Katılımcı iletişimi"],
+      lead: "Mila Günçiçek · Ayşe Melike Günindi",
+      blurb: "Basın ilişkileri, duyuru metinleri ve etkinlik arşivinden sorumlu ekip.",
+      tasks: ["Basın ilişkileri", "Duyuru & metin", "Etkinlik arşivi"],
     },
     {
-      name: "Tasarım",
-      lead: "[Başkan]",
-      blurb: "Çalıştayın görsel dilini kuran ekip: afiş, sunum, sosyal medya görselleri ve kimlik.",
-      tasks: ["Afiş & sosyal medya görselleri", "Sunum ve şablon tasarımı", "Görsel kimliğin korunması"],
-    },
-    {
-      name: "Lojistik",
-      lead: "[Başkan]",
-      blurb: "Sahnenin arkasını çeviren ekip: mekân, malzeme, ikram ve gün içi akış.",
-      tasks: ["Mekân ve yerleşim planı", "Malzeme ve ikram tedariği", "Gün içi saha desteği"],
-    },
-    {
-      name: "IT",
-      lead: "[Başkan]",
-      blurb: "Teknik altyapıyı ayakta tutan ekip: web sitesi, kayıt sistemleri ve dijital araçlar.",
-      tasks: ["Web sitesi ve dijital araçlar", "Kayıt & form sistemleri", "Etkinlik günü teknik destek"],
-    },
-    {
-      name: "Press",
-      lead: "[Başkan]",
-      blurb: "Anı yakalayan ekip: fotoğraf, video ve etkinlik boyunca içerik üretimi.",
-      tasks: ["Fotoğraf & video çekimi", "Etkinlik içi içerik yakalama", "Sonrası için arşiv ve kurgu"],
+      name: "Admin",
+      lead: "R. Zilan Ekinci",
+      blurb: "Çalıştayın genel yönetim ve idari işleyişini yürüten ekip.",
+      tasks: ["İdari süreçler", "Belgeler & takip", "Genel koordinasyon"],
     },
   ],
   cta: "Ekibe Katıl",
+} as const;
+
+// "Ekibimiz" — ekibin yüzleri. Fotoğraflar henüz yok; her komite için boş
+// (branded) foto slotu gösteriyoruz, görseller geldikçe doldurulacak.
+export const teamGallery = {
+  eyebrow: "Yüzler",
+  title: "Ekibimiz",
+  intro:
+    "Çalıştayı hazırlayan ekibin yüzleri. Fotoğraflar çekildikçe bu bölümü güncelleyeceğiz — her komite için bir kare ayırdık.",
+  groupCaption: "Çalıştay Ekibi · 2026",
+  note: "Fotoğraflar yakında eklenecek.",
 } as const;
 
 export const process = {
   eyebrow: "Nasıl işliyor?",
   title: "Başvuru Süreci",
   intro:
-    "Başvurudan ekibe katılıma kadar yol basit. Her adımda seni bilgilendiririz — takıldığın yerde Instagram'dan yazman yeterli.",
+    "Başvurudan ekibe katılıma kadar süreç kısa. Her adımda seni bilgilendiriyoruz; takıldığın yerde Instagram'dan yazman yeterli.",
   steps: [
     {
       step: "01",
       title: "Başvuru",
-      body: "“Ekibe Katıl” formunu doldur — yalnızca birkaç dakika. İlgilendiğin ekibi seçer, kendinden kısaca bahsedersin.",
+      body: "“Ekibe Katıl” formunu doldur — birkaç dakika. İlgilendiğin ekibi seçer, kendinden kısaca bahsedersin.",
     },
     {
       step: "02",
       title: "Değerlendirme",
-      body: "Başvurun ilgili ekip başkanı ve koordinasyon ekibi tarafından incelenir.",
+      body: "Başvurun, ilgili ekip başkanı ve koordinasyon ekibi tarafından incelenir.",
     },
     {
       step: "03",
       title: "Tanışma",
-      body: "Kısa bir tanışma sohbetiyle birbirimizi tanır, sorularını yanıtlarız. Deneyim değil, merak arıyoruz.",
+      body: "Kısa bir tanışma sohbeti yapar, sorularını yanıtlarız. Deneyim değil, merak arıyoruz.",
     },
     {
       step: "04",
       title: "Ekibe Katılım",
-      body: "Sonuçlar paylaşılır ve ekibindeki yerini alırsın. Sirkülasyon '26 yolculuğu başlar.",
+      body: "Sonuçları paylaşır, ekibindeki yerini veririz. Ardından ekibinle çalışmaya başlarsın.",
     },
   ],
 } as const;
 
 export const faqs = [
   {
-    q: "Kimler başvurabilir?",
-    a: "Öğrenmeye ve üretmeye hevesli, meraklı herkes başvurabilir. [Yaş/okul kriteri buraya eklenecek.]",
+    q: "Çalıştay nedir?",
+    a: "Çalıştay; katılımcıların belirli bir tema ya da problem üzerine birlikte düşünmek, tartışmak ve çözüm üretmek için bir araya geldiği etkileşimli bir organizasyondur. Katılımcılar, ilgi alanlarına göre yer aldıkları komitelerde deneyimli moderatörler eşliğinde fikir alışverişinde bulunur; farklı bakış açılarını değerlendirir ve tartışmalara aktif olarak katılır. Amaç; eleştirel düşünme, ekip çalışması ve disiplinler arası bakış açısını geliştirmektir.",
+  },
+  {
+    q: "Aero Sirkülasyon Çalıştayı'nın teması nedir?",
+    a: "Sirkülasyon, en temel anlamıyla sürekli hareketi, dönüşümü ve etkileşimi ifade eder. Felsefi açıdan düşüncelerin, değerlerin ve bakış açılarının bireyler arasında dolaşarak gelişmesini; bilimsel açıdan ise doğadaki enerji, madde ve bilgi döngülerini simgeler. Çalıştay bu iki bakışı bir araya getirerek katılımcıları yedi farklı disiplinden gelen fikirlerle buluşturur; bilgi ve deneyim sürekli bir etkileşim hâlinde dolaşır.",
+  },
+  {
+    q: "Çalıştaya kimler katılabilir?",
+    a: "Aktif lise öğrencisi olan herkes katılabilir. Daha önce bir çalıştaya ya da benzeri bir organizasyona katılmış olman gerekmez; ilk kez deneyim yaşayacaklar da, daha önce yer almış olanlar da başvurabilir.",
+  },
+  {
+    q: "Çalıştayda değerlendirme nasıl yapılıyor?",
+    a: "Katılımcılar; oturumlara aktif katılımları, konuya hâkimiyetleri, fikirlerini ifade biçimleri ve genel performansları doğrultusunda deneyimli moderatörler tarafından değerlendirilir. Değerlendirme sonucunda öne çıkan katılımcılar çeşitli ödüllere layık görülür.",
+  },
+  {
+    q: "Çalıştay ödülleri nelerdir?",
+    a: "Üç tür ödül veriliyor. En İyi Delege Ödülü, komitesinde üstün performans göstererek tartışmalara en etkili katkıyı sağlayan katılımcıya; Üstün Delege Ödülü, aktif katılımı, konuya hâkimiyeti ve katkılarıyla öne çıkan katılımcılara; Mansiyon Ödülü ise çalıştay boyunca sergilediği performans ve potansiyeliyle dikkat çeken katılımcılara verilir.",
+  },
+  {
+    q: "Bu başvuru ne için?",
+    a: "Bu başvuru, çalıştayı hazırlayan ekiplerde görev almak içindir. Seçtiğin ekibe, başkanıyla birlikte yardımcı üye olarak katılırsın.",
+  },
+  {
+    q: "Ekibe kimler başvurabilir?",
+    a: "Öğrenmeye ve üretmeye istekli, meraklı herkes ekibe başvurabilir. Ön deneyim gerekmez.",
   },
   {
     q: "Ön deneyimim yok, yine de başvurabilir miyim?",
-    a: "Kesinlikle. Aradığımız şey deneyim değil, merak ve öğrenme isteği. Gerisini birlikte öğreniriz.",
+    a: "Evet. Aradığımız deneyim değil, merak ve öğrenme isteği. Gerisini birlikte öğreniriz.",
+  },
+  {
+    q: "Ekipte yer almak bana ne kazandırır?",
+    a: "Gerçek bir organizasyonun içinde deneyim: ekip çalışması, iletişim, planlama ve sorumluluk almanın yanı sıra ilgi alanına göre (tasarım, medya, teknik, finans…) pratik beceriler.",
   },
   {
     q: "Hangi ekiplere başvurabilirim?",
-    a: "Başkanların yürüttüğü ekiplere yardımcı üye olarak katılabilirsin: Organizasyon, Basın, Tasarım, Lojistik, IT ve daha fazlası. İlgi alanına göre başvuru formunda seçim yaparsın.",
+    a: "Organizasyon, Halkla İlişkiler, Akademi, Finans, Medya, Saha, Teknik ve Basın. Her ekibin ne yaptığını “Ekiplerimiz” bölümünde görebilir, ilgi alanını başvuru formunda seçebilirsin.",
+  },
+  {
+    q: "Arkadaşımla ya da birden fazla ekibe başvurabilir miyim?",
+    a: "Formda en çok ilgilendiğin ekibi seçersin. Arkadaşınla ayrı ayrı başvurmanızda bir sakınca yok.",
   },
   {
     q: "Başvuru ücretli mi?",
-    a: "[Hayır, başvuru tamamen ücretsizdir.]",
+    a: "Hayır, ekibe başvuru ücretsiz.",
   },
   {
     q: "Nasıl başvururum?",
-    a: "Sayfadaki “Ekibe Katıl” butonundan Google Form'a ulaşır, birkaç dakikada başvurunu tamamlarsın.",
+    a: "“Ekibe Katıl” butonundan Google Form'a gider, birkaç dakikada başvurunu tamamlarsın.",
   },
   {
-    q: "Mülakat var mı, süreç nasıl işliyor?",
-    a: "[Form → kısa tanışma/mülakat → sonuç] şeklinde ilerler. Süreç boyunca seni bilgilendiririz.",
+    q: "Değerlendirme ve mülakat süreci nasıl işliyor?",
+    a: "Başvuru formundan sonra kısa bir tanışma yapıyor, ardından sonucu paylaşıyoruz. Deneyim değil merak arıyoruz; süreç boyunca seni bilgilendiriyoruz.",
   },
   {
     q: "Sonuçlar nasıl açıklanıyor?",
-    a: "[Başvuru sonuçları e-posta ve Instagram üzerinden paylaşılır.]",
+    a: "Sonuçları e-posta ve Instagram üzerinden paylaşıyoruz.",
   },
   {
     q: "Ne kadar zaman ayırmam gerekiyor?",
-    a: "[Haftalık taahhüt bilgisi buraya eklenecek.] Esnek bir düzende ilerliyoruz.",
+    a: "Ekiplerin yoğunluğuna göre değişir; genelde haftada birkaç saatlik esnek bir tempoda ilerliyoruz. Etkinlik yaklaştıkça yoğunluk biraz artabilir.",
+  },
+  {
+    q: "Çalıştay ne zaman ve nerede yapılacak?",
+    a: "Tarih ve yer netleşince bu sayfadan ve sosyal medyadan duyuracağız.",
+  },
+  {
+    q: "Başka sorum var, nereye yazabilirim?",
+    a: "En hızlısı Instagram (@aero_cal); e-posta için aerosirkulasyoncalistayi@gmail.com adresine de yazabilirsin.",
   },
 ] as const;
 
 export const contact = {
   label: "Bize Ulaşın",
   intro:
-    "Aklına takılan her şey için buradayız. En hızlı yol Instagram; dilersen e-posta da yazabilirsin.",
-  // TODO: gerçek isim & e-posta bilgileri
+    "Soruların için bize yazabilirsin. En hızlı yol Instagram; e-posta da olur.",
   coordinators: [
-    { role: "Genel Koordinatör", name: "[Ad Soyad]", email: "[e-posta]" },
-    { role: "Genel Koordinatör", name: "[Ad Soyad]", email: "[e-posta]" },
+    { role: "Genel Koordinatör", name: "Asya Yeşil", email: "asya.yesil10@gmail.com" },
+    { role: "Genel Koordinatör", name: "Öykü Ceren Güler", email: "oykucerenguler@gmail.com" },
   ],
-  advisor: { role: "Danışman Öğretmen", name: "[Ad Soyad]" },
-  kvkk: "Başvuru formu aracılığıyla paylaştığın bilgiler yalnızca ekip alım süreci için kullanılır.",
+  kvkk: "Başvuru formu üzerinden paylaştığın bilgiler yalnızca ekip alım sürecinde kullanılır.",
 } as const;
 
 export const footer = {

@@ -61,7 +61,8 @@ export function Teams() {
 
                 <div className="mt-auto flex items-center justify-between border-t border-hairline/50 pt-4">
                   <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-label">
-                    Başkan · <span className="text-ink/80">{c.lead}</span>
+                    {c.lead.includes("·") ? "Başkanlar" : "Başkan"} ·{" "}
+                    <span className="text-ink/80">{c.lead}</span>
                   </span>
                   <span className="h-1.5 w-1.5 rounded-full bg-brand-turq/50 shadow-[0_0_8px_1px_rgba(84,227,229,0.5)] transition-transform duration-300 group-hover:scale-150" />
                 </div>
@@ -75,7 +76,7 @@ export function Teams() {
           <div>
             <p className="mb-1 font-display text-2xl text-ink">Sen de aramıza katıl.</p>
             <p className="text-muted">
-              İlgilendiğin ekibe başkanının yönetiminde yardımcı üye ol.
+              İlgilendiğin ekibe yardımcı üye olarak başvur.
             </p>
           </div>
           <MagneticButton strength={0.2} radius={160}>

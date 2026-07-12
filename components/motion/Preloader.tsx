@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AeroMark } from "@/components/ui/AeroMark";
 import { site } from "@/lib/content";
 
 /**
@@ -63,6 +64,7 @@ export function Preloader() {
       style={{ opacity: fading ? 0 : 1, pointerEvents: fading ? "none" : "auto" }}
       aria-hidden
     >
+      <AeroMark className="h-12 w-12" />
       <p className="kicker text-[11px]">{site.school}</p>
       <p className="font-display text-3xl tracking-tight text-ink md:text-4xl">
         <span className="text-flow-anim">{firstWord}</span>

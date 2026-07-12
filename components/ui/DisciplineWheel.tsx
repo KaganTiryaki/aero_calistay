@@ -206,9 +206,6 @@ export function DisciplineWheel() {
           </p>
         </div>
         <p className="text-lg leading-relaxed text-ink/90">{active.note}</p>
-        <p className="mt-7 font-mono text-[10px] uppercase tracking-[0.22em] text-label">
-          İmleci çarkta gezdir · en yakın disiplin açılır
-        </p>
       </div>
     </div>
   );

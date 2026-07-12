@@ -15,13 +15,15 @@ export function Faq() {
     <section id="sss" className="relative overflow-hidden px-6 py-28 md:py-40">
       <SectionAtmosphere tone="calm" variant={0} flowlines />
       <div className="relative z-10 mx-auto max-w-6xl">
-        <div className="grid gap-12 md:grid-cols-[0.85fr_1.15fr] md:gap-16">
-          <div className="md:sticky md:top-28 md:self-start">
-            <SectionHeader index="04" eyebrow="SSS" title="Sıkça Sorulan Sorular" />
+        {/* two-column (sticky header + accordion) only on wide desktops; on
+            tablet/iPad and below it collapses to a single full-width column so
+            questions run edge-to-edge and answers open downward, readable. */}
+        <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <SectionHeader index="05" eyebrow="SSS" title="Sıkça Sorulan Sorular" />
             <Reveal delay={0.1}>
               <p className="max-w-xs text-muted">
-                Aradığını bulamadıysan çekinme — Instagram'dan yazabilir, aklındaki her
-                şeyi sorabilirsin.
+                Aradığın yanıt yoksa Instagram'dan (@aero_cal) yazman yeterli.
               </p>
             </Reveal>
           </div>
@@ -78,7 +80,7 @@ export function Faq() {
                       style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                     >
                       <div className="overflow-hidden">
-                        <p className="pb-6 pl-10 pr-4 leading-relaxed text-muted">{f.a}</p>
+                        <p className="max-w-3xl pb-6 pl-10 pr-4 leading-relaxed text-muted">{f.a}</p>
                       </div>
                     </div>
                   </div>

@@ -69,7 +69,7 @@ export function Contact() {
     <section id="iletisim" className="relative overflow-hidden px-6 py-28 md:py-40">
       <SectionAtmosphere tone="warm" variant={1} />
       <div className="relative z-10 mx-auto max-w-6xl">
-        <SectionHeader index="05" eyebrow="İletişim" title={contact.label} />
+        <SectionHeader index="06" eyebrow="İletişim" title={contact.label} />
 
         <div className="grid gap-6 md:grid-cols-2">
           <Reveal>
@@ -127,11 +127,8 @@ export function Contact() {
           </Reveal>
 
           <div className="flex flex-col gap-4">
-            <Reveal>
-              <PersonCard role={contact.advisor.role} name={contact.advisor.name} />
-            </Reveal>
             {contact.coordinators.map((c, i) => (
-              <Reveal key={i} delay={(i + 1) * 0.08}>
+              <Reveal key={i} delay={i * 0.08}>
                 <PersonCard role={c.role} name={c.name} email={c.email} />
               </Reveal>
             ))}

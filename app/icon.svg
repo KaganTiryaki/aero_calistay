@@ -7,6 +7,6 @@
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="#05090c"/>
-  <circle cx="32" cy="32" r="16" fill="none" stroke="url(#g)" stroke-width="5"
-          stroke-linecap="round" stroke-dasharray="74 26" transform="rotate(-45 32 32)"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#g)"
+        d="M32 12 L52 56 L32 44 L12 56 Z M32 18 L34 40 L30 40 Z"/>
 </svg>

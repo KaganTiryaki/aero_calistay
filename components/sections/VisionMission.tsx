@@ -73,12 +73,11 @@ export function VisionMission() {
           <Reveal className="mb-12">
             <p className="kicker mb-3">Temamız</p>
             <h3 className="max-w-2xl font-display text-3xl leading-tight text-ink md:text-5xl">
-              <span className="text-flow">Sirkülasyon</span> — yedi disiplin, tek
-              akıntı.
+              <span className="text-flow">Sirkülasyon</span> — yedi disiplin.
             </h3>
             <p className="mt-4 max-w-xl text-muted">
-              Her disiplin, fikirlerin dolaşımına farklı bir kapı açar. Disiplinleri
-              keşfet, hangisinin ne anlattığını gör.
+              Çalıştay, temasını yedi farklı disiplinle ele alıyor. Her birine göz
+              at, neyi kapsadığını gör.
             </p>
           </Reveal>
           <DisciplineWheel />

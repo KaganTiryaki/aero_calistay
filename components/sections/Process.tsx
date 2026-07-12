@@ -13,7 +13,7 @@ export function Process() {
       <SectionAtmosphere tone="flux" variant={0} />
 
       <div className="relative z-10 mx-auto max-w-5xl">
-        <SectionHeader index="03" eyebrow={process.eyebrow} title={process.title} />
+        <SectionHeader index="04" eyebrow={process.eyebrow} title={process.title} />
 
         <Reveal className="mb-16 max-w-2xl">
           <p className="text-lg leading-relaxed text-muted">{process.intro}</p>
@@ -60,7 +60,7 @@ export function Process() {
           className="mt-16 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="max-w-md text-muted">
-            Hazırsan ilk adım seni bekliyor — başvuru yalnızca birkaç dakika.
+            Hazırsan başvur — birkaç dakika sürer.
           </p>
           <MagneticButton strength={0.2} radius={160}>
             <Cta label="Ekibe Katıl" />

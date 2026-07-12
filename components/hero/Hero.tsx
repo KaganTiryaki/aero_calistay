@@ -6,6 +6,7 @@ import { FlowField } from "./FlowField";
 import { Countdown } from "./Countdown";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { Cta } from "@/components/ui/Cta";
+import { AeroMark } from "@/components/ui/AeroMark";
 import { hero, site, disciplines } from "@/lib/content";
 
 const container: Variants = {
@@ -70,6 +71,13 @@ export function Hero() {
         animate={reduce ? undefined : "show"}
         className="relative z-50 flex flex-col items-center"
       >
+        <motion.div variants={item} className="mb-7">
+          <AeroMark
+            className="h-16 w-16 drop-shadow-[0_0_24px_rgba(46,197,175,0.35)] md:h-[76px] md:w-[76px]"
+            title="AERO"
+          />
+        </motion.div>
+
         <motion.div
           variants={item}
           className="kicker mb-8 flex items-center gap-4 before:h-px before:w-9 before:bg-gradient-to-r before:from-transparent before:to-brand-turq/60 after:h-px after:w-9 after:bg-gradient-to-l after:from-transparent after:to-brand-turq/60"

@@ -7,6 +7,7 @@ import { scrollToId } from "@/lib/scroll";
 import { useScrollLock } from "@/lib/useScrollLock";
 import { Cta } from "@/components/ui/Cta";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { AeroMark } from "@/components/ui/AeroMark";
 import { cn } from "@/lib/cn";
 
 export function StickyNav() {
@@ -76,9 +77,10 @@ export function StickyNav() {
         <a
           href="#anasayfa"
           onClick={(e) => go(e, "#anasayfa")}
-          className="font-mono text-[12px] font-medium uppercase tracking-[0.28em] text-ink/90 transition-colors hover:text-brand-turq"
+          className="flex items-center gap-2.5 font-mono text-[12px] font-medium uppercase tracking-[0.28em] text-ink/90 transition-colors hover:text-brand-turq"
         >
-          {site.navMark}
+          <AeroMark className="h-[22px] w-[22px] shrink-0" title="AERO" />
+          <span>{site.navMark}</span>
         </a>
 
         <div className="hidden items-center gap-9 md:flex">
