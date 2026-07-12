@@ -64,10 +64,6 @@ export const disciplines = [
     name: "Hukuk",
     note: "Kurallar, haklar ve adalet; toplumsal düzenin nasıl kurulduğu.",
   },
-  {
-    name: "İlahiyat",
-    note: "İnanç, din ve anlam arayışının insan ve toplum hayatındaki yeri.",
-  },
 ] as const;
 
 export const vision = {
@@ -77,7 +73,7 @@ export const vision = {
 
 export const mission = {
   label: "Misyonumuz",
-  body: "“Sirkülasyon” temasını yedi farklı disiplinle ele almak: Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji, Hukuk ve İlahiyat. Katılımcıların bu alanlar üzerinden düşünme, tartışma ve fikir üretme becerilerini geliştirmesini; farklı bakış açılarını bir arada değerlendirmesini istiyoruz.",
+  body: "“Sirkülasyon” temasını altı farklı disiplinle ele almak: Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji ve Hukuk. Katılımcıların bu alanlar üzerinden düşünme, tartışma ve fikir üretme becerilerini geliştirmesini; farklı bakış açılarını bir arada değerlendirmesini istiyoruz.",
 } as const;
 
 export const teams = {
@@ -194,7 +190,7 @@ export const faqs = [
   },
   {
     q: "Aero Sirkülasyon Çalıştayı'nın teması nedir?",
-    a: "Sirkülasyon, en temel anlamıyla sürekli hareketi, dönüşümü ve etkileşimi ifade eder. Felsefi açıdan düşüncelerin, değerlerin ve bakış açılarının bireyler arasında dolaşarak gelişmesini; bilimsel açıdan ise doğadaki enerji, madde ve bilgi döngülerini simgeler. Çalıştay bu iki bakışı bir araya getirerek katılımcıları yedi farklı disiplinden gelen fikirlerle buluşturur; bilgi ve deneyim sürekli bir etkileşim hâlinde dolaşır.",
+    a: "Sirkülasyon, en temel anlamıyla sürekli hareketi, dönüşümü ve etkileşimi ifade eder. Felsefi açıdan düşüncelerin, değerlerin ve bakış açılarının bireyler arasında dolaşarak gelişmesini; bilimsel açıdan ise doğadaki enerji, madde ve bilgi döngülerini simgeler. Çalıştay bu iki bakışı bir araya getirerek katılımcıları altı farklı disiplinden gelen fikirlerle buluşturur; bilgi ve deneyim sürekli bir etkileşim hâlinde dolaşır.",
   },
   {
     q: "Çalıştaya kimler katılabilir?",
