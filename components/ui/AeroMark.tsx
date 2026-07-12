@@ -1,7 +1,8 @@
 /**
- * AERO brand mark — a winged arrowhead "A" (aero / upward current) in the
- * teal→cyan brand gradient, with a center crease that splits it into two
- * folded wings. Pure vector, so it stays crisp from 16px favicon to hero size.
+ * AERO brand mark — the club emblem: an upward jet/rocket "A" drawn as teal
+ * line-art. Nose apex on top, two swept wings splaying to a wide base, a
+ * central notched fin, and two small winglets. Pure vector so it stays crisp
+ * from a 16px favicon up to hero size.
  *
  * NB: the gradient id is fixed; multiple instances on a page produce duplicate
  * <linearGradient id> defs, which every browser resolves to the first match —
@@ -31,17 +32,25 @@ export function AeroMark({
       <defs>
         <linearGradient id="aero-mark-g" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#06c3a9" />
-          <stop offset="0.5" stopColor="#2ec5af" />
-          <stop offset="1" stopColor="#43cbf1" />
+          <stop offset="0.55" stopColor="#12c6b0" />
+          <stop offset="1" stopColor="#2ec5af" />
         </linearGradient>
       </defs>
-      {/* winged arrowhead + center crease (evenodd cuts the crease as a slit) */}
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        fill="url(#aero-mark-g)"
-        d="M50 9 L85 87 L50 66 L15 87 Z M50 20 L53.5 60 L46.5 60 Z"
-      />
+      <g
+        stroke="url(#aero-mark-g)"
+        strokeWidth="4"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      >
+        {/* swept wings */}
+        <path d="M50 12 L15 86 L44 70 Z" />
+        <path d="M50 12 L85 86 L56 70 Z" />
+        {/* central notched fin */}
+        <path d="M44 70 L47 49 L50 55 L53 49 L56 70 L50 83 Z" />
+        {/* winglets */}
+        <path d="M44 55 L32 57 L33 64 L45 62 Z" />
+        <path d="M56 55 L68 57 L67 64 L55 62 Z" />
+      </g>
     </svg>
   );
 }

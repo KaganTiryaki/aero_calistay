@@ -68,12 +68,12 @@ export const disciplines = [
 
 export const vision = {
   label: "Vizyonumuz",
-  body: "Gençlerin farklı disiplinleri bir arada ele alabildiği, fikirlerini açıkça tartışabildiği bir çalıştay kurmak. Merakı ve üretmeyi önceleyen; katılımcının hem bilgisine hem bakış açısına katkı sağlayan bir ortam hedefliyoruz.",
+  body: "Gençleri fikir üretmeye teşvik eden, onları kalıpların dışına çıkmaya iten ve farklı bakış açılarını bir araya getirerek zengin bir düşünce ve tartışma ortamı sağlayan bir çalıştay düzenlemektir. Yenilikçi ve ilham verici bir etkinlik düzenleyerek katılımcıların sadece bugünlerine değil, geleceklerine de yön veren bir deneyim sunmayı hedefliyoruz. Amacımız; bu çalıştaydan geçen her öğrencinin kendine yeni şeyler katması; sorgulayan, bilinçli, cesur ve üretken bir birey olarak kendi yolunu çizebilmesi ve fark yaratabilmesidir.",
 } as const;
 
 export const mission = {
   label: "Misyonumuz",
-  body: "“Sirkülasyon” temasını altı farklı disiplinle ele almak: Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji ve Hukuk. Katılımcıların bu alanlar üzerinden düşünme, tartışma ve fikir üretme becerilerini geliştirmesini; farklı bakış açılarını bir arada değerlendirmesini istiyoruz.",
+  body: "Temamız olan sirkülasyonu farklı disiplinlerin ışığında ele alarak katılımcılara derinlikli bir düşünme ve tartışma ortamı sunmaktır. Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji, Hukuk gibi alanların sağladığı perspektiflerle gençlerin; bireyin kendisiyle, toplumla ve dünya düzeniyle kurduğu ilişkiyi sorgulamalarını teşvik etmeyi amaçlıyoruz. Bu doğrultuda katılımcıların disiplinler arası düşünme becerilerini geliştirmelerine, farklı bakış açılarıyla karşılaşmalarına ve sirkülasyonu çok boyutlu biçimde değerlendirmelerine olanak sağlarken; muhakeme, müzakere ve eleştirel düşünme becerilerinin gelişimine katkı sağlamayı hedefliyoruz.",
 } as const;
 
 export const teams = {
