@@ -8,9 +8,10 @@ export const site = {
   event: "Sirkülasyon Çalıştayı",
   year: "'26",
   navMark: "Sirkülasyon '26",
-  // Google Form. Form public olduğunda "Gönder → 🔗" linkiyle (forms.gle/... veya
-  // /d/e/.../viewform) doğrula; şu an edit linkinin viewform hâli kullanılıyor.
-  applyUrl: "https://docs.google.com/forms/d/16A0iEPr0CGhkGPzGVKMSVtc1h0PWjeiENQ-RYCnM5Xk/viewform",
+  // Google Form (public /d/e/.../viewform linki). UYARI: form şu an ziyaretçiden
+  // Google girişi istiyor. Herkese açık olması için Forms → Yayınla/Ayarlar'dan
+  // yanıtlayıcıları "Bağlantısı olan herkes" yap ve giriş/e-posta zorunluluğunu kapat.
+  applyUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfQXUUCWI9a_TGkq2loiYO1eUCVJBMLHySOLFwa7w9MUqPIYA/viewform",
   applyDeadline: "2026-08-02T23:59:59", // ~3 hafta (2 Ağustos 2026); değişirse güncelle
   socials: {
     instagram: "https://www.instagram.com/aero_cal/",
