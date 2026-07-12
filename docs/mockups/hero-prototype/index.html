@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AERO — Akıntı Hero Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,500;9..144,560&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=latin,latin-ext" rel="stylesheet">
+<style>
+  :root{
+    --void:#05090C; --void2:#070F14;
+    --teal-deep:#06C3A9; --teal:#2EC5AF; --turq:#54E3E5; --cyan:#43CBF1;
+    --ink:#F4F8FA; --muted:#9FB6B4; --label:#5E7B78;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--void);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{overflow:hidden}
+  .hero{position:relative;width:100vw;height:100vh;overflow:hidden;isolation:isolate}
+  /* layered background */
+  #flow{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+  .mesh{position:absolute;inset:-4%;z-index:0;transition:transform .35s ease-out;will-change:transform;
+    background:
+      radial-gradient(60% 45% at 50% 34%, rgba(46,197,175,.28), transparent 70%),
+      radial-gradient(45% 40% at 78% 68%, rgba(67,203,241,.16), transparent 70%),
+      radial-gradient(50% 50% at 18% 74%, rgba(6,195,169,.14), transparent 72%),
+      radial-gradient(120% 120% at 50% 50%, #06121A 0%, #05090C 55%, #03060A 100%);
+  }
+  .vignette{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 42%, transparent 52%, rgba(0,0,0,.55) 100%);
+    box-shadow:inset 0 0 240px 40px rgba(0,0,0,.6);}
+  .grain{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  /* foreground */
+  .content{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 24px}
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:30px}
+  .brand img{height:52px;filter:drop-shadow(0 0 18px rgba(46,197,175,.55)) drop-shadow(0 0 4px rgba(84,227,229,.7))}
+  .brand .wm{font-family:Inter;font-weight:600;font-size:15px;letter-spacing:.62em;padding-left:.62em;color:#D6EEEA}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.42em;text-transform:uppercase;color:#79ADA8;display:flex;align-items:center;gap:16px;margin-bottom:34px}
+  .kicker::before,.kicker::after{content:"";width:38px;height:1px;background:linear-gradient(90deg,transparent,rgba(84,227,229,.6),transparent)}
+  h1{font-family:Fraunces,serif;font-weight:500;font-size:clamp(3rem,8.4vw,7.4rem);line-height:.96;letter-spacing:-.022em;color:#F4F8FA;text-wrap:balance}
+  h1 .flow-word{background:linear-gradient(104deg,var(--teal-deep),var(--turq) 42%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;font-style:italic;font-weight:340}
+  .sub{margin-top:26px;max-width:52ch;font-size:clamp(1rem,1.4vw,1.18rem);line-height:1.6;color:var(--muted)}
+  .cta-row{margin-top:44px;display:flex;flex-direction:column;align-items:center;gap:20px}
+  .pill{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:500;letter-spacing:.01em;color:#BDEDE5;
+    padding:9px 18px;border-radius:999px;border:1px solid rgba(84,227,229,.28);background:rgba(46,197,175,.07);backdrop-filter:blur(6px)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--turq);box-shadow:0 0 12px 2px rgba(84,227,229,.9)}
+  .cta{position:relative;display:inline-flex;align-items:center;gap:12px;font-family:Inter;font-weight:600;font-size:17px;color:#032019;
+    padding:17px 34px;border-radius:999px;text-decoration:none;
+    background:linear-gradient(118deg,var(--teal-deep),var(--teal) 45%,var(--cyan));
+    box-shadow:0 0 0 1px rgba(180,255,246,.25) inset, 0 10px 40px -6px rgba(46,197,175,.55), 0 0 70px -10px rgba(67,203,241,.5);
+    transition:transform .25s cubic-bezier(0.16,1,0.3,1),box-shadow .25s ease;will-change:transform}
+  .cta:hover{box-shadow:0 0 0 1px rgba(180,255,246,.4) inset, 0 12px 50px -4px rgba(46,197,175,.7), 0 0 90px -6px rgba(67,203,241,.65)}
+  .cta .arrow{transition:transform .3s}
+  .cta:hover .arrow{transform:translateX(5px)}
+  .note{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:#4E6E6B;text-transform:uppercase}
+  .ribbon{position:absolute;bottom:34px;left:0;right:0;z-index:5;text-align:center;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.28em;text-transform:uppercase;color:#3F5C59}
+  .ribbon b{color:#6FA39E;font-weight:500}
+  .scroll{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:6;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.3em;color:#3a5754}
+</style>
+</head>
+<body>
+  <section class="hero">
+    <div class="mesh"></div>
+    <canvas id="flow"></canvas>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+
+    <div class="content">
+      <div class="brand">
+        <img src="assets/aero-logo.png" alt="AERO" />
+        <span class="wm">AERO</span>
+      </div>
+      <div class="kicker">Sirkülasyon Çalıştayı · 2026</div>
+      <h1>Fikirler <span class="flow-word">dolaştıkça</span><br/>hayat bulur.</h1>
+      <p class="sub">Sanattan hukuka, felsefeden ilahiyata — disiplinlerin akıntısında düşünmeyi, sorgulamayı ve üretmeyi öğrenen bir nesil.</p>
+      <div class="cta-row">
+        <span class="pill"><span class="dot"></span> Ekip başvurularımız açıldı</span>
+        <a class="cta" href="#"><span>Ekibe Katıl</span><span class="arrow">→</span></a>
+        <span class="note">Google Formlar üzerinden · birkaç dakika</span>
+      </div>
+    </div>
+
+    <div class="ribbon"><b>Sanat</b> · <b>Tarih</b> · <b>Felsefe</b> · <b>Psikoloji</b> · <b>Sosyoloji</b> · <b>Hukuk</b> · <b>İlahiyat</b></div>
+    <div class="scroll">↓ KEŞFET</div>
+  </section>
+
+<script>
+const c = document.getElementById('flow');
+const ctx = c.getContext('2d');
+let W, H, DPR = Math.min(window.devicePixelRatio || 1, 2);
+function resize(){ W = c.width = innerWidth*DPR; H = c.height = innerHeight*DPR; c.style.width=innerWidth+'px'; c.style.height=innerHeight+'px'; }
+resize(); addEventListener('resize', resize);
+
+// pointer state
+let mx = innerWidth*0.5*DPR, my = innerHeight*0.4*DPR, pmx = mx, pmy = my, mspeed = 0, hasMouse = false;
+addEventListener('pointermove', e => { mx = e.clientX*DPR; my = e.clientY*DPR; hasMouse = true; }, { passive:true });
+addEventListener('pointerleave', () => hasMouse = false);
+
+const N = Math.min(1500, Math.floor(innerWidth*innerHeight/900));
+const P = [];
+const cx = () => W*0.5, cy = () => H*0.36;      // focal point (behind logo)
+const attractX = () => W*0.5, attractY = () => H*0.62; // CTA area
+for(let i=0;i<N;i++){
+  P.push({ x: Math.random()*W, y: Math.random()*H, life: Math.random()*200 });
+}
+function flowAngle(x,y,t){
+  const s = 0.0016;
+  return Math.sin(x*s + t*0.00022)*2.0
+       + Math.cos(y*s*0.9 - t*0.00019)*2.0
+       + Math.sin((x+y)*s*0.6 + t*0.00030)*1.3;
+}
+function tick(t){
+  // smoothed pointer speed (drives glow intensity)
+  const dxm = mx-pmx, dym = my-pmy;
+  mspeed = mspeed*0.85 + Math.min(1, Math.hypot(dxm,dym)/(45*DPR))*0.15;
+  pmx += dxm*0.2; pmy += dym*0.2;
+
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='rgba(5,9,12,0.085)';
+  ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  const ax=attractX(), ay=attractY();
+  const R = 175*DPR;                 // cursor influence radius
+  for(const p of P){
+    const a = flowAngle(p.x,p.y,t);
+    const spd = 0.9*DPR;
+    let vx = Math.cos(a)*spd, vy = Math.sin(a)*spd;
+    // gentle pull toward CTA (circulation-toward-the-action)
+    const dx=ax-p.x, dy=ay-p.y, d=Math.hypot(dx,dy)+1;
+    vx += (dx/d)*0.28*DPR; vy += (dy/d)*0.28*DPR;
+    // MOUSE REACTIVITY: swirl around + gently push from the cursor (stir the water)
+    if(hasMouse){
+      const ex=p.x-mx, ey=p.y-my, ed=Math.hypot(ex,ey);
+      if(ed<R){
+        const f=(1-ed/R), ux=ex/(ed+1), uy=ey/(ed+1);
+        vx += (-uy)*f*2.8*DPR + ux*f*1.1*DPR;   // tangential swirl + slight repel
+        vy += ( ux)*f*2.8*DPR + uy*f*1.1*DPR;
+      }
+    }
+    p.x+=vx; p.y+=vy; p.life--;
+    if(p.x<0||p.x>W||p.y<0||p.y>H||p.life<0){ p.x=Math.random()*W; p.y=Math.random()*H; p.life=120+Math.random()*180; }
+    // color teal->cyan by vertical position + focal brightness
+    const fx=p.x-cx(), fy=p.y-cy(); const fd=Math.hypot(fx,fy);
+    const near = Math.max(0, 1 - fd/(W*0.42));
+    const mix = Math.min(1, Math.max(0, p.y/H));
+    const r = Math.round(6 + mix*61);
+    const g = Math.round(195 + mix*32);
+    const b = Math.round(169 + mix*72);
+    const alpha = 0.10 + near*0.32;
+    ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+    const rad = (0.7 + near*1.7)*DPR;
+    ctx.beginPath(); ctx.arc(p.x,p.y,rad,0,6.283); ctx.fill();
+  }
+  // cursor comet glow (brighter the faster you move)
+  if(hasMouse){
+    const gr = (85 + mspeed*140)*DPR;
+    const grd = ctx.createRadialGradient(mx,my,0, mx,my,gr);
+    grd.addColorStop(0, `rgba(84,227,229,${0.09 + mspeed*0.18})`);
+    grd.addColorStop(0.5, 'rgba(46,197,175,0.05)');
+    grd.addColorStop(1, 'rgba(5,9,12,0)');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(mx,my,gr,0,6.283); ctx.fill();
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// magnetic CTA + subtle mesh parallax (respect reduced-motion / touch)
+const fine = matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion:reduce)').matches;
+if(fine){
+  const cta = document.querySelector('.cta');
+  const mesh = document.querySelector('.mesh');
+  addEventListener('pointermove', e => {
+    const rx = e.clientX/innerWidth - 0.5, ry = e.clientY/innerHeight - 0.5;
+    if(mesh) mesh.style.transform = `translate(${rx*-16}px, ${ry*-16}px)`;
+    if(cta){
+      const r = cta.getBoundingClientRect();
+      const dx = e.clientX-(r.left+r.width/2), dy = e.clientY-(r.top+r.height/2);
+      const dist = Math.hypot(dx,dy);
+      cta.style.transform = dist<190 ? `translate(${dx*0.2}px, ${dy*0.2}px)` : 'translate(0,0)';
+    }
+  }, { passive:true });
+}
+</script>
+</body>
+</html>
