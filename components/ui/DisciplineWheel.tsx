@@ -9,7 +9,7 @@ import { disciplines } from "@/lib/content";
  * Pointer devices → no clicking: the wedge nearest the cursor (by angle from
  * the wheel centre) opens in the notepad as you move the mouse around.
  * Touch / no-pointer devices → the wheel is pinned and scroll-scrubbed: the
- * same slot cycles 01 → 06 in place as you scroll (Sanat … Hukuk).
+ * same slot cycles 01 → 07 in place as you scroll (Sanat … Teoloji).
  */
 const CX = 100;
 const CY = 100;

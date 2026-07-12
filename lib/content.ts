@@ -64,6 +64,10 @@ export const disciplines = [
     name: "Hukuk",
     note: "Kurallar, haklar ve adalet; toplumsal düzenin nasıl kurulduğu.",
   },
+  {
+    name: "Teoloji",
+    note: "İnanç, din ve anlam arayışının insan ve toplum hayatındaki yeri.",
+  },
 ] as const;
 
 export const vision = {
@@ -73,7 +77,7 @@ export const vision = {
 
 export const mission = {
   label: "Misyonumuz",
-  body: "Temamız olan sirkülasyonu farklı disiplinlerin ışığında ele alarak katılımcılara derinlikli bir düşünme ve tartışma ortamı sunmaktır. Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji, Hukuk gibi alanların sağladığı perspektiflerle gençlerin; bireyin kendisiyle, toplumla ve dünya düzeniyle kurduğu ilişkiyi sorgulamalarını teşvik etmeyi amaçlıyoruz. Bu doğrultuda katılımcıların disiplinler arası düşünme becerilerini geliştirmelerine, farklı bakış açılarıyla karşılaşmalarına ve sirkülasyonu çok boyutlu biçimde değerlendirmelerine olanak sağlarken; muhakeme, müzakere ve eleştirel düşünme becerilerinin gelişimine katkı sağlamayı hedefliyoruz.",
+  body: "Temamız olan sirkülasyonu farklı disiplinlerin ışığında ele alarak katılımcılara derinlikli bir düşünme ve tartışma ortamı sunmaktır. Sanat, Tarih, Felsefe, Psikoloji, Sosyoloji, Hukuk, Teoloji gibi alanların sağladığı perspektiflerle gençlerin; bireyin kendisiyle, toplumla ve dünya düzeniyle kurduğu ilişkiyi sorgulamalarını teşvik etmeyi amaçlıyoruz. Bu doğrultuda katılımcıların disiplinler arası düşünme becerilerini geliştirmelerine, farklı bakış açılarıyla karşılaşmalarına ve sirkülasyonu çok boyutlu biçimde değerlendirmelerine olanak sağlarken; muhakeme, müzakere ve eleştirel düşünme becerilerinin gelişimine katkı sağlamayı hedefliyoruz.",
 } as const;
 
 export const teams = {
@@ -117,7 +121,7 @@ export const teams = {
     },
     {
       name: "Saha",
-      lead: "Deniz Seven Elmalı · Egehan Fatih Baydili",
+      lead: "Deniz Sevan Elmalı · Egehan Fatih Baydili",
       blurb: "Etkinlik günü mekân, yerleşim, malzeme ve saha işleyişinden sorumlu ekip.",
       tasks: ["Mekân & yerleşim", "Malzeme & ikram", "Gün içi saha desteği"],
     },
@@ -156,13 +160,13 @@ export const teamGallery = {
 
 export const process = {
   eyebrow: "Nasıl işliyor?",
-  title: "Başvuru Süreci",
+  title: "Ekip Başvuru Süreci",
   intro:
     "Başvurudan ekibe katılıma kadar süreç kısa. Her adımda seni bilgilendiriyoruz; takıldığın yerde Instagram'dan yazman yeterli.",
   steps: [
     {
       step: "01",
-      title: "Başvuru",
+      title: "Ekip Başvurusu",
       body: "“Ekibe Katıl” formunu doldur — birkaç dakika. İlgilendiğin ekibi seçer, kendinden kısaca bahsedersin.",
     },
     {
@@ -190,7 +194,7 @@ export const faqs = [
   },
   {
     q: "Aero Sirkülasyon Çalıştayı'nın teması nedir?",
-    a: "Sirkülasyon, en temel anlamıyla sürekli hareketi, dönüşümü ve etkileşimi ifade eder. Felsefi açıdan düşüncelerin, değerlerin ve bakış açılarının bireyler arasında dolaşarak gelişmesini; bilimsel açıdan ise doğadaki enerji, madde ve bilgi döngülerini simgeler. Çalıştay bu iki bakışı bir araya getirerek katılımcıları altı farklı disiplinden gelen fikirlerle buluşturur; bilgi ve deneyim sürekli bir etkileşim hâlinde dolaşır.",
+    a: "Sirkülasyon, en temel anlamıyla sürekli hareketi, dönüşümü ve etkileşimi ifade eder. Felsefi açıdan düşüncelerin, değerlerin ve bakış açılarının bireyler arasında dolaşarak gelişmesini; bilimsel açıdan ise doğadaki enerji, madde ve bilgi döngülerini simgeler. Çalıştay bu iki bakışı bir araya getirerek katılımcıları yedi farklı disiplinden gelen fikirlerle buluşturur; bilgi ve deneyim sürekli bir etkileşim hâlinde dolaşır.",
   },
   {
     q: "Çalıştaya kimler katılabilir?",

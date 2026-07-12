@@ -13,7 +13,7 @@ const fullTitle = `${site.event} ${site.year} — ${site.school}`;
 
 export const metadata: Metadata = {
   title: `${fullTitle} · Ekip Başvuruları`,
-  description: `${site.school} ${site.event} ${site.year} için ekip başvuruları açıldı. Sanattan hukuka, felsefeden sosyolojiye disiplinlerin akıntısında düşün, sorgula, üret.`,
+  description: `${site.school} ${site.event} ${site.year} için ekip başvuruları açıldı. Sanattan hukuka, felsefeden teolojiye disiplinlerin akıntısında düşün, sorgula, üret.`,
   openGraph: {
     title: fullTitle,
     description: "Ekip başvurularımız açıldı.",
