@@ -110,7 +110,7 @@ export const teams = {
     },
     {
       name: "Finans",
-      lead: "Duru Kurt",
+      lead: "Duru Kurt · Erdem Bilgiç",
       blurb: "Çalıştayın bütçesini yöneten ekip: gelir-gider, sponsorluk ve harcama takibi.",
       tasks: ["Bütçe planı", "Sponsorluk", "Harcama takibi"],
     },
