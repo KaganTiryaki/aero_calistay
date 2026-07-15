@@ -1,21 +1,29 @@
 /*
- * MÜREKKEP — AERO Sirkülasyon Çalıştayı '26
- * Beşeri bilimler kaydı: kağıt + mürekkep + dizin. Bilim/teknoloji değil.
- * Palet mürekkep olarak kullanılır, duvar kağıdı olarak değil: zemin soluk
- * nane-kağıt, metin koyu teal, nane/cyan yalnız DOLAŞAN ışıkta canlanır.
+ * MÜREKKEP → IŞIK ALANI — AERO Sirkülasyon Çalıştayı '26
+ *
+ * Ders: "sakin" ile "boş" aynı şey değil. Referans (maltepefencalistay.org)
+ * DOLU ama sakin: gerçek bir renk alanı + amblem + geri sayım + atmosfer,
+ * hepsi tek bir hue ailesinde. Hiyerarşi renkten değil, beyazın onlarca
+ * opaklığından geliyor. Burada aynı ilke AERO'nun teal'inde kuruluyor.
  */
 
 .root {
-  --kagit: #eaf0ed;
-  --kagit-sicak: #f4f8f6;
-  --murekkep: #0c3a35;
-  --murekkep-orta: rgba(12, 58, 53, 0.66);
-  --murekkep-soluk: rgba(12, 58, 53, 0.46);
-  --murekkep-hayalet: rgba(12, 58, 53, 0.2);
-  --cizgi: rgba(12, 58, 53, 0.13);
-  --nane: #23a884;
-  --nane-parlak: #43d6a8;
-  --cyan: #22b8dc;
+  /* Tek hue ailesi: aydınlık teal. Zemin gerçek bir alan — beyaz değil. */
+  --alan: #1ba2ad;
+  --alan-derin: #0d6874;
+  --alan-dip: #094a55;
+  --nane: #43d6a8;
+  --cyan: #6fe0f0;
+
+  /* Hiyerarşi burada: tek renk, onlarca opaklık. */
+  --b-95: rgba(255, 255, 255, 0.95);
+  --b-78: rgba(255, 255, 255, 0.78);
+  --b-58: rgba(255, 255, 255, 0.58);
+  --b-40: rgba(255, 255, 255, 0.4);
+  --b-24: rgba(255, 255, 255, 0.24);
+  --b-14: rgba(255, 255, 255, 0.14);
+  --b-08: rgba(255, 255, 255, 0.08);
+
   --easing: cubic-bezier(0.16, 1, 0.3, 1);
 
   position: relative;
@@ -23,34 +31,39 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--kagit);
-  color: var(--murekkep);
+  background: var(--alan);
+  color: var(--b-95);
   isolation: isolate;
 }
 
-/* ---- Atmosfer: tek ışık kaynağı + kağıt greni + vinyet ----------------- */
+/* ---- Atmosfer: katmanlı ışık, tek kaynak, derinlik ---------------------- */
 
 .isik {
   position: absolute;
   inset: 0;
   z-index: -3;
   background:
+    /* tek güneş: üst-sağ */
     radial-gradient(
-      100% 84% at 72% 6%,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(244, 248, 246, 0.62) 34%,
-      rgba(234, 240, 237, 0) 66%
+      78% 62% at 74% -4%,
+      rgba(190, 246, 252, 0.6) 0%,
+      rgba(111, 224, 240, 0.24) 30%,
+      rgba(23, 144, 156, 0) 62%
     ),
-    radial-gradient(
-      86% 74% at 88% 62%,
-      rgba(34, 184, 220, 0.12) 0%,
-      rgba(34, 184, 220, 0) 58%
-    ),
-    radial-gradient(
-      78% 66% at 6% 98%,
-      rgba(67, 214, 168, 0.14) 0%,
-      rgba(67, 214, 168, 0) 60%
-    );
+    /* nane sızıntısı: alt-sol */
+      radial-gradient(
+        66% 58% at 4% 98%,
+        rgba(67, 214, 168, 0.32) 0%,
+        rgba(67, 214, 168, 0) 60%
+      ),
+    /* dip: alanı aşağıda derinleştir — ama boğmadan, yön AYDINLIK */
+      radial-gradient(
+        120% 82% at 50% 120%,
+        rgba(9, 74, 85, 0.5) 0%,
+        rgba(13, 104, 116, 0.2) 48%,
+        rgba(26, 164, 176, 0) 76%
+      ),
+    linear-gradient(168deg, #23b4bd 0%, #1ba2ad 44%, #12808e 100%);
 }
 
 .vinyet {
@@ -58,9 +71,9 @@
   inset: 0;
   z-index: -2;
   background: radial-gradient(
-    128% 100% at 50% 40%,
-    rgba(12, 58, 53, 0) 54%,
-    rgba(12, 58, 53, 0.085) 100%
+    124% 96% at 50% 40%,
+    rgba(7, 45, 52, 0) 52%,
+    rgba(7, 45, 52, 0.42) 100%
   );
 }
 
@@ -68,141 +81,73 @@
   position: absolute;
   inset: -50%;
   z-index: -1;
-  opacity: 0.42;
+  opacity: 0.28;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
-  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }
 
-/* ---- Sirkülasyon yörüngesi -------------------------------------------- */
-
-.yorunge {
+/* Sessiz zerreler: atmosfere derinlik, dikkat çalmadan. */
+.zerreler {
   position: absolute;
-  top: 50%;
-  right: -6vw;
-  width: min(52vw, 640px);
-  height: min(52vw, 640px);
-  z-index: 0;
-  translate: 0 -50%;
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
-  color: var(--murekkep);
-  overflow: visible;
 }
 
-.yorungeDon {
-  transform-origin: 50% 50%;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .yorungeDon {
-    animation: don 260s linear infinite;
-  }
-}
-
-@keyframes don {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.dugum {
-  fill: var(--kagit-sicak);
-  stroke: currentColor;
-  stroke-opacity: 0.3;
-  stroke-width: 1;
-  transition:
-    fill 1.2s var(--easing),
-    stroke-opacity 1.2s var(--easing),
-    r 1.2s var(--easing);
-}
-
-.dugumAktif {
-  fill: var(--nane-parlak);
-  stroke-opacity: 0;
-  r: 7;
-}
-
-/* JS yok / reduced-motion: düğümler okunur mürekkep, hiçbiri sönük değil. */
-.dugumStatik {
-  stroke-opacity: 0.5;
-}
-
-.hale {
-  fill: var(--nane-parlak);
-  opacity: 0.16;
+.zerre {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--b-40);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .hale {
-    animation: hale 2.2s var(--easing);
-    transform-box: fill-box;
-    transform-origin: 50% 50%;
+  .zerre {
+    animation: suzul var(--sure) var(--easing) var(--gecikme) infinite;
   }
 }
 
-@keyframes hale {
-  from {
-    opacity: 0.3;
-    transform: scale(0.55);
-  }
-  to {
+@keyframes suzul {
+  0%,
+  100% {
     opacity: 0.12;
-    transform: scale(1);
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-14px);
   }
 }
 
-.kiris {
-  stroke: var(--nane);
-  stroke-opacity: 0.42;
-  stroke-width: 1;
-  transition:
-    x2 1.2s var(--easing),
-    y2 1.2s var(--easing);
-}
-
-.cekirdek {
-  fill: var(--murekkep);
-  opacity: 0.5;
-}
-
-@media (max-width: 860px) {
-  .yorunge {
-    top: auto;
-    bottom: -34vw;
-    right: -30vw;
-    width: 96vw;
-    height: 96vw;
-    translate: 0;
-    opacity: 0.75;
-  }
-}
-
-/* ---- Üst çubuk -------------------------------------------------------- */
+/* ---- Üst çubuk --------------------------------------------------------- */
 
 .ust {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  padding: clamp(1.4rem, 2.6vw, 2.2rem) clamp(1.5rem, 5vw, 4.5rem);
+  padding: clamp(1.2rem, 2.2vw, 1.9rem) clamp(1.4rem, 4vw, 3.4rem);
 }
 
 .marka {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
 .markaDisk {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--cizgi);
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--b-24);
   border-radius: 50%;
-  background: var(--kagit-sicak);
+  background: var(--b-08);
+  backdrop-filter: blur(6px);
 }
 
 .markaAd {
@@ -210,15 +155,16 @@
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.24em;
+  color: var(--b-78);
 }
 
 .nav {
   display: none;
-  align-items: baseline;
-  gap: clamp(1.2rem, 2.4vw, 2.1rem);
+  align-items: center;
+  gap: clamp(1rem, 2vw, 1.8rem);
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .nav {
     display: flex;
   }
@@ -228,7 +174,7 @@
   position: relative;
   font-family: var(--font-body);
   font-size: 0.86rem;
-  color: var(--murekkep-orta);
+  color: var(--b-58);
   text-decoration: none;
   transition: color 0.4s var(--easing);
 }
@@ -240,159 +186,227 @@
   right: 0;
   bottom: -5px;
   height: 1px;
-  background: var(--murekkep);
+  background: var(--b-78);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.5s var(--easing);
 }
 
 .navLink:hover {
-  color: var(--murekkep);
+  color: var(--b-95);
 }
 
 .navLink:hover::after {
   transform: scaleX(1);
 }
 
-/* ---- Gövde ------------------------------------------------------------ */
+.ustCta {
+  padding: 0.62rem 1.15rem;
+  border: 1px solid var(--b-24);
+  border-radius: 999px;
+  background: var(--b-08);
+  color: var(--b-95);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  transition:
+    background 0.45s var(--easing),
+    border-color 0.45s var(--easing);
+}
+
+.ustCta:hover {
+  background: var(--b-14);
+  border-color: var(--b-40);
+}
+
+/* ---- Gövde: iki sütun -------------------------------------------------- */
 
 .govde {
   position: relative;
   z-index: 1;
   flex: 1;
   display: grid;
-  align-content: center;
-  max-width: 60rem;
-  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 5vw, 4.5rem);
-  padding-bottom: clamp(3rem, 6vw, 4.5rem);
+  grid-template-columns: 1fr;
+  align-items: center;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  padding: clamp(1rem, 2.4vw, 2rem) clamp(1.4rem, 4vw, 3.4rem)
+    clamp(2rem, 4vw, 3rem);
 }
 
-.kicker {
-  display: flex;
+@media (min-width: 1040px) {
+  .govde {
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+  }
+}
+
+.sol {
+  display: grid;
+  align-content: center;
+  max-width: 34rem;
+}
+
+/* ---- Durum rozeti ------------------------------------------------------ */
+
+.durum {
+  display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
-  margin-bottom: clamp(1.4rem, 2.6vw, 2rem);
+  gap: 0.6rem;
+  justify-self: start;
+  margin-bottom: clamp(1.1rem, 2vw, 1.6rem);
+  padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+  border: 1px solid var(--b-24);
+  border-radius: 999px;
+  background: var(--b-08);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 500;
-  letter-spacing: 0.28em;
-  color: var(--murekkep-soluk);
+  letter-spacing: 0.2em;
+  color: var(--b-78);
+  backdrop-filter: blur(6px);
 }
 
 .nabiz {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--nane-parlak);
+  background: var(--nane);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .nabiz {
-    animation: nabiz 3.4s var(--easing) infinite;
+    animation: nabiz 3.2s var(--easing) infinite;
   }
 }
 
 @keyframes nabiz {
   0%,
-  70%,
+  72%,
   100% {
-    box-shadow: 0 0 0 0 rgba(67, 214, 168, 0.5);
+    box-shadow: 0 0 0 0 rgba(67, 214, 168, 0.55);
   }
-  35% {
+  36% {
     box-shadow: 0 0 0 7px rgba(67, 214, 168, 0);
   }
 }
 
-.kickerCizgi {
-  flex: 1;
-  max-width: 180px;
-  height: 1px;
-  background: linear-gradient(90deg, var(--cizgi), transparent);
-}
-
-/* Başlık: matbaa kapak ritmi — ikinci satır girintili ve italik. */
+/* ---- Başlık ------------------------------------------------------------ */
 
 .baslik {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  line-height: 0.88;
-  letter-spacing: -0.024em;
+  line-height: 0.9;
+  letter-spacing: -0.022em;
+  text-shadow: 0 2px 40px rgba(6, 48, 56, 0.28);
 }
 
 .satir1 {
   display: block;
-  font-size: clamp(3rem, 9.6vw, 8.6rem);
+  font-size: clamp(2.9rem, 6.4vw, 5.6rem);
+  color: var(--b-95);
 }
 
 .satir2 {
   display: block;
-  padding-left: clamp(0.2rem, 7.4vw, 6.2rem);
-  font-size: clamp(1.75rem, 4.6vw, 4rem);
+  padding-left: clamp(0.15rem, 3.4vw, 2.6rem);
+  font-size: clamp(1.6rem, 3.2vw, 2.85rem);
   font-style: italic;
-  color: var(--murekkep-orta);
+  color: var(--b-78);
 }
 
 .yil {
   font-style: normal;
   font-family: var(--font-mono);
-  font-size: 0.26em;
-  font-weight: 400;
+  font-size: 0.3em;
   letter-spacing: 0.06em;
-  color: var(--murekkep-soluk);
-  vertical-align: 0.96em;
-  margin-left: 0.85em;
+  color: var(--b-40);
+  vertical-align: 0.95em;
+  margin-left: 0.8em;
 }
 
-/* ---- Şerit: fikir disiplinler arasında dolaşıyor ----------------------- */
+/* ---- Dolaşan fikir: aktif disiplinin notu ------------------------------ */
 
-.serit {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: clamp(0.45rem, 1.3vw, 0.95rem);
-  margin-top: clamp(1.8rem, 3.4vw, 2.8rem);
-  padding-top: clamp(1.1rem, 1.8vw, 1.5rem);
-  border-top: 1px solid var(--cizgi);
+.not {
+  position: relative;
+  margin-top: clamp(1.3rem, 2.4vw, 1.9rem);
+  padding-left: 1rem;
+  border-left: 1px solid var(--b-24);
+  min-height: 4.4rem;
 }
 
-.seritOge {
-  display: contents;
+.notAd {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--nane);
 }
 
-.disiplin {
+.notMetin {
+  margin: 0;
   font-family: var(--font-body);
-  font-size: clamp(0.8rem, 1.25vw, 0.95rem);
-  color: var(--murekkep-hayalet);
-  transition:
-    color 1.2s var(--easing),
-    transform 1.2s var(--easing);
-  will-change: color, transform;
+  font-size: clamp(0.9rem, 1.15vw, 1rem);
+  line-height: 1.6;
+  color: var(--b-78);
+  text-wrap: pretty;
 }
 
-.disiplinAktif {
-  color: var(--murekkep);
-  transform: translateY(-2px);
+@media (prefers-reduced-motion: no-preference) {
+  .notCanli {
+    animation: notGir 0.9s var(--easing);
+  }
 }
 
-.ayrac {
-  color: var(--murekkep-hayalet);
-  font-size: 0.7em;
+@keyframes notGir {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
 }
 
-.seritStatik .disiplin {
-  color: var(--murekkep-orta);
-  transform: none;
+/* ---- Geri sayım -------------------------------------------------------- */
+
+.sayim {
+  display: flex;
+  gap: clamp(1.1rem, 2.4vw, 1.9rem);
+  margin-top: clamp(1.6rem, 2.8vw, 2.2rem);
+  padding-top: clamp(1.2rem, 2vw, 1.5rem);
+  border-top: 1px solid var(--b-14);
 }
 
-/* ---- Alt: CTA + not --------------------------------------------------- */
+.sayimKutu {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.sayimSayi {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--b-95);
+  font-variant-numeric: tabular-nums;
+}
+
+.sayimEtiket {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  color: var(--b-40);
+}
+
+/* ---- CTA --------------------------------------------------------------- */
 
 .alt {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: clamp(1rem, 2.2vw, 1.7rem);
-  margin-top: clamp(2rem, 3.8vw, 3rem);
+  gap: clamp(0.9rem, 2vw, 1.5rem);
+  margin-top: clamp(1.7rem, 3vw, 2.4rem);
 }
 
 .cta {
@@ -402,13 +416,14 @@
   gap: 0.7rem;
   padding: 1rem 1.85rem;
   border-radius: 999px;
-  background: var(--murekkep);
-  color: var(--kagit-sicak);
+  background: #ffffff;
+  color: #0b5a66;
   font-family: var(--font-body);
   font-size: 0.94rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   overflow: hidden;
+  box-shadow: 0 10px 34px rgba(6, 48, 56, 0.24);
   transition: transform 0.55s var(--easing);
 }
 
@@ -447,10 +462,160 @@
 .ctaNot {
   font-family: var(--font-body);
   font-size: 0.83rem;
-  color: var(--murekkep-soluk);
+  color: var(--b-58);
 }
 
-/* ---- Giriş: tek reveal imzası ----------------------------------------- */
+/* ---- Sağ: sirkülasyon yörüngesi ---------------------------------------- */
+
+.sag {
+  position: relative;
+  display: none;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 560px;
+  justify-self: center;
+}
+
+@media (min-width: 1040px) {
+  .sag {
+    display: block;
+  }
+}
+
+.yorungeSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: #ffffff;
+  overflow: visible;
+}
+
+.yorungeDon {
+  transform-origin: 50% 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .yorungeDon {
+    animation: don 240s linear infinite;
+  }
+}
+
+@keyframes don {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.kiris {
+  stroke: var(--nane);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+  transition:
+    x2 1.2s var(--easing),
+    y2 1.2s var(--easing);
+}
+
+.hale {
+  fill: var(--nane);
+  opacity: 0.18;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hale {
+    animation: hale 2.4s var(--easing);
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+  }
+}
+
+@keyframes hale {
+  from {
+    opacity: 0.4;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0.14;
+    transform: scale(1);
+  }
+}
+
+.cekirdekDisk {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1;
+}
+
+/* Disiplin etiketleri: HTML, SVG'nin üstünde — gerçek metin, gerçek font. */
+.etiket {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  white-space: nowrap;
+  color: var(--b-40);
+  transition:
+    color 1.2s var(--easing),
+    text-shadow 1.2s var(--easing);
+}
+
+.etiketAktif {
+  color: var(--b-95);
+  text-shadow: 0 0 24px rgba(67, 214, 168, 0.6);
+}
+
+/* JS yok / reduced-motion: hepsi okunur — statik base katman. */
+.sagStatik .etiket {
+  color: var(--b-78);
+}
+
+.merkezMark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--b-58);
+}
+
+/* ---- Scroll ipucu ------------------------------------------------------ */
+
+.ipucu {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 clamp(1.4rem, 4vw, 3.4rem) clamp(1.2rem, 2vw, 1.6rem);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--b-40);
+}
+
+.ipucuLink {
+  color: var(--b-40);
+  text-decoration: none;
+  transition: color 0.4s var(--easing);
+}
+
+.ipucuLink:hover {
+  color: var(--b-78);
+}
+
+.kaydir {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.kaydirCizgi {
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--b-40), transparent);
+}
+
+/* ---- Giriş: tek reveal imzası ------------------------------------------ */
 
 @media (prefers-reduced-motion: no-preference) {
   .gir {
