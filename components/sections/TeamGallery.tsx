@@ -16,6 +16,13 @@ const isPair = (lead: string) => lead.includes("·");
  * zero layout shift.
  */
 export function TeamGallery() {
+  // Eş başkanlılar önce, tekliler sona. Tekliler yan yana düşünce satırlar
+  // deliksiz kapanıyor ve Basın'ın çift slotu Teknik/Admin ikilisinin üstünde
+  // kalıyor. sort kararlı, yani grup içi sıra content.ts'teki gibi korunuyor.
+  const committees = [...teams.committees].sort(
+    (a, b) => Number(isPair(b.lead)) - Number(isPair(a.lead)),
+  );
+
   return (
     <section id="ekibimiz" className="relative overflow-hidden px-6 py-28 md:py-40">
       <SectionAtmosphere tone="deep" variant={0} />
@@ -68,11 +75,10 @@ export function TeamGallery() {
             satırı kaplasa bile boyu büyümüyor.
             Izgara 2 ya da 4 sütun: 7 çift + 2 tek = 16 sütun, ikisine de tam
             bölünüyor. 3 sütunda çift slotlar delik bırakırdı.
-            dense: 2 sütunda Teknik'ten sonra gelen çift slot tek sütunluk deliğe
-            sığmayıp alta atlıyordu; dense o deliği sonraki tekliyle dolduruyor
-            (4 sütunda zaten delik yok, orada bir etkisi olmuyor). */}
+            dense: sıralama sayesinde bugün delik yok; ileride tek başkanlı bir
+            ekip daha eklenirse kalan boşluğu sığan slotla doldurur. */}
         <div className="grid grid-flow-row-dense grid-cols-2 gap-4 lg:grid-cols-4">
-          {teams.committees.map((c, i) => (
+          {committees.map((c, i) => (
             <Reveal
               key={c.name}
               delay={(i % 4) * 0.06}
