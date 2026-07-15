@@ -1,0 +1,150 @@
+/* Seçim ekranı: sade kalsın, sahneler konuşsun. */
+
+.root {
+  --kagit: #f2f6f5;
+  --murekkep: #0c3a35;
+  --orta: rgba(12, 58, 53, 0.66);
+  --soluk: rgba(12, 58, 53, 0.44);
+  --cizgi: rgba(12, 58, 53, 0.12);
+  --nane: #1f9c7a;
+
+  min-height: 100svh;
+  padding: clamp(2.5rem, 7vw, 5.5rem) clamp(1.25rem, 6vw, 4rem)
+    clamp(4rem, 8vw, 6rem);
+  background: var(--kagit);
+  color: var(--murekkep);
+  font-family: var(--font-body);
+}
+
+.ust {
+  max-width: 46rem;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.kicker {
+  display: block;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  color: var(--soluk);
+}
+
+.baslik {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5.4vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.alt {
+  margin: 0;
+  max-width: 40rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--orta);
+}
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 56rem;
+  border-top: 1px solid var(--cizgi);
+}
+
+.oge {
+  display: flex;
+  gap: clamp(0.9rem, 2.4vw, 2rem);
+  padding: clamp(1.5rem, 3vw, 2.2rem) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.sira {
+  flex: none;
+  padding-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--soluk);
+}
+
+.govde {
+  flex: 1;
+  min-width: 0;
+}
+
+.satir {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.isim {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+  line-height: 1.1;
+}
+
+.rozet {
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.guclu {
+  background: rgba(31, 156, 122, 0.14);
+  color: #146b52;
+}
+
+.orta {
+  background: rgba(12, 58, 53, 0.08);
+  color: var(--orta);
+}
+
+.zayif {
+  background: rgba(12, 58, 53, 0.05);
+  color: var(--soluk);
+}
+
+.fikir {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--orta);
+  max-width: 44rem;
+}
+
+.not {
+  margin: 0 0 0.9rem;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--soluk);
+  max-width: 44rem;
+}
+
+.link {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: var(--nane);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition:
+    border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link:hover {
+  color: var(--murekkep);
+  border-bottom-color: var(--murekkep);
+}
