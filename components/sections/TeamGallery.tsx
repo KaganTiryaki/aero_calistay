@@ -24,7 +24,7 @@ export function TeamGallery() {
   );
 
   return (
-    <section id="ekibimiz" className="relative overflow-hidden px-6 py-28 md:py-40">
+    <section id="ekibimiz" className="relative overflow-hidden px-6 py-20 md:py-32">
       <SectionAtmosphere tone="deep" variant={0} />
 
       <div className="relative z-10 mx-auto max-w-6xl">
@@ -48,13 +48,13 @@ export function TeamGallery() {
         </Reveal>
 
         {/* genel koordinatörler — full-width band right under the group photo.
-            lg'de eş başkanlı komite slotuyla aynı genişlik ve oran (568×344), o
-            yüzden alttaki satırlarla tam hizada. Dar ekranda dikey: 4/5. */}
+            lg'de eş başkanlı komite slotuyla aynı genişlik ve oran (568×273), o
+            yüzden alttaki satırlarla tam hizada. Dar ekranda kare. */}
         <div className="mb-4 grid grid-cols-2 gap-4">
           {teamGallery.coordinators.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06}>
               <PhotoSlot
-                className="aspect-[4/5] lg:aspect-[33/20]"
+                className="aspect-square lg:aspect-[25/12]"
                 caption={
                   <>
                     {c.name}
@@ -69,10 +69,10 @@ export function TeamGallery() {
         </div>
 
         {/* one slot per committee, captioned with the team name. Eş başkanlı
-            ekipler iki sütun kaplar ve yatay (33/20) — iki kişi yan yana sığsın
-            diye. Yatay oran, çift slotu her genişlikte tekli 4/5 komşusuyla aynı
-            yükseklikte tutuyor (2 sütun ÷ 1.65 ≈ 1 sütun × 5/4), telefonda tüm
-            satırı kaplasa bile boyu büyümüyor.
+            ekipler iki sütun kaplar ve yatay (25/12) — iki kişi yan yana sığsın
+            diye. Yatay oran, çift slotu her genişlikte tekli kare komşusuyla aynı
+            yükseklikte tutuyor (2 sütun ÷ 2.08 ≈ 1 sütun), telefonda tüm satırı
+            kaplasa bile boyu büyümüyor.
             Izgara 2 ya da 4 sütun: 7 çift + 2 tek = 16 sütun, ikisine de tam
             bölünüyor. 3 sütunda çift slotlar delik bırakırdı.
             dense: sıralama sayesinde bugün delik yok; ileride tek başkanlı bir
@@ -85,7 +85,7 @@ export function TeamGallery() {
               className={isPair(c.lead) ? "col-span-2" : undefined}
             >
               <PhotoSlot
-                className={isPair(c.lead) ? "aspect-[33/20]" : "aspect-[4/5]"}
+                className={isPair(c.lead) ? "aspect-[25/12]" : "aspect-square"}
                 caption={c.name}
               />
             </Reveal>
