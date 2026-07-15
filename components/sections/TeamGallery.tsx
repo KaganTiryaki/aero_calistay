@@ -29,7 +29,7 @@ export function TeamGallery() {
         </Reveal>
 
         {/* featured group photo */}
-        <Reveal className="mb-6">
+        <Reveal className="mb-4">
           <PhotoSlot
             ratio="16 / 7"
             featured
@@ -37,28 +37,18 @@ export function TeamGallery() {
           />
         </Reveal>
 
-        {/* genel koordinatörler — larger slots, one per person */}
-        <Reveal className="mb-4">
-          <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-label">
-            {teamGallery.coordinatorsTitle}
-          </h3>
-        </Reveal>
-
-        <div className="mb-10 grid grid-cols-2 gap-4 sm:max-w-md">
+        {/* genel koordinatörler — two double-width slots sitting right under the
+            group photo; together they fill the same track as four committee
+            slots. 8/5 keeps the row exactly as tall as a committee row. */}
+        <div className="mb-4 grid grid-cols-2 gap-4">
           {teamGallery.coordinators.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06}>
-              <PhotoSlot ratio="4 / 5" caption={c.name} />
+              <PhotoSlot ratio="8 / 5" caption={`${c.name} · ${c.role}`} />
             </Reveal>
           ))}
         </div>
 
         {/* one slot per committee, captioned with the team name */}
-        <Reveal className="mb-4">
-          <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-label">
-            {teamGallery.committeesTitle}
-          </h3>
-        </Reveal>
-
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {teams.committees.map((c, i) => (
             <Reveal key={c.name} delay={(i % 4) * 0.06}>
