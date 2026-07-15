@@ -4,7 +4,11 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionAtmosphere } from "@/components/ui/SectionAtmosphere";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { PhotoSlot } from "@/components/ui/PhotoSlot";
+import { cn } from "@/lib/cn";
 import { teams, teamGallery } from "@/lib/content";
+
+/** Eş başkanlık: lead alanında " · " ile ayrılmış iki isim (bkz. Teams.tsx). */
+const isPair = (lead: string) => lead.includes("·");
 
 /**
  * "Ekibimiz" — the faces behind the workshop. Photos don't exist yet, so we
@@ -13,13 +17,6 @@ import { teams, teamGallery } from "@/lib/content";
  * zero layout shift.
  */
 export function TeamGallery() {
-  const rowCommittee = teams.committees.find(
-    (c) => c.name === teamGallery.rowCommittee,
-  );
-  const gridCommittees = teams.committees.filter(
-    (c) => c.name !== teamGallery.rowCommittee,
-  );
-
   return (
     <section id="ekibimiz" className="relative overflow-hidden px-6 py-28 md:py-40">
       <SectionAtmosphere tone="deep" variant={0} />
@@ -44,16 +41,14 @@ export function TeamGallery() {
           />
         </Reveal>
 
-        {/* genel koordinatörler + rowCommittee — one full-width band right under
-            the group photo. sm+: three across, 13/12 keeps the row exactly as
-            tall as the four-up committee row below it. Mobile: two across at the
-            committee's own 4/5 portrait, so the komite drops to the next line at
-            normal size instead of stretching across. */}
-        <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {/* genel koordinatörler — full-width band right under the group photo.
+            lg'de eş başkanlı komite slotuyla aynı genişlik ve oran (568×344), o
+            yüzden alttaki satırlarla tam hizada. Dar ekranda dikey: 4/5. */}
+        <div className="mb-4 grid grid-cols-2 gap-4">
           {teamGallery.coordinators.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06}>
               <PhotoSlot
-                className="aspect-[4/5] sm:aspect-[13/12]"
+                className="aspect-[4/5] sm:aspect-[13/12] lg:aspect-[33/20]"
                 caption={
                   <>
                     {c.name}
@@ -65,21 +60,24 @@ export function TeamGallery() {
               />
             </Reveal>
           ))}
-          {rowCommittee && (
-            <Reveal delay={0.12}>
-              <PhotoSlot
-                className="aspect-[4/5] sm:aspect-[13/12]"
-                caption={rowCommittee.name}
-              />
-            </Reveal>
-          )}
         </div>
 
-        {/* one slot per committee, captioned with the team name */}
+        {/* one slot per committee, captioned with the team name. Eş başkanlı
+            ekipler lg'de iki sütun kaplar — ikisi yan yana sığsın diye yatay.
+            33/20, çift slotu tekli 4/5 komşusuyla aynı yükseklikte tutuyor
+            (568/1.65 ≈ 344 ≈ 276×5/4). Dar ekranda hepsi tekil: telefonda çift
+            sütun tüm satırı kaplayıp devleşiyordu. */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {gridCommittees.map((c, i) => (
-            <Reveal key={c.name} delay={(i % 4) * 0.06}>
-              <PhotoSlot ratio="4 / 5" caption={c.name} />
+          {teams.committees.map((c, i) => (
+            <Reveal
+              key={c.name}
+              delay={(i % 4) * 0.06}
+              className={isPair(c.lead) ? "lg:col-span-2" : undefined}
+            >
+              <PhotoSlot
+                className={cn("aspect-[4/5]", isPair(c.lead) && "lg:aspect-[33/20]")}
+                caption={c.name}
+              />
             </Reveal>
           ))}
         </div>
