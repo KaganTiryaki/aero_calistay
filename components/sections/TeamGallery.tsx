@@ -13,6 +13,13 @@ import { teams, teamGallery } from "@/lib/content";
  * zero layout shift.
  */
 export function TeamGallery() {
+  const rowCommittee = teams.committees.find(
+    (c) => c.name === teamGallery.rowCommittee,
+  );
+  const gridCommittees = teams.committees.filter(
+    (c) => c.name !== teamGallery.rowCommittee,
+  );
+
   return (
     <section id="ekibimiz" className="relative overflow-hidden px-6 py-28 md:py-40">
       <SectionAtmosphere tone="deep" variant={0} />
@@ -37,20 +44,26 @@ export function TeamGallery() {
           />
         </Reveal>
 
-        {/* genel koordinatörler — two double-width slots sitting right under the
-            group photo; together they fill the same track as four committee
-            slots. 8/5 keeps the row exactly as tall as a committee row. */}
-        <div className="mb-4 grid grid-cols-2 gap-4">
+        {/* genel koordinatörler + rowCommittee — one full-width band right under
+            the group photo. 13/12 keeps this three-up row exactly as tall as the
+            four-up committee row below it. Mobile drops to two columns, where the
+            committee spans both so nothing is left stranded. */}
+        <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {teamGallery.coordinators.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06}>
-              <PhotoSlot ratio="8 / 5" caption={`${c.name} · ${c.role}`} />
+              <PhotoSlot ratio="13 / 12" caption={`${c.name} · ${c.role}`} />
             </Reveal>
           ))}
+          {rowCommittee && (
+            <Reveal className="col-span-2 sm:col-span-1" delay={0.12}>
+              <PhotoSlot ratio="13 / 12" caption={rowCommittee.name} />
+            </Reveal>
+          )}
         </div>
 
         {/* one slot per committee, captioned with the team name */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {teams.committees.map((c, i) => (
+          {gridCommittees.map((c, i) => (
             <Reveal key={c.name} delay={(i % 4) * 0.06}>
               <PhotoSlot ratio="4 / 5" caption={c.name} />
             </Reveal>
