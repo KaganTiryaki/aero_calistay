@@ -42,6 +42,82 @@ type Sahne = {
 
 const SAHNELER: Sahne[] = [
   {
+    slug: "t2-5-sirkulasyon-cekirdegi",
+    isim: "Sirkülasyon Çekirdeği",
+    fikir:
+      "Merdiven boşluğunun dibinden yukarı bakıyorsun; yedi sahanlık sola-sağa geçerek kaçıyor, disiplin adları duvarlarda.",
+    not: "Fikir hepsinin en zekisi: mimarlıkta 'sirkülasyon' zaten bir binanın merdiven çekirdeğinin adı. Metafor değil, terimin kendisi. Kat atlayamıyorsun.",
+    kademe: "guclu",
+  },
+  {
+    slug: "t2-1-badgir",
+    isim: "Bâdgir — Rüzgâr Kulesi",
+    fikir:
+      "Rüzgâr kulesinin dibinde, eksende. Dört duvar gök ağzına yakınsıyor; yedi kanat ineni kesiyor, aradan sızan duvarlara bant bant düşüyor.",
+    not: "AERO'nun birebir binası: motoru yok, yalnız farkla çalışan bir sirkülasyon yapısı. Kanat sayısı disciplines.length'ten geliyor.",
+    kademe: "guclu",
+  },
+  {
+    slug: "t2-0-ses-govdesi",
+    isim: "Ses Gövdesi",
+    fikir:
+      "Kubbeye alttan bakış; geometrik yıldız deseni, ışınlar merkeze yakınsıyor. Ses kubbede dolaşıyor.",
+    not: "Kültürel olarak yerinde, kompozisyon oturmuş, palet doğru.",
+    kademe: "guclu",
+  },
+  {
+    slug: "t2-4-igne-deligi",
+    isim: "İğne Deliği",
+    fikir:
+      "Camera obscura odası: iğne deliğinden giren huzme mekânı kesiyor, karşı duvara ters görüntü düşürüyor.",
+    not: "Konusu tam beşeri bilimler — görmenin tarihi. Atmosferik. Biraz karanlık.",
+    kademe: "guclu",
+  },
+  {
+    slug: "t2-0-yanki-salonu",
+    isim: "Yankı Salonu",
+    fikir:
+      "Uzun taş salon, yan duvarlarda yedi yarık. Sesin dönüş gecikmesi ışığa çevrilmiş: yakın yarık cyan, en derin yarık nane.",
+    not: "Atmosfer güçlü ama disiplin adları kenarda kopuk bir lejant gibi duruyor — sahneyle bağı zayıf.",
+    kademe: "orta",
+  },
+  {
+    slug: "t2-5-yuruyen-isik",
+    isim: "Yürüyen Işık",
+    fikir: "Revak; zeminde gün boyu yürüyen bir ışık lekesi.",
+    not: "Mimari gerçek ama disiplin şeridi zeminde kayboluyor, başlık kemerin içinde sıkışmış.",
+    kademe: "orta",
+  },
+  {
+    slug: "t2-4-yedi-isik-tek-umbra",
+    isim: "Yedi Işık, Tek Umbra",
+    fikir:
+      "Yedi ışık kaynağı; yarı gölgeleri örtüşüp tek bir tam gölgede birleşiyor.",
+    not: "Fikir güzel ama havada asılı levhalar çözülmemiş — rastgele poligon gibi okuyor.",
+    kademe: "orta",
+  },
+  {
+    slug: "t2-5-han-avlusu",
+    isim: "Han Avlusu",
+    fikir: "Kervansaray avlusu, revak kemerleri, kemerlerde disiplin adları.",
+    not: "Etiketler başlığın üstüne biniyor, ışık düz. Fikir iyi, kompozisyon karışık.",
+    kademe: "orta",
+  },
+  {
+    slug: "t2-5-dort-kollu-kavsak",
+    isim: "Dört Kollu Kavşak",
+    fikir: "Kesişen dört kol; yolların buluştuğu yer.",
+    not: "Derinlik var ama jenerik bir oda gibi okuyor. Ayırt edici bir şey yok.",
+    kademe: "zayif",
+  },
+  {
+    slug: "t2-4-cozulen-golge",
+    isim: "Çözülen Gölge",
+    fikir: "Dikey öğeler alanı; gölgeleri uzaklaştıkça çözülüyor.",
+    not: "Üst yarı ile alt yarı kopuk: UI ayrı bir koyu bantta, sahne yukarıda kalmış. Nav okunmuyor.",
+    kademe: "zayif",
+  },
+  {
     slug: "3-sarnic-akintisi",
     isim: "Sarnıç Akıntısı",
     fikir:
@@ -158,9 +234,13 @@ export default function SahnelerIndex() {
         <span className={styles.kicker}>SEÇİM EKRANI</span>
         <h1 className={styles.baslik}>AERO ’26 — Sahneler</h1>
         <p className={styles.alt}>
-          Hepsi gerçek three.js. On ikisi de GPU’da açılıp görüldü; hiçbiri
-          bozuk değil. Kademeler benim gözlemim, senin kararın değil — gez,
-          karşılaştır, problemleri söyle.
+          Yirmi iki sahne, hepsi gerçek three.js. Yirmi ikisini de GPU’da tek
+          tek açıp gördüm; hiçbiri bozuk değil. Kademeler benim gözlemim, senin
+          kararın değil — gez, karşılaştır, problemleri söyle.
+        </p>
+        <p className={styles.alt}>
+          İlk on tanesi ikinci turdan: mimari iç mekânlar. Birinci turun dersi
+          buydu — derinliği olan mekânlar kazandı, düz yüzeyler soluk kaldı.
         </p>
       </header>
 
