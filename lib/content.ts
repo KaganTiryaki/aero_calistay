@@ -156,6 +156,12 @@ export const teamGallery = {
   intro:
     "Çalıştayı hazırlayan ekibin yüzleri. Fotoğraflar çekildikçe bu bölümü güncelleyeceğiz — her komite için bir kare ayırdık.",
   groupCaption: "Çalıştay Ekibi · 2026",
+  coordinatorsTitle: "Genel Koordinatörler",
+  coordinators: [
+    { name: "Asya Yeşil", role: "Genel Koordinatör" },
+    { name: "Öykü Ceren Güler", role: "Genel Koordinatör" },
+  ],
+  committeesTitle: "Ekipler",
   note: "Fotoğraflar yakında eklenecek.",
 } as const;
 
