@@ -1,0 +1,407 @@
+/*
+ * YANKI SALONU — UI katmanı.
+ *
+ * HARMAN KURALI: SCRIM YOK, PANEL YOK.
+ * Okunabilirlik sahnenin ışık geometrisinden geliyor. Kaynaklar yan
+ * duvarların içinde ve göz hizasının üstünde; ışıkları yuvanın ağzıyla bir
+ * koniye hapsedilmiş ve o koni KARŞI duvara bakıyor. Kadrajın merkez hacmi —
+ * bu metin bloğunun oturduğu yer — ışık bütçesinin dışında. Orada yalnız sis
+ * (#0B3E45) ve derinliğe yakınsayan çizgiler var.
+ * Ölçüm: beyaz metin (#EAFBFD) üstünde #0B3E45 → ~11.7:1. Panel gerekmiyor
+ * çünkü ışık zaten oraya girmiyor.
+ *
+ * Metin sahnenin İÇİNDE: salonun ekseninde, kaçış noktasının üstünde.
+ * Bir yarıya sürülmüş değil.
+ */
+
+.kok {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #0b3e45; /* sahne yüklenene kadar sis rengi — siyah flaş yok */
+  color: #eafbfd;
+  font-family: var(--font-govde), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.tuval canvas {
+  display: block;
+}
+
+/* Film greni: koyu tealdeki bant kırılmasını öldürür, taşa tutuş verir.
+   Tekdüze — gradyan değil, yani perde değil. */
+.gren {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.26;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* ---- üst bar ------------------------------------------------------------ */
+
+.ust {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.6rem clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.marka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  color: rgba(234, 251, 253, 0.9);
+}
+
+.markaIsaret {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav {
+  display: flex;
+  gap: clamp(0.9rem, 2vw, 1.9rem);
+}
+
+.navLink {
+  font-size: 0.86rem;
+  color: rgba(234, 251, 253, 0.62);
+  text-decoration: none;
+  transition: color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: #eafbfd;
+}
+
+.ustCta {
+  font-size: 0.82rem;
+  color: #eafbfd;
+  text-decoration: none;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(111, 224, 240, 0.36);
+  border-radius: 999px;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ustCta:hover {
+  transform: translateY(-1px);
+  border-color: rgba(111, 224, 240, 0.8);
+}
+
+@media (max-width: 900px) {
+  .nav,
+  .ustCta {
+    display: none;
+  }
+}
+
+/* ---- orta blok: salonun ekseninde --------------------------------------- */
+
+/* DİKKAT: ortalamak için transform KULLANILMIYOR. .gir animasyonu transform'u
+   devralıyor (keyframe `transform: none` ile bitiyor) ve translateX(-50%)
+   ortalamasını silerdi. Ortalama margin/inset ile. */
+.orta {
+  position: absolute;
+  z-index: 3;
+  top: 27%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(33rem, 62vw);
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: rgba(111, 224, 240, 0.85);
+}
+
+.nabiz {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6fe0f0;
+}
+
+.baslik {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-baslik), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.5rem, 5.6vw, 4.5rem);
+  line-height: 0.96;
+  letter-spacing: -0.022em;
+  color: #f2fdff;
+}
+
+.baslikSatir {
+  display: block;
+}
+
+.vurgu {
+  font-style: italic;
+}
+
+.yil {
+  font-family: var(--font-mono), monospace;
+  font-style: normal;
+  font-size: 0.3em;
+  letter-spacing: 0.08em;
+  vertical-align: 0.85em;
+  margin-left: 0.5em;
+  color: rgba(234, 251, 253, 0.5);
+}
+
+.lede {
+  margin: 1.15rem auto 0;
+  max-width: 28rem;
+  font-size: clamp(0.9rem, 1.05vw, 1rem);
+  line-height: 1.62;
+  color: rgba(234, 251, 253, 0.72);
+}
+
+.altBlok {
+  margin-top: 1.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* Salonun en açık nesnesi. Kontrast renkten değil, sahnenin değer
+   yapısındaki yerinden: karanlık eksende duran tek aydınlık kütle. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.82rem 1.6rem;
+  border-radius: 999px;
+  background: #eafbfd;
+  color: #06333b;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk {
+  transform: translateX(4px);
+}
+
+.ctaNot {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  color: rgba(234, 251, 253, 0.44);
+}
+
+/* ---- yedi derinlik merdiveni -------------------------------------------- */
+
+.merdiven {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  width: clamp(8rem, 15vw, 12rem);
+  pointer-events: none;
+}
+
+.merdivenSol {
+  left: clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.merdivenSag {
+  right: clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.etiket {
+  --isik: 0;
+  position: absolute;
+  top: var(--y);
+  display: block;
+  width: 100%;
+  pointer-events: auto;
+  font-family: var(--font-mono), monospace;
+  /* Derinlik tipografik: boyut + opaklık nişin uzaklığıyla sönüyor. */
+  font-size: calc(0.72rem * var(--olcek));
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+  color: #d8f6fb;
+  /* Taban 0 DEĞİL: vuruş yokken de okunur. Sahnenin artık parıltısıyla aynı
+     mantık — yankı hiç tam ölmüyor. */
+  opacity: calc(var(--taban) + var(--isik) * (1 - var(--taban)));
+  transition: opacity 0.12s linear;
+}
+
+.merdivenSol .etiket {
+  text-align: left;
+}
+
+.merdivenSag .etiket {
+  text-align: right;
+}
+
+.etiketAd {
+  position: relative;
+  z-index: 1;
+}
+
+/* Vuruşta salona doğru uzayan çentik = yanıtın gelişi. transform-only. */
+.centik {
+  position: absolute;
+  top: 50%;
+  width: clamp(1.4rem, 4vw, 3.2rem);
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+  transform: scaleX(var(--isik));
+}
+
+.merdivenSol .centik {
+  left: calc(100% + 0.5rem);
+  transform-origin: left;
+}
+
+.merdivenSag .centik {
+  right: calc(100% + 0.5rem);
+  transform-origin: right;
+}
+
+/* note yalnız hover/focus'ta: sahnenin üstüne kalıcı metin yığmıyoruz. */
+.etiketNot {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  font-family: var(--font-govde), system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  line-height: 1.45;
+  white-space: normal;
+  color: rgba(234, 251, 253, 0.62);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.etiket:hover .etiketNot,
+.etiket:focus-visible .etiketNot {
+  opacity: 1;
+  transform: none;
+}
+
+.etiket:hover,
+.etiket:focus-visible {
+  opacity: 1;
+}
+
+/* ---- dar ekran: merdiven merkeze çarpar → alt banda, satır olarak -------- */
+@media (max-width: 900px) {
+  .orta {
+    top: 20%;
+    width: min(33rem, 86vw);
+  }
+
+  .merdiven {
+    position: absolute;
+    top: auto;
+    bottom: 5.5%;
+    left: 0;
+    right: 0;
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    padding: 0 1.1rem;
+  }
+
+  /* Sol ve sağ sütun aynı satır kuşağında birleşiyor; sıra (derinlik) ve
+     boyut sönümü korunuyor, yalnız düzlem değişiyor. */
+  .merdivenSol {
+    bottom: 10.5%;
+  }
+
+  .etiket {
+    position: static;
+    display: inline-block;
+    width: auto;
+    text-align: center;
+  }
+
+  .centik,
+  .etiketNot {
+    display: none;
+  }
+}
+
+/* ---- giriş: tek hareket imzası ------------------------------------------ */
+
+.gir {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gir 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gir {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* reduced-motion BASE katman: giriş yok, her şey okunur durur. Etiket
+   opaklığını --isik'e bırakıyoruz; sahne tek karesinde DURGUN_T anının
+   değerlerini bir kez yazıyor, yani donmuş akor etiketlerde de görünüyor.
+   Sahne hiç yüklenmezse --isik=0 kalır ve --taban zaten okunur bir zemin. */
+@media (prefers-reduced-motion: reduce) {
+  .gir {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .etiket {
+    transition: none;
+  }
+  .etiketNot {
+    transition: none;
+  }
+}

@@ -1,0 +1,341 @@
+/*
+ * HAN AVLUSU — UI katmanı.
+ *
+ * SCRIM YOK. Tek bir açık panel, gradyan perde ya da blur kutusu yok.
+ * Metin okunabilirliğini sahnenin DEĞER yapısı çözüyor:
+ *   · Kadrajın ortası avlu boşluğu: 6.9 m aşağıda koyu taş + yükseklik sisinin
+ *     dibi. Sahnenin en koyu, en sakin, en olaysız bölgesi → açık tipografi.
+ *   · Aydınlık şeyler metnin ÇEVRESİNDE: üstte çeperin gözleri (izdüşürülmüş
+ *     disiplin adları), altta yakın korkuluğun üst kenarı.
+ * Panel testi: paneli kaldırsak metin okunur muydu? Panel hiç yok.
+ */
+
+.kok {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #0a3841;
+  color: #eaf7f9;
+  font-family: var(--font-govde), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.tuval canvas {
+  display: block;
+}
+
+/* Film greni: koyu teal gradyanda bant kırılmasını öldürür, taşa tutuş verir.
+   Tekdüze — gradyan değil, yani perde değil. */
+.gren {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* ── izdüşürülmüş göz etiketleri ─────────────────────────────────────── */
+
+.gozler {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* transform'u JS her karede yazıyor (translate3d + scale). Başlangıç
+   konumu ekran dışı: ilk kare gelene kadar sol üstte parlamasın. */
+.goz {
+  --isik: 0;
+  --gor: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(-999px, -999px, 0);
+  will-change: transform;
+}
+
+.gozIc {
+  position: relative;
+  display: block;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: #cdeef5;
+  /* Taban OKUNUR olmalı: dalga aynı anda 7 gözün ancak 2-3'ünde. 0.42 sönük
+     kalıyordu — küçük mono tipografi koyu taşın üstünde kayboluyor. Aydınlanma
+     hâlâ dalgadan geliyor, ama sönük hâli de okunuyor. */
+  opacity: calc(var(--gor) * (0.55 + var(--isik) * 0.45));
+  text-shadow: 0 1px 12px rgba(4, 28, 34, 0.85);
+  transition: none;
+}
+
+.gozCizgi {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.42rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(var(--isik));
+  transform-origin: left;
+  opacity: 0.75;
+}
+
+/* ── üst bar ─────────────────────────────────────────────────────────── */
+
+.ust {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.6rem clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.marka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  color: #d6f0f6;
+}
+
+.markaIsaret {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav {
+  display: flex;
+  gap: clamp(0.9rem, 2vw, 1.9rem);
+}
+
+.navLink {
+  font-size: 0.86rem;
+  color: rgba(220, 243, 249, 0.7);
+  text-decoration: none;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover {
+  color: #f0fbfd;
+}
+
+.ustCta {
+  font-size: 0.82rem;
+  color: #eaf7f9;
+  text-decoration: none;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(200, 238, 246, 0.3);
+  border-radius: 999px;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ustCta:hover {
+  transform: translateY(-1px);
+  border-color: rgba(200, 238, 246, 0.65);
+}
+
+@media (max-width: 780px) {
+  .nav,
+  .ustCta {
+    display: none;
+  }
+}
+
+/* ── orta blok: avlu boşluğunun üstünde ──────────────────────────────── */
+
+/* DİKKAT: ortalamak için transform KULLANILMIYOR. .gir animasyonu transform'u
+   devralıyor (keyframe `transform: none` ile bitiyor) ve translateX(-50%)
+   ortalamasını silerdi. Ortalama margin/inset ile. */
+.orta {
+  position: absolute;
+  z-index: 3;
+  top: 38%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(38rem, 88vw);
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: rgba(197, 236, 244, 0.82);
+}
+
+.nabiz {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6fe0f0;
+}
+
+.baslik {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-baslik), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.5rem, 6vw, 4.7rem);
+  line-height: 0.94;
+  letter-spacing: -0.022em;
+  color: #f2fcfe;
+}
+
+.satir {
+  display: block;
+}
+
+.vurgu {
+  font-style: italic;
+}
+
+.yil {
+  font-family: var(--font-mono), monospace;
+  font-style: normal;
+  font-size: 0.3em;
+  letter-spacing: 0.08em;
+  vertical-align: 0.85em;
+  margin-left: 0.5em;
+  color: rgba(202, 238, 246, 0.62);
+}
+
+.lede {
+  margin: 1.1rem auto 0;
+  max-width: 30rem;
+  font-size: clamp(0.92rem, 1.1vw, 1.02rem);
+  line-height: 1.62;
+  color: rgba(215, 240, 246, 0.76);
+}
+
+.altBlok {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* Açık dolu hap: koyu avlunun üstündeki en açık nesne. Kontrast renkten değil,
+   sahnenin değer yapısındaki yerinden geliyor. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.82rem 1.6rem;
+  border-radius: 999px;
+  background: #e6f9fc;
+  color: #07333c;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk {
+  transform: translateX(4px);
+}
+
+.ctaNot {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  color: rgba(190, 230, 239, 0.5);
+}
+
+/* ── dar ekran şeridi ────────────────────────────────────────────────── */
+
+.serit {
+  display: none;
+}
+
+@media (max-width: 780px) {
+  .gozler {
+    display: none;
+  }
+  .serit {
+    position: absolute;
+    z-index: 3;
+    bottom: 4.5%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 0.9rem;
+    width: min(30rem, 92vw);
+    margin-inline: auto;
+  }
+  .seritAd {
+    font-family: var(--font-mono), monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    color: rgba(205, 238, 245, 0.72);
+    text-shadow: 0 1px 10px rgba(4, 28, 34, 0.8);
+  }
+  .orta {
+    top: 30%;
+  }
+}
+
+/* ── giriş: tek hareket imzası ───────────────────────────────────────── */
+
+.gir {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gir 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gir {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* reduced-motion BASE katman: giriş yok, her şey okunur durur. */
+@media (prefers-reduced-motion: reduce) {
+  .gir {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .gozIc {
+    opacity: calc(var(--gor) * 0.8);
+  }
+  .gozCizgi {
+    transform: scaleX(0.3);
+  }
+}

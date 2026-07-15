@@ -1,0 +1,360 @@
+/*
+ * DÖRT KOLLU KAVŞAK — UI katmanı.
+ *
+ * SCRIM YOK. Metnin arkasında panel, gradyan perde, blur kutusu YOK.
+ * Okunabilirliği sahnenin fiziği çözüyor: tek ışık batı kolunda ve alçakta;
+ * metnin düştüğü bölge kuzey kolunun 27 m'lik dibi — ışıktan ~30 m uzak.
+ * Ters kare düşüm (1/d²) + sis yutumu (exp(-σd)) orayı zaten bitiriyor, üstelik
+ * kuzey kolu bilinçli olarak EN YOĞUN sisli kol. Yani metin, sahnenin
+ * matematiksel olarak en sakin bölgesinin üstünde duruyor.
+ *
+ * "Bu panel olmasa metin okunur muydu?" → panel yok; test konusuz.
+ * Çevresi ölü de değil: solda ışıklı ağız, altta zemindeki dil, sağda sönük
+ * doğu ağzı, çeperde tonoz sırtları. Sakin alan ≠ olaysız kadraj.
+ */
+
+.kok {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #0e4a46; /* sahnenin dip değeri — saf siyah yok */
+  color: #e8f8fa;
+  font-family: var(--font-govde), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.tuval canvas {
+  display: block;
+}
+
+/* Film greni: 18 adımlık march'ın bıraktığı bandı öldürür, taşa tutuş verir.
+   Tekdüze — gradyan değil, yani perde değil. */
+.gren {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* ---- üst bar ------------------------------------------------------------ */
+
+.ust {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.6rem clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.marka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  color: rgba(232, 248, 250, 0.9);
+}
+
+.markaIsaret {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav {
+  display: flex;
+  gap: clamp(0.9rem, 2vw, 1.9rem);
+}
+
+.navLink {
+  font-size: 0.86rem;
+  color: rgba(232, 248, 250, 0.6);
+  text-decoration: none;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover {
+  color: #e8f8fa;
+}
+
+.ustCta {
+  font-size: 0.82rem;
+  color: #e8f8fa;
+  text-decoration: none;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(111, 224, 240, 0.35);
+  border-radius: 999px;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ustCta:hover {
+  transform: translateY(-1px);
+  border-color: rgba(111, 224, 240, 0.75);
+}
+
+@media (max-width: 780px) {
+  .nav,
+  .ustCta {
+    display: none;
+  }
+}
+
+/* ---- orta blok: kavşağın tam ekseninde ---------------------------------- */
+
+/* DİKKAT: ortalamak için transform KULLANILMIYOR. .gir animasyonu transform'u
+   devralıyor (keyframe `transform: none` ile bitiyor) ve translateX(-50%)
+   ortalamasını silerdi. Ortalama margin/inset ile → animasyonla çakışmaz. */
+.orta {
+  position: absolute;
+  z-index: 3;
+  top: 26%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(36rem, 88vw);
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: rgba(111, 224, 240, 0.82);
+}
+
+.nabiz {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6fe0f0;
+}
+
+.baslik {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-baslik), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 6.4vw, 4.9rem);
+  line-height: 0.94;
+  letter-spacing: -0.022em;
+  color: #eefbfd;
+}
+
+.baslikSatir {
+  display: block;
+}
+
+.vurgu {
+  font-style: italic;
+}
+
+.yil {
+  font-family: var(--font-mono), monospace;
+  font-style: normal;
+  font-size: 0.3em;
+  letter-spacing: 0.08em;
+  vertical-align: 0.85em;
+  margin-left: 0.5em;
+  color: rgba(111, 224, 240, 0.6);
+}
+
+.lede {
+  margin: 1.15rem auto 0;
+  max-width: 29rem;
+  font-size: clamp(0.92rem, 1.1vw, 1.02rem);
+  line-height: 1.62;
+  color: rgba(223, 242, 244, 0.72);
+}
+
+.altBlok {
+  margin-top: 1.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* Açık dolu hap: karanlık kuzey kolunun üstündeki en parlak nesne.
+   Kontrast renkten değil, sahnenin değer yapısındaki yerinden geliyor. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.82rem 1.6rem;
+  border-radius: 999px;
+  background: #dff2f4;
+  color: #073f49;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk {
+  transform: translateX(4px);
+}
+
+.ctaNot {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  color: rgba(223, 242, 244, 0.42);
+}
+
+/* ---- şerit: dört kol + karanlıktaki üç ---------------------------------- */
+
+.serit {
+  position: absolute;
+  z-index: 3;
+  bottom: 6%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(62rem, 92vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: clamp(0.7rem, 2vw, 1.6rem);
+}
+
+.kollar {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.8rem, 2.4vw, 2rem);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* --isik: sahnenin ışık denklemi (ters kare düşüm + ağız görünürlüğü) CPU'da
+   örneklenip yazılıyor. Batı ağzı en parlak, doğu en sönük — şeridin değer
+   sırası kadrajdaki ağızların sırasıyla AYNI. */
+.kol {
+  --isik: 0.4;
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(0.58rem, 0.8vw, 0.7rem);
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  color: #e8f8fa;
+  /* Taban 0.6: en sönük kol bile OKUNUR kalmalı. Aydınlanma dalgalanması
+     okunabilirliğin üstüne biniyor, altına değil. */
+  opacity: calc(0.6 + var(--isik) * 0.4);
+  text-shadow: 0 1px 12px rgba(7, 63, 73, 0.7);
+}
+
+.kolOk {
+  font-size: 0.9em;
+  color: #6fe0f0;
+  opacity: calc(0.35 + var(--isik) * 0.65);
+}
+
+.kolCizgi {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, #6fe0f0, #43d6a8);
+  transform: scaleX(var(--isik));
+  transform-origin: left;
+  opacity: 0.75;
+}
+
+.ayrac {
+  width: 1px;
+  height: 1.1rem;
+  background: rgba(223, 242, 244, 0.22);
+}
+
+.karanlik {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.7rem, 1.8vw, 1.4rem);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Karanlıkta kalan üç disiplin. Sönük ama OKUNUR: "göremezsin" kavramsal,
+   erişilebilirlik değil. */
+.sonuk {
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(0.54rem, 0.72vw, 0.64rem);
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  color: rgba(223, 242, 244, 0.46);
+  text-shadow: 0 1px 10px rgba(7, 63, 73, 0.6);
+}
+
+@media (max-width: 640px) {
+  .orta {
+    top: 20%;
+  }
+  .serit {
+    bottom: 4%;
+    gap: 0.5rem 0.8rem;
+  }
+  .ayrac {
+    display: none;
+  }
+}
+
+/* ---- giriş: tek hareket imzası ----------------------------------------- */
+
+.gir {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gir 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gir {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* reduced-motion BASE katman: giriş yok, her şey okunur durur. */
+@media (prefers-reduced-motion: reduce) {
+  .gir {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .kol {
+    --isik: 0.5;
+  }
+  .kolCizgi {
+    transform: scaleX(0.4);
+  }
+}

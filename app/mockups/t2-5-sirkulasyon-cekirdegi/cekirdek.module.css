@@ -1,0 +1,288 @@
+/*
+ * SİRKÜLASYON ÇEKİRDEĞİ — UI katmanı.
+ *
+ * SCRIM YOK. Tur 1'de üç sahne metnin arkasına düz açık bir panel koyup
+ * reddedildi. Burada okunabilirliği sahnenin ışık yapısı taşıyor:
+ *   · Kadrajın alt bandı = şaftın dibi. Pencere yukarıda ve YANDA olduğu için
+ *     bu kota hiçbir doğrudan ışık düşmez; sekme ışığı da yükseklikle üstel
+ *     söner (saft.ts). Yani orası fiziksel olarak sahnenin en koyu yeri.
+ *   · Oraya AÇIK tipografi biner. Kontrast renkten değil, metnin sahnenin
+ *     değer yapısındaki yerinden geliyor.
+ * Test: pencereyi tümüyle kapatsan metnin bölgesi yine en koyu bölge olurdu →
+ * panel eklemek hiçbir şey değiştirmez → panel yok.
+ */
+
+.kok {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  /* Sahne kurulamazsa (WebGL yok) metin yine bu zeminde okunur kalır. */
+  background: #073f49;
+  color: #eaf9fc;
+  font-family: var(--font-govde), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.tuval canvas {
+  display: block;
+}
+
+/* Film greni: soluk sis gradyanında kaçınılmaz olan bant kırılmasını öldürür
+   ve taşa tutuş verir. Tekdüze — gradyan değil, yani perde değil. */
+.gren {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.34;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* Vignette: KÖŞELERİ toplayan sinematik bir kapanma. Merkezi %52/%46'da —
+   metnin oturduğu alt-orta bandı neredeyse hiç karartmıyor. Yani metne
+   kontrast HEDİYE ETMİYOR; panel testi bu katman olmadan da geçiyor. */
+.vinyet {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    118% 96% at 52% 46%,
+    rgba(7, 63, 73, 0) 58%,
+    rgba(7, 63, 73, 0.5) 100%
+  );
+}
+
+/* ---- üst bar ------------------------------------------------------------ */
+
+.ust {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.6rem clamp(1.1rem, 3.4vw, 2.6rem);
+  /* Sis düzeltilince kadrajın ÜSTÜ gerçekten aydınlandı (pencere bandı orada)
+     ve açık üst bar yazısı beyaz üstünde beyaza düştü. Panel/scrim DEĞİL:
+     harf başına koyu bir hâle. Düz dikdörtgen perde metnin arkasını kaplar,
+     bu yalnız glifin kendi konturunu takip eder — zemin görünmeye devam ediyor.
+     Üst bar zaten "chrome"; kahraman metin kontrastını hâlâ sahnenin ışığı
+     taşıyor (dip bandı ham koyu değerinde). */
+  text-shadow: 0 1px 14px rgba(7, 63, 73, 0.62);
+}
+
+.marka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  color: rgba(223, 246, 251, 0.9);
+}
+
+.markaIsaret {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav {
+  display: flex;
+  gap: clamp(0.9rem, 2vw, 1.9rem);
+}
+
+.navLink {
+  font-size: 0.86rem;
+  /* 0.62 → 0.86: aydınlanan şaftın önünde 0.62 okunmuyordu. */
+  color: rgba(223, 246, 251, 0.86);
+  text-decoration: none;
+  transition: color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover {
+  color: #eafdff;
+}
+
+.ustCta {
+  font-size: 0.82rem;
+  color: rgba(234, 253, 255, 0.92);
+  text-decoration: none;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(191, 233, 243, 0.42);
+  border-radius: 999px;
+  /* Hapın KENDİ alanı kadar koyu dolgu — metnin arkasındaki perde değil.
+     Aydınlanan şaftın önünde açık konturlu açık yazı tümden kayboluyordu. */
+  background: rgba(7, 63, 73, 0.32);
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ustCta:hover {
+  transform: translateY(-1px);
+  border-color: rgba(191, 233, 243, 0.7);
+}
+
+@media (max-width: 780px) {
+  .nav,
+  .ustCta {
+    display: none;
+  }
+}
+
+/* ---- metin: şaftın dibinde ---------------------------------------------- */
+
+/* DİKKAT: ortalamak için transform KULLANILMIYOR. .gir animasyonu transform'u
+   devralıyor (keyframe `transform: none` ile bitiyor) ve translateX(-50%)
+   ortalamasını silerdi. Ortalama margin/inset ile → animasyonla çakışmaz. */
+.dip {
+  position: absolute;
+  z-index: 3;
+  bottom: clamp(2.2rem, 7vh, 4.4rem);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(40rem, 90vw);
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: rgba(111, 224, 240, 0.9);
+}
+
+.nabiz {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6fe0f0;
+}
+
+.baslik {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-baslik), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 6.4vw, 4.9rem);
+  line-height: 0.94;
+  letter-spacing: -0.022em;
+  color: #f2fdff;
+}
+
+.baslikSatir {
+  display: block;
+}
+
+.vurgu {
+  font-style: italic;
+}
+
+.yil {
+  font-family: var(--font-mono), monospace;
+  font-style: normal;
+  font-size: 0.3em;
+  letter-spacing: 0.08em;
+  vertical-align: 0.85em;
+  margin-left: 0.5em;
+  color: rgba(191, 233, 243, 0.6);
+}
+
+.lede {
+  margin: 1.1rem auto 0;
+  max-width: 30rem;
+  font-size: clamp(0.92rem, 1.1vw, 1.02rem);
+  line-height: 1.62;
+  /* 0.74 → 0.84: render'da lede sisin yıkadığı orta değerin üstünde eriyordu. */
+  color: rgba(223, 246, 251, 0.84);
+}
+
+.altBlok {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* Açık dolu hap: koyu dibin üstündeki en parlak nesne. Buton, perde değil —
+   metnin arkasını değil, yalnız kendi alanını kaplar. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.82rem 1.6rem;
+  border-radius: 999px;
+  background: #dff4f8;
+  color: #073f49;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk {
+  transform: translateX(4px);
+}
+
+.ctaNot {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  /* 0.46 → 0.64: 0.46'da mono + 0.66rem + geniş harf aralığı, hafif sisli
+     zeminde okunmuyordu. İnce mono en kırılgan metin — en çok pay ona lazım. */
+  color: rgba(191, 233, 243, 0.64);
+}
+
+@media (max-width: 640px) {
+  .dip {
+    bottom: 2rem;
+  }
+}
+
+/* ---- giriş: tek hareket imzası ----------------------------------------- */
+
+.gir {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gir 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gir {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* reduced-motion BASE katman: giriş yok, her şey okunur durur. */
+@media (prefers-reduced-motion: reduce) {
+  .gir {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

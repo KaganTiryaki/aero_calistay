@@ -1,0 +1,302 @@
+/*
+ * ÇÖZÜLEN GÖLGE — UI katmanı.
+ *
+ * SCRIM YOK. Metnin arkasında panel, açık dikdörtgen, gradyan perde yok.
+ * Okunabilirlik sahnenin ışık geometrisinden geliyor:
+ *   · Işık dip duvara neredeyse dik çarpıyor → duvar parlak (kadrajın orta
+ *     bandı). Metin oraya GİRMİYOR.
+ *   · Aynı ışık zemine 17° sıyırma açısıyla değiyor → kadrajın alt ~%40'ı
+ *     yapısal olarak koyu. Metin bandı orada, AÇIK tipografiyle.
+ *   · Ufuk çizgisi metin bandının ÜSTÜNDEN geçiyor, arkasından değil.
+ * Test: "panel olmasa metin okunur muydu?" → panel hiç yok; koyuluk sahnenin
+ * kendi ışığının sonucu.
+ */
+
+.kok {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #0e4a46;
+  color: #eaf9fb;
+  font-family: var(--font-govde), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.tuval canvas {
+  display: block;
+}
+
+/* Film greni: soluk duvar gradyanında kaçınılmaz olan bant kırılmasını öldürür.
+   Tekdüze — yani gradyan değil, yani perde değil. */
+.gren {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.34;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* ---- üst bar: parlak duvarın önünde → KOYU tipografi -------------------- */
+
+.ust {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.6rem clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.marka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  color: #073f49;
+}
+
+.markaIsaret {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.nav {
+  display: flex;
+  gap: clamp(0.9rem, 2vw, 1.9rem);
+}
+
+.navLink {
+  font-size: 0.86rem;
+  color: rgba(7, 63, 73, 0.74);
+  text-decoration: none;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover {
+  color: #073f49;
+}
+
+.ustCta {
+  font-size: 0.82rem;
+  color: #073f49;
+  text-decoration: none;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid rgba(7, 63, 73, 0.3);
+  border-radius: 999px;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ustCta:hover {
+  transform: translateY(-1px);
+  border-color: rgba(7, 63, 73, 0.62);
+}
+
+@media (max-width: 780px) {
+  .nav,
+  .ustCta {
+    display: none;
+  }
+}
+
+/* ---- alt blok: karanlık zeminin üstü ------------------------------------ */
+
+/* DİKKAT: ortalamak için transform KULLANILMIYOR. .gir animasyonu transform'u
+   devralıyor (keyframe `transform: none` ile bitiyor) ve translateX(-50%)
+   ortalamasını silerdi. Ortalama margin/inset ile. */
+.alt {
+  position: absolute;
+  z-index: 3;
+  bottom: clamp(1.6rem, 4vh, 3rem);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(40rem, 88vw);
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  color: rgba(207, 240, 246, 0.82);
+}
+
+.nabiz {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #43d6a8;
+}
+
+.baslik {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-baslik), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.4rem, 5.6vw, 4.3rem);
+  line-height: 0.96;
+  letter-spacing: -0.022em;
+  color: #f2fcfd;
+}
+
+.baslikSatir {
+  display: block;
+}
+
+.vurgu {
+  font-style: italic;
+}
+
+.yil {
+  font-family: var(--font-mono), monospace;
+  font-style: normal;
+  font-size: 0.3em;
+  letter-spacing: 0.08em;
+  vertical-align: 0.85em;
+  margin-left: 0.5em;
+  color: rgba(207, 240, 246, 0.6);
+}
+
+.lede {
+  margin: 1rem auto 0;
+  max-width: 30rem;
+  font-size: clamp(0.9rem, 1.05vw, 1rem);
+  line-height: 1.6;
+  color: rgba(224, 246, 250, 0.78);
+}
+
+.altBlok {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* Açık dolu hap: karanlık zeminin üstündeki en parlak nesne. Kontrast renkten
+   değil, sahnenin değer yapısındaki yerinden geliyor. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.82rem 1.6rem;
+  border-radius: 999px;
+  background: #eaf9fb;
+  color: #073f49;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk {
+  transform: translateX(4px);
+}
+
+.ctaNot {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  color: rgba(207, 240, 246, 0.5);
+}
+
+/* ---- disiplin şeridi ---------------------------------------------------- */
+
+.serit {
+  margin-top: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: clamp(0.6rem, 2.2vw, 1.9rem);
+}
+
+/* --cozulme: sahnedeki ışığın L0 eksenine ne kadar yaklaştığı, CPU'da
+   örneklenip her karede buraya yazılıyor. Kümeler U ekseni boyunca soldan
+   sağa dizili olduğu için disiplinler ufukla aynı sırada, hafif gecikmeyle
+   yanıyor: yedi ses, tek ufuk. */
+.disiplin {
+  --cozulme: 0;
+  position: relative;
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(0.57rem, 0.8vw, 0.68rem);
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  color: #e4f4f7;
+  /* Taban 0.55: sönük hâli de OKUNUR kalmalı — küçük mono tipografi daha
+     düşük opaklıkta zeminde kayboluyor. */
+  opacity: calc(0.55 + var(--cozulme) * 0.45);
+}
+
+/* Çözülme anında her disiplinin altında kendi kısa çizgisi tamamlanıyor:
+   şeridin kendisi de dağınıktan tek hatta geçiyor. */
+.disiplinCizgi {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.45rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(var(--cozulme));
+  transform-origin: left;
+  opacity: 0.65;
+}
+
+@media (max-width: 640px) {
+  .serit {
+    margin-top: 1.2rem;
+    gap: 0.5rem 0.85rem;
+  }
+}
+
+/* ---- giriş: tek hareket imzası ----------------------------------------- */
+
+.gir {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gir 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gir {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* reduced-motion BASE katman: giriş yok, her şey okunur durur. Sahne de zaten
+   tek statik ÇÖZÜLMÜŞ kare veriyor → şerit tam yanık. */
+@media (prefers-reduced-motion: reduce) {
+  .gir {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
