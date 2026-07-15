@@ -4,7 +4,6 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionAtmosphere } from "@/components/ui/SectionAtmosphere";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { PhotoSlot } from "@/components/ui/PhotoSlot";
-import { cn } from "@/lib/cn";
 import { teams, teamGallery } from "@/lib/content";
 
 /** Eş başkanlık: lead alanında " · " ile ayrılmış iki isim (bkz. Teams.tsx). */
@@ -48,7 +47,7 @@ export function TeamGallery() {
           {teamGallery.coordinators.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06}>
               <PhotoSlot
-                className="aspect-[4/5] sm:aspect-[13/12] lg:aspect-[33/20]"
+                className="aspect-[4/5] lg:aspect-[33/20]"
                 caption={
                   <>
                     {c.name}
@@ -63,19 +62,24 @@ export function TeamGallery() {
         </div>
 
         {/* one slot per committee, captioned with the team name. Eş başkanlı
-            ekipler lg'de iki sütun kaplar — ikisi yan yana sığsın diye yatay.
-            33/20, çift slotu tekli 4/5 komşusuyla aynı yükseklikte tutuyor
-            (568/1.65 ≈ 344 ≈ 276×5/4). Dar ekranda hepsi tekil: telefonda çift
-            sütun tüm satırı kaplayıp devleşiyordu. */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            ekipler iki sütun kaplar ve yatay (33/20) — iki kişi yan yana sığsın
+            diye. Yatay oran, çift slotu her genişlikte tekli 4/5 komşusuyla aynı
+            yükseklikte tutuyor (2 sütun ÷ 1.65 ≈ 1 sütun × 5/4), telefonda tüm
+            satırı kaplasa bile boyu büyümüyor.
+            Izgara 2 ya da 4 sütun: 7 çift + 2 tek = 16 sütun, ikisine de tam
+            bölünüyor. 3 sütunda çift slotlar delik bırakırdı.
+            dense: 2 sütunda Teknik'ten sonra gelen çift slot tek sütunluk deliğe
+            sığmayıp alta atlıyordu; dense o deliği sonraki tekliyle dolduruyor
+            (4 sütunda zaten delik yok, orada bir etkisi olmuyor). */}
+        <div className="grid grid-flow-row-dense grid-cols-2 gap-4 lg:grid-cols-4">
           {teams.committees.map((c, i) => (
             <Reveal
               key={c.name}
               delay={(i % 4) * 0.06}
-              className={isPair(c.lead) ? "lg:col-span-2" : undefined}
+              className={isPair(c.lead) ? "col-span-2" : undefined}
             >
               <PhotoSlot
-                className={cn("aspect-[4/5]", isPair(c.lead) && "lg:aspect-[33/20]")}
+                className={isPair(c.lead) ? "aspect-[33/20]" : "aspect-[4/5]"}
                 caption={c.name}
               />
             </Reveal>
