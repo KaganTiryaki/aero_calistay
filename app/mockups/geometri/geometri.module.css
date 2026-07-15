@@ -1,0 +1,565 @@
+/* ============================================================
+   YÖN 4 — "GRAFİK GEOMETRİ"
+   Swiss/Bauhaus poster hero. Düz renk blokları, sert kenarlar,
+   görünür grid, devasa grotesk tipografi.
+   Hareket: sadece transform + opacity.
+   ============================================================ */
+
+.hero {
+  /* palet — tek kaynak: @aero_cal */
+  --ink: #0e4a46;
+  --field: #35c8e6;
+  --mint: #43d6a8;
+  --mint-lt: #5fe0bc;
+  --cyan-dp: #22b8dc;
+  --teal: #2fd3d0;
+  --graphite: #0a1a1c;
+
+  --pad: clamp(16px, 3.2vw, 44px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Tip bloğunun genişliği yükseklikten türer: blok asla 100svh'yi taşırmaz.
+     Tip yüksekliği = (134 + 120) / 1024 = 0.248 × genişlik → 1/0.248 = 4.03.
+     254px = header + footer + orta alan için ayrılan asgari pay. */
+  --typeW: min(100%, max(300px, calc((100svh - 254px) * 4.03)));
+
+  /* pointer parallax — JS yazmazsa 0px (statik base). */
+  --mx: 0px;
+  --my: 0px;
+
+  position: relative;
+  /* root layout'un koyu chrome'u (SiteBackground 0 · SideRails 60 · Cursor 90/91
+     · ScrollProgress 101) bu aydınlık posterin üstüne düşmesin. */
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100svh;
+  min-height: 540px;
+  overflow: hidden;
+  background: var(--field);
+  color: var(--ink);
+  font-family: var(--geo-mono), ui-monospace, monospace;
+  isolation: isolate;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- görünür poster gridi ------------------------------------ */
+.grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    rgba(14, 74, 70, 0.16) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: calc(100% / 12) 100%;
+}
+
+/* --- header --------------------------------------------------- */
+.header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px var(--pad);
+  border-bottom: 1px solid rgba(14, 74, 70, 0.24);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mark {
+  display: block;
+  width: 34px;
+  height: 34px;
+  flex: none;
+}
+
+.brandName {
+  font-family: var(--geo-display), system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.nav {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 2.2vw, 34px);
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.navNum {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: rgba(14, 74, 70, 0.5);
+  transition: color 0.4s var(--ease);
+}
+
+.navLink:hover .navNum {
+  color: var(--ink);
+}
+
+.navLabel {
+  position: relative;
+  font-family: var(--geo-display), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.navLabel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease);
+}
+
+.navLink:hover .navLabel::after,
+.navLink:focus-visible .navLabel::after {
+  transform: scaleX(1);
+}
+
+/* --- orta alan (cyan boşluk + geometri) ----------------------- */
+.mid {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 var(--pad) 20px;
+}
+
+.geo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: fade 0.9s var(--ease) 1.15s both;
+}
+
+/* daire — Bauhaus üçlüsü 1/3. Alt yarısı tip bloğuna gömülü. */
+.circleWrap {
+  /* svh'ye de bağlı: alçak ekranlarda daire orta alanı taşırıp iki yaya bölünmesin. */
+  --d: clamp(190px, min(46vw, 62svh), 700px);
+  position: absolute;
+  /* 17%: dairenin sol yayı aşağıdaki durum satırının üstünden geçmesin. */
+  left: 17%;
+  bottom: calc(var(--d) / -2);
+  width: var(--d);
+  height: var(--d);
+  transform: translate3d(calc(var(--mx) * -0.18), calc(var(--my) * -0.18), 0);
+}
+
+.circle {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* orbit — sirkülasyon: kare daire çevresinde dolaşır, tip bloğunun
+   arkasına girip kaybolur, tekrar doğar. */
+.orbit {
+  position: absolute;
+  inset: 0;
+  animation: spin 26s linear infinite;
+}
+
+/* kare — Bauhaus üçlüsü 2/3 */
+.orbitSq {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  background: var(--ink);
+}
+
+/* üçgen (kanat / "A" DNA'sı) + hız izleri — Bauhaus üçlüsü 3/3.
+   viewBox -120 0 240 120: sağdaki 120 birim üçgen, solundaki 120 birim iz alanı.
+   Genişlik daireyle çakışmayacak şekilde sınırlı (daire sağ kenarı ~%56'da). */
+.wing {
+  position: absolute;
+  right: 7%;
+  bottom: 0;
+  width: clamp(220px, 34vw, 620px);
+  aspect-ratio: 2 / 1;
+  height: auto;
+  transform: translate3d(calc(var(--mx) * 0.3), calc(var(--my) * 0.24), 0);
+}
+
+.midRow {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* Kutusuz: çerçeveli "badge" şablon kokar. Kare + mono metin yeter. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.statusSq {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--ink);
+  animation: blink 2.4s steps(1, end) infinite;
+}
+
+/* --- mobil dikey index navigasyonu ---------------------------- */
+.navMobile {
+  display: none;
+}
+
+/* --- tip bloğu ------------------------------------------------ */
+.type {
+  position: relative;
+  z-index: 2;
+}
+
+/* Giriş zamanlaması, root layout'taki Preloader'a göre kuruldu (ona dokunamıyoruz):
+   perde 1050ms dolar + 560ms söner → ~1610ms'de kalkar. Girişi 620ms'de
+   başlatınca bantlar tam perde açılırken uçuyor; aksi halde poster perdenin
+   ARKASINDA kurulup bitiyor ve kimse girişi görmüyor. */
+.band {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  animation: bandIn 1.05s var(--ease) both;
+  animation-delay: calc(var(--i) * 85ms + 620ms);
+}
+
+.bandInner {
+  width: var(--typeW);
+}
+
+.drift {
+  animation: drift var(--dur) ease-in-out infinite;
+  animation-delay: calc(var(--i) * 85ms + 1.9s); /* giriş otursun, sonra nefes */
+  will-change: transform;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: translate3d(calc(var(--mx) * var(--k)), 0, 0);
+}
+
+.glyph {
+  font-family: var(--geo-display), system-ui, sans-serif;
+  font-weight: 900;
+}
+
+/* --- footer (band 6'nın koyu teal kütlesinin devamı) ---------- */
+.footer {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px var(--pad);
+  background: var(--ink);
+  border-top: 1px solid rgba(95, 224, 188, 0.22);
+  animation: bandIn 1.05s var(--ease) 1130ms both;
+  --from: 1;
+}
+
+.handle {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--mint-lt);
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 26px);
+}
+
+.note {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(231, 255, 248, 0.62);
+  white-space: nowrap;
+}
+
+.cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 15px 22px;
+  border-radius: 0;
+  background: var(--mint);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--geo-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.ctaFill {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  transform: translate3d(-101%, 0, 0);
+  transition: transform 0.55s var(--ease);
+}
+
+.cta:hover .ctaFill,
+.cta:focus-visible .ctaFill {
+  transform: translate3d(0, 0, 0);
+}
+
+.ctaText {
+  position: relative;
+  z-index: 1;
+}
+
+.ctaArrow {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 10px;
+  height: 12px;
+  flex: none;
+  transition: transform 0.55s var(--ease);
+}
+
+.cta:hover .ctaArrow,
+.cta:focus-visible .ctaArrow {
+  transform: translate3d(5px, 0, 0);
+}
+
+/* --- keyframes ------------------------------------------------
+   Hepsinin 0%/100% nötr: globals.css'teki reduced-motion kuralı
+   (animation-duration: 0.001ms !important) bantları kaymış halde
+   dondurmasın. */
+@keyframes bandIn {
+  from {
+    transform: translate3d(calc(var(--from) * 100%), 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(var(--a), 0, 0);
+  }
+  75% {
+    transform: translate3d(calc(var(--a) * -1), 0, 0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blink {
+  0%,
+  62%,
+  100% {
+    opacity: 1;
+  }
+  63%,
+  99% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ekran dışındayken ambient hareketi durdur */
+.paused .drift,
+.paused .orbit,
+.paused .statusSq {
+  animation-play-state: paused;
+}
+
+/* --- responsive ----------------------------------------------- */
+@media (max-width: 860px) {
+  .hero {
+    --typeW: 100%;
+  }
+
+  .grid {
+    background-size: calc(100% / 6) 100%;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .navMobile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin-left: auto;
+    padding-bottom: 22px;
+  }
+
+  .navMobile .navLink {
+    gap: 9px;
+  }
+
+  .navMobile .navLabel {
+    font-size: clamp(17px, 5vw, 23px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .navMobile .navNum {
+    font-size: 10px;
+  }
+
+  /* Dar ekranda gökyüzü çok yükseliyor: kırpılmış daire köşede kaybolup
+     kompozisyonsuz bir boşluk bırakıyordu. Burada daireyi TAM göster ve
+     boşluğun ortasına otur → yörünge karesi de tur boyunca görünür kalır. */
+  .circleWrap {
+    --d: min(72vw, 38svh);
+    left: 50%;
+    top: 36%;
+    bottom: auto;
+    transform: translate3d(
+      calc(-50% + var(--mx) * -0.18),
+      calc(-50% + var(--my) * -0.18),
+      0
+    );
+  }
+
+  .wing {
+    display: none;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .footerRight {
+    justify-content: space-between;
+  }
+
+  .cta {
+    padding: 15px 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .note {
+    display: none;
+  }
+
+  /* Tek başına sağa sıkışmış buton yerine tam genişlik: asıl eylem bu. */
+  .footerRight {
+    justify-content: stretch;
+  }
+
+  .cta {
+    width: 100%;
+    justify-content: space-between;
+    padding: 17px 20px;
+  }
+}
+
+/* --- reduced motion: statik base ------------------------------
+   Poster hareketsiz halde zaten tam kurulu — animasyonları
+   tamamen kaldırmak doğru kareyi verir. */
+@media (prefers-reduced-motion: reduce) {
+  .band,
+  .drift,
+  .orbit,
+  .statusSq,
+  .geo,
+  .footer {
+    animation: none !important;
+  }
+
+  .band,
+  .drift,
+  .footer {
+    transform: none !important;
+  }
+
+  .geo {
+    opacity: 1 !important;
+  }
+}
