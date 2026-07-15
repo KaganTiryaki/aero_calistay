@@ -10,13 +10,15 @@ import { cn } from "@/lib/cn";
  * microcopy. Featured slot gets one shimmer. Subtle 3D tilt on hover.
  */
 export function PhotoSlot({
-  ratio = "4 / 5",
+  ratio,
   caption,
   featured = false,
   className,
 }: {
+  /** Sabit oran. Breakpoint'e göre değişmesi gerekiyorsa bunu boş bırakıp
+   *  className'e `aspect-[...]` ver — inline style class'ı ezerdi. */
   ratio?: string;
-  caption?: string;
+  caption?: React.ReactNode;
   featured?: boolean;
   className?: string;
 }) {
@@ -45,10 +47,11 @@ export function PhotoSlot({
       onPointerLeave={onLeave}
       className={cn(
         "group relative overflow-hidden rounded-2xl border border-hairline/70",
+        !ratio && "aspect-[4/5]",
         className,
       )}
       style={{
-        aspectRatio: ratio,
+        ...(ratio ? { aspectRatio: ratio } : null),
         background: "linear-gradient(150deg, #0d1b3e, #10275c)",
         transition: "transform .35s cubic-bezier(0.16,1,0.3,1)",
         willChange: "transform",
