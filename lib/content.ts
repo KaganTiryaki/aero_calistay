@@ -160,6 +160,9 @@ export const teamGallery = {
     { name: "Asya Yeşil", role: "Genel Koordinatör" },
     { name: "Öykü Ceren Güler", role: "Genel Koordinatör" },
   ],
+  // Bu komite koordinatörlerin satırını paylaşır. 9 komite 4'lü ızgarada
+  // tek başına bir satır bırakıyordu; kalan 8 tam iki satır ediyor.
+  rowCommittee: "Admin",
   note: "Fotoğraflar yakında eklenecek.",
 } as const;
 
