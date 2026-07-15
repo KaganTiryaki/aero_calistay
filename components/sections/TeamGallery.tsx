@@ -45,18 +45,32 @@ export function TeamGallery() {
         </Reveal>
 
         {/* genel koordinatörler + rowCommittee — one full-width band right under
-            the group photo. 13/12 keeps this three-up row exactly as tall as the
-            four-up committee row below it. Mobile drops to two columns, where the
-            committee spans both so nothing is left stranded. */}
+            the group photo. sm+: three across, 13/12 keeps the row exactly as
+            tall as the four-up committee row below it. Mobile: two across at the
+            committee's own 4/5 portrait, so the komite drops to the next line at
+            normal size instead of stretching across. */}
         <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {teamGallery.coordinators.map((c, i) => (
             <Reveal key={c.name} delay={i * 0.06}>
-              <PhotoSlot ratio="13 / 12" caption={`${c.name} · ${c.role}`} />
+              <PhotoSlot
+                className="aspect-[4/5] sm:aspect-[13/12]"
+                caption={
+                  <>
+                    {c.name}
+                    {/* Ünvan ancak lg'de tek satıra sığıyor; dar slotta sarıp
+                        "Görsel yakında" yazısının üstüne biniyordu. */}
+                    <span className="hidden lg:inline"> · {c.role}</span>
+                  </>
+                }
+              />
             </Reveal>
           ))}
           {rowCommittee && (
-            <Reveal className="col-span-2 sm:col-span-1" delay={0.12}>
-              <PhotoSlot ratio="13 / 12" caption={rowCommittee.name} />
+            <Reveal delay={0.12}>
+              <PhotoSlot
+                className="aspect-[4/5] sm:aspect-[13/12]"
+                caption={rowCommittee.name}
+              />
             </Reveal>
           )}
         </div>
