@@ -160,7 +160,7 @@ export function KavsakSahnesi({ sinif, bildir }: Props) {
       // 0.30 → 0.55: eski değerde tonoz apeksine 0.032 düşüyordu, yani HİÇBİR ŞEY;
       // kadrajın üst yarısı ölüydü. 0.75 denendi → sahne nane yeşiline kaçtı
       // (palet kayması). 0.55 ikisinin arası: tonoz okunuyor, hue kaymıyor.
-      uSekmeGuc: { value: 0.55 },
+      uSekmeGuc: { value: 0.68 },
       uKaranlik: { value: new THREE.Color(KARANLIK) },
       uTasRenk: { value: new THREE.Color(TAS_RENK) },
       uYuzey: { value: 0 },
@@ -247,7 +247,10 @@ export function KavsakSahnesi({ sinif, bildir }: Props) {
         uSisRenk: { value: new THREE.Color(SIS_RENK) },
         uKaranlik: { value: new THREE.Color(KARANLIK) },
         uZaman: { value: 0 },
-        uPozlama: { value: 0.9 },
+        // 0.9 → 0.84: zemindeki havuz 222'ye dayanıyordu (yanık). Pozlamayı
+        // kısmak highlight'ı geri getiriyor ve metnin oturduğu kuzey kolunu
+        // daha da derinleştiriyor — okunabilirlik yine ışıktan geliyor.
+        uPozlama: { value: 0.84 },
         uCozunurluk: { value: new THREE.Vector2(1, 1) },
       },
       vertexShader: SIS_VERT,

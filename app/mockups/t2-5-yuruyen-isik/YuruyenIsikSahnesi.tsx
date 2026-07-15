@@ -74,7 +74,11 @@ const GOK_UFUK = "#cdeef6";
 const TAS = "#c3cdcd"; // açık, nötre yakın kesme taş: değerini ışık veriyor
 const TAS_KOYU = "#b9c4c5"; // revağın içi — koyu görünüyor çünkü GÖLGEDE
 const DIP = "#adb9ba"; // eyvanın içi — aynı sebeple, boyayla değil
-const SILUET = "#97a6a9"; // bizim eyvanımız: kadraja bakan yüzü zaten sofit
+// Bizim eyvanımız: kadraja bakan yüzü zaten sofit, yani ASLA doğrudan ışık
+// almıyor — değeri tamamen taban ışıktan geliyor. Bu yüzden sahnenin en koyu
+// nesnesi o ve albedosu palet tabanını doğrudan belirliyor: #97a6a9 iken
+// rgb(1,7,8) ölçüldü (saf siyah = red). Açıldı; yine de kadrajın en koyu kütlesi.
+const SILUET = "#c4d2d4";
 const ZEMIN_TAS = "#aeb9ba";
 const LAMBA = "#eafcff";
 const NANE_SEKME = "#b8f0dd";
@@ -110,8 +114,14 @@ function cerceve(aspect: number) {
   );
   const yariH = Math.tan(THREE.MathUtils.degToRad(fov / 2));
   const gercekYatay = yariH * aspect;
+  // Portredeki hedef ÖLÇÜLDÜ: eski değer (EYVAN_EN/2 + GOZ_EN*1.4) fov 80'e
+  // dayandığı için kamerayı 20 m'de bırakıyordu — eyvan kadrajın yalnız %52'si
+  // oluyor, oysa metin bloğu 78vw. Sonuç: lede eyvanın karanlık ağzını taşıp
+  // AYDINLIK cepheye biniyordu, yani okunabilirliği taşıyan tek şey (fon
+  // karanlığı) tam da mobilde kayboluyordu. Portrede eyvanın İÇİNE giriyoruz:
+  // kamera ~14 m, eyvan kadrajın ~%75'i → metin yine mimarinin içinde.
   const sigdir = THREE.MathUtils.lerp(
-    EYVAN_EN / 2 + GOZ_EN * 1.4,
+    EYVAN_EN / 2 + GOZ_EN * 0.35,
     CEPHE_YARI,
     THREE.MathUtils.smoothstep(aspect, 0.72, 1.5),
   );
@@ -481,16 +491,32 @@ export function YuruyenIsikSahnesi({ disiplinler, bildir, sinif }: Props) {
       const ax = GOZ_X[i] - yariGoz - AYAK_EN / 2;
       const g = new THREE.PlaneGeometry(AYAK_EN * 0.82, 2.4);
       atiklar.push(g);
+      // map ZORUNLU: map'siz levha düz #c3cdcd bir dikdörtgen — çevresindeki
+      // dokulu taşın yanında BEYAZ BİR PANEL gibi okuyordu (ekranda tam olarak
+      // öyle çıktı: ayakların üstünde altı boş, parlayan altı kutu). Oyma, taşın
+      // ÜSTÜNE yapıştırılmış bir levha değil taşın KENDİSİ; o yüzden ayakla aynı
+      // dokuyu paylaşıyor, adı yalnız bump taşıyor.
+      const levhaDoku = doku?.clone();
+      if (levhaDoku) {
+        levhaDoku.needsUpdate = true;
+        levhaDoku.repeat.set((AYAK_EN * 0.82) / 2.56, 2.4 / 2.56);
+        levhaDoku.offset.set((i * 0.37) % 1, (i * 0.61) % 1);
+        atiklar.push(levhaDoku);
+      }
       const m = new THREE.MeshStandardMaterial({
         color: new THREE.Color(TAS),
         roughness: 0.88,
         metalness: 0,
+        map: levhaDoku ?? null,
         bumpMap: t,
         bumpScale: 2.6,
       });
       atiklar.push(m);
       const levha = new THREE.Mesh(g, m);
       levha.position.set(ax, 1.85, 0.008);
+      // receiveShadow YOKTU: revağın gölgesi ayağa düşerken levha düşmüyordu,
+      // yani panel etkisini gölge de doğruluyordu. Oyma taşla aynı ışığı yer.
+      levha.receiveShadow = true;
       sahne.add(levha);
     });
 
@@ -561,7 +587,11 @@ export function YuruyenIsikSahnesi({ disiplinler, bildir, sinif }: Props) {
     // node'da taklit edilip hedef değer yapısına göre sayısal olarak çözüldü.
     // İlk elle ayarım eyvanı luma 2'ye — SAF SİYAH, doğrudan red sebebi —
     // düşürüyordu; simülasyon bunu ekrana hiç bakmadan yakaladı.
-    const gokYonu = new THREE.DirectionalLight(new THREE.Color("#f2fbfd"), 2.0);
+    // Renk beyaz DEĞİL, cyan-beyaz: taş nötr boyandığı için (doygun cyan duvar
+    // kâğıdı olmasın diye, doğru karar) hue'yu TAŞIYAN tek şey ışık. #f2fbfd
+    // pratikte beyazdı ve aydınlık yüzeyleri doygunluk 0.17'ye — yani BETON
+    // GRİSİNE — düşürüyordu. Palet ailesi ışıktan geliyor, boyadan değil.
+    const gokYonu = new THREE.DirectionalLight(new THREE.Color("#c6ebf6"), 3.6);
     gokYonu.position.set(3, 26, 16);
     gokYonu.castShadow = true;
     gokYonu.shadow.mapSize.set(kaba ? 1024 : 2048, kaba ? 1024 : 2048);
@@ -576,26 +606,43 @@ export function YuruyenIsikSahnesi({ disiplinler, bildir, sinif }: Props) {
     sahne.add(gokYonu);
     sahne.add(gokYonu.target);
 
-    // Gökten gelen dolgu. Skylight'ı ALAN yüzeyle almayan yüzey arasındaki fark
-    // buna rağmen 89 luma kalıyor (cephe 135 · eyvan 46) — metnin fonu bu yüzden
-    // hem sakin hem de saf siyah değil.
+    // ÖLÇÜLDÜ, HESAPLANMADI (kuranın en pahalı hatasının düzeltmesi).
+    // Kuran bu iki ışığı 3.0 ve 3.7'de bıraktı ve node'da yaptığı simülasyona
+    // dayanıp "eyvan luma 46, cephe 135" öngördü. GPU'da ölçülen gerçek: eyvan
+    // ~105, cephe ~124 — yani 19 luma. Sahne düz. Sebep kuranın kendi yazdığı
+    // teşhiste duruyor: Hemisphere ve Ambient GEOMETRİYİ UMURSAMAZ. Skylight'ı
+    // gölge veren bir DirectionalLight'a taşımak doğruydu ama eski taban ışık
+    // sökülmedi — 6.7 birimlik geometri-kör sel, gölgelerin üstünü boyadı.
+    // Simülasyon three'nin ACES'ini (exposure/0.6 + ACESInput/Output matrisleri)
+    // atladığı için bunu göremedi. Aşağıdaki değerler ekranda ölçülerek bulundu.
+    //
+    // Bu iki ışığın TEK işi artık palet tabanı: gölgenin dibini #073F49 bandında
+    // tutmak, yani saf siyahı önlemek. Form ve değer yapısı gökYonu + fenerden.
+    // Şiddet = PALET TABANI ayarı, ölçümle bulundu. Gölge değeri bu ikisiyle
+    // doğrusal: 0.6/0.7'de eyvanın dibi rgb(8,22,23)'e — saf siyaha — düşüyordu,
+    // bu da kuralın açıkça yasakladığı şey. 1.7/2.0 gölgenin dibini #073F49
+    // bandına oturtuyor; kontrast korunuyor çünkü aydınlık yüzeyleri gokYonu
+    // taşıyor, bu ikisi değil. Zemin rengi de açıldı: aşağı bakan yüzeyler
+    // (bizim kemerimizin sofiti) hemisphere'in ZEMİN rengini alıyor, #175055
+    // onları tek başına siyaha çekiyordu.
     const gokIsik = new THREE.HemisphereLight(
       new THREE.Color("#8fd4e4"),
-      new THREE.Color("#175055"),
-      3.0,
+      new THREE.Color("#2a666b"),
+      2.0,
     );
     sahne.add(gokIsik);
 
-    // PALET TABANI: eyvanın dibini #073F49 bandında (luma ≈46) tutan lift.
     // Rengi bilinçli olarak DOYGUN DEĞİL — saf cyan bir ambient ACES'te kırmızı
     // kanalı sıfıra kırpıyor ve gölgeler teal değil "mavi-siyah" okuyor.
-    sahne.add(new THREE.AmbientLight(new THREE.Color("#4a7d80"), 3.7));
+    sahne.add(new THREE.AmbientLight(new THREE.Color("#4a7d80"), 1.7));
 
     // Yürüyen kaynak = fener: sert yönlü SpotLight (havuz + gölge) + onu takip
     // eden zayıf PointLight (girdiği gözün içini dolduran saçılma).
     // Alacakaranlık: gök hâlâ parlıyor ama avludan çekilmiş → sahnenin EN PARLAK
     // nesnesi tartışmasız bu fener. Sert (penumbra düşük), sıcak değil beyaz.
-    const spot = new THREE.SpotLight(new THREE.Color(LAMBA), 300, 30, 0.5, 0.22, 2);
+    // Şiddet ölçümle bulundu: 300'de fener 20 m öteden bir toplu iğne başıydı —
+    // decay=2 ile 300/20² ≈ 0.75, yani gün ışığının yanında yok hükmünde.
+    const spot = new THREE.SpotLight(new THREE.Color(LAMBA), 1500, 34, 0.62, 0.28, 2);
     spot.castShadow = true;
     spot.shadow.mapSize.set(kaba ? 1024 : 2048, kaba ? 1024 : 2048);
     spot.shadow.camera.near = 0.4;
@@ -605,7 +652,7 @@ export function YuruyenIsikSahnesi({ disiplinler, bildir, sinif }: Props) {
     sahne.add(spot);
     sahne.add(spot.target);
 
-    const fener = new THREE.PointLight(new THREE.Color(NANE_SEKME), 34, 11, 2);
+    const fener = new THREE.PointLight(new THREE.Color(NANE_SEKME), 150, 13, 2);
     sahne.add(fener);
 
     // Kaynağın kendisi görünür: küçük ve alçak. "Yürüyor" okuması 6 saniyede
@@ -632,8 +679,8 @@ export function YuruyenIsikSahnesi({ disiplinler, bildir, sinif }: Props) {
       spot.target.position.set(isikYeri.x * 0.35, 0.1, isikYeri.z + 2.6);
       spot.target.updateMatrixWorld();
       const titre = statik ? 1 : 1 + Math.sin(t * 7.3) * 0.02 + Math.sin(t * 3.1) * 0.016;
-      spot.intensity = 300 * titre;
-      fener.intensity = 34 * titre;
+      spot.intensity = 1500 * titre;
+      fener.intensity = 150 * titre;
       gozIsiklari(isikYeri.x, isikYeri.z, isiklar);
       bildirRef.current?.(isiklar);
     };

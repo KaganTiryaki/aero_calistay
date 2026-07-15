@@ -3,8 +3,9 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import {
+  BOLME_ALT,
   BOLME_SAYI,
-  BOLME_Y,
+  BOLME_UST,
   DIP,
   DURGUN_T,
   GOK,
@@ -55,18 +56,29 @@ import {
 // O yüzden dar ekranda fov'u AÇIP eğimi DÜŞÜRÜYORUZ → dipte metnin oturacağı
 // sakin duvar bandı büyüyor, ağız hâlâ kadrajda kalıyor.
 //
-// Eğim neden bu kadar yüksek (57°): ağız kameradan ~75° yukarıda. Kadrajın
+// Eğim neden bu kadar yüksek (57°): ağız kameradan ~80° yukarıda. Kadrajın
 // TEPESİ ağzın ÜSTÜNE (≈88°) çıkmalı ki ağzın üstünde yakın duvarın koyu
 // şeridi kalsın — üst bar (marka/nav/CTA) oraya oturuyor. Tur 1'de kadraj
 // tepesi 75°'deydi: ağız kırpılıyordu VE nav tam ağzın parlaklığına biniyordu,
 // yani okunmuyordu.
+//
+// kamZ NEDEN MERKEZE YAKIN (2.9, duvar 6.5'te) — iki kusuru birden çözüyor:
+//   · Görünen gök yarığının en-boy oranı = 7·cos(yükseliş açısı). Kamera
+//     duvarın dibindeyken (z=5.0) ağız 72°'de kalıyordu → oran 2.2 → uzun dar
+//     dikdörtgen → KAPI okuması. Merkeze çekilince açı 80° → oran 1.2 → kare
+//     bir açıklık.
+//   · Duvarın dibindeyken yan duvarlar sıyırma açısıyla görünüyordu ve ağızdan
+//     inen ışık onlara YELPAZE gibi düşüyordu — ekranda huzme okuyordu.
+//     Merkezden bakınca yan duvarlar sıyırma açısından çıkıyor, yelpaze bitiyor.
+// Kamera yine de eksende DEĞİL: tam eksende ağız simetrik bir hedef tahtası
+// olurdu. z=2.9 hem merkeze yakın hem hafif kaçık.
 function cerceve(aspect: number) {
   const dar = THREE.MathUtils.clamp((1.5 - aspect) / (1.5 - 0.62), 0, 1);
   return {
     fov: THREE.MathUtils.lerp(62, 72, dar),
     egim: THREE.MathUtils.degToRad(THREE.MathUtils.lerp(57, 52, dar)),
     kamY: THREE.MathUtils.lerp(1.8, 1.9, dar),
-    kamZ: THREE.MathUtils.lerp(5.0, 5.2, dar),
+    kamZ: THREE.MathUtils.lerp(2.9, 3.2, dar),
     dar,
   };
 }
@@ -86,7 +98,10 @@ function yuzeyMateryali(duvar: boolean) {
         uSekme: { value: new THREE.Color(SEKME) },
         // Kazanç yalnız AĞIZ ışığını ölçekliyor, sekmeyi değil: tepe filmik
         // rolloff'a girip BEYAZA yuvarlansın ama dip teal kalsın.
-        uKazanc: { value: duvar ? 5.2 : 4.4 },
+        // Sekme tabanı yükseltildiği için (bkz. kule.ts sekmeIsigi) kazanç da
+        // indi: yoksa dip yıkanıp "sarnıç sütunları" gibi soluk bir kadraj
+        // oluyordu. Anahtar/dolgu oranı hâlâ ağızdan yana.
+        uKazanc: { value: duvar ? 3.8 : 3.2 },
       },
     ]),
     vertexShader: /* glsl */ `
@@ -154,15 +169,20 @@ function yuzeyMateryali(duvar: boolean) {
                     + gurultu3(P * 11.0) * 0.15;
         damar = damar * 2.0 - 1.0;
         float tane = (gurultu3(P * 38.0) - 0.5) * 0.10 * yakin;
-        // DÜŞEY akıntı: y'de uzun, x/z'de dar gürültü → sıvadan aşağı inmiş
-        // rüzgâr/su izleri. Ölçek veriyor VE düşeyliği pekiştiriyor.
-        // (Tur 1'de burada YATAY hatıl sıraları vardı: basamak okumasını
-        // besleyen ikinci suçlu oydu, kaldırıldı.)
-        float akinti = gurultu3(vec3(P.x * 4.5, P.y * 0.22, P.z * 4.5));
-        akinti = smoothstep(0.55, 0.95, akinti) * 0.16 * yakin;
+        // Sıva lekesi: YÖNSÜZ (izotropik) olmak ZORUNDA.
+        // Tur 1'de burada YATAY hatıl sıraları vardı → basamak okumasını
+        // besleyen ikinci suçluydu. İlk düzeltmede DÜŞEY akıntıya çevirdim ve
+        // daha beter oldu: yan duvarlar sıyırma açısından görünüyor, dünyada
+        // düşey olan her çizgi ekranda kaçış noktasına yakınsıyor → kadrajın
+        // altı ışık huzmesi gibi RADYAL şeritlerle doldu, yani tam olarak
+        // kaçındığımız god-ray okuması. Yönlü hiçbir doku güvenli değil:
+        // yatay → merdiven, düşey → huzme. İzotropik leke ikisini de vermiyor,
+        // ölçeği de damar + tane zaten taşıyor.
+        float leke = gurultu3(P * 1.6) * 0.6 + gurultu3(P * 5.5) * 0.4;
+        leke = smoothstep(0.5, 0.9, leke) * 0.09 * yakin;
 
         vec3 col = uDip + uSiva * I * (1.0 + damar * 0.14 + tane);
-        col *= 1.0 - akinti;
+        col *= 1.0 - leke;
 
         gl_FragColor = vec4(col, 1.0);
         #include <tonemapping_fragment>
@@ -247,14 +267,15 @@ export function BadgirSahnesi({ sinif }: Props) {
     const bEgim = (YARI_UST - YARI_ALT) / SAFT_H; // dx/dy katsayısı
     for (let i = 0; i < BOLME_SAYI; i++) {
       const a = bolmeKesir(i);
-      const wAlt = yariCap(BOLME_Y);
-      const wUst = yariCap(SAFT_H);
-      // Yamuğun dört köşesi (alt kenar bölme zonunun dibinde, üst kenar ağızda)
+      const wAlt = yariCap(BOLME_ALT);
+      const wUst = yariCap(BOLME_UST);
+      // Yamuğun dört köşesi: bölme ASILI — üst kenarı ağza DEĞMİYOR (bkz. kule.ts
+      // BOLME_UST notu: ağza değince oluk kolimatör oluyor ve dibe huzme atıyor).
       const p = [
-        [a * wAlt, BOLME_Y, -wAlt],
-        [a * wAlt, BOLME_Y, wAlt],
-        [a * wUst, SAFT_H, wUst],
-        [a * wUst, SAFT_H, -wUst],
+        [a * wAlt, BOLME_ALT, -wAlt],
+        [a * wAlt, BOLME_ALT, wAlt],
+        [a * wUst, BOLME_UST, wUst],
+        [a * wUst, BOLME_UST, -wUst],
       ];
       // Düzlem: x - a·(YARI_ALT + bEgim·y) = 0 → normal ∝ (1, -a·bEgim, 0)
       const n = new THREE.Vector3(1, -a * bEgim, 0).normalize();

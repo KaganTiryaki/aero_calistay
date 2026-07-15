@@ -258,10 +258,14 @@
   letter-spacing: 0.2em;
   white-space: nowrap;
   color: #f2fdff;
-  /* Taban 0.5: sönük hâli de OKUNUR kalmalı — "ışık gelmeden yok" şiirsel ama
-     erişilebilir değil. Aydınlanma yine tamamen ışığın güzergâhından geliyor. */
-  opacity: calc(0.5 + var(--isik) * 0.5);
-  text-shadow: 0 1px 12px rgba(7, 63, 73, 0.75);
+  /* Taban 0.5 değil 0.68: şerit sahnenin EN AÇIK yerinin (avlu zemini, ölçülen
+     luma 153) üstünde duruyor, yani beyaz-üstüne-beyaz. 0.5'te sönük adlar
+     okunmuyordu. Hâle per-glyph: panel değil, dikdörtgen üretmiyor — yasak olan
+     scrim'in tersi, harfin kendi gölgesi. Aydınlanma yine ışığın güzergâhından. */
+  opacity: calc(0.68 + var(--isik) * 0.32);
+  text-shadow:
+    0 1px 2px rgba(7, 63, 73, 0.9),
+    0 0 10px rgba(7, 63, 73, 0.85);
 }
 
 .disiplinCizgi {
@@ -285,7 +289,10 @@
 @media (max-width: 640px) {
   .orta {
     top: 24%;
-    width: 78vw;
+    /* 72vw: portrede kamera eyvanın içine girince ağzı kadrajın ~%75'i oluyor.
+       Metin bunun içinde kalmalı — 78vw'de lede karanlık fonu taşıp aydınlık
+       cepheye biniyordu. Sayı yine mimariden türüyor, göz kararı değil. */
+    width: 72vw;
   }
   .serit {
     bottom: 4.5%;

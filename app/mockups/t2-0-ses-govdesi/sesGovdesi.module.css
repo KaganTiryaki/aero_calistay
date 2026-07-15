@@ -2,13 +2,18 @@
  * SES GÖVDESİ — UI katmanı.
  *
  * PERDE/SCRIM YOK. Tek bir yarı saydam panel, gradyan ya da backdrop-filter
- * yok. Metnin okunabilirliği tamamen sahnenin ışığından geliyor: tablanın
- * altındaki gergi kirişi tekneye geniş, penumbralı, yüzeyin eğriliğiyle
- * bükülmüş bir gölge düşürüyor — metin o gölgenin merkezinde. Kirişi kadrajın
- * üstünde görüyorsun; gölge, bu CSS silinse de orada olur.
+ * yok. Metnin okunabilirliği tamamen sahnenin ışığından geliyor: gül kadrajın
+ * dibine dik bir ışık havuzu döküyor, metin ise teknenin ışık ULAŞMAYAN
+ * derinliğinde duruyor. Bu CSS'in tamamı silinse metin yine okunur — çünkü
+ * arkasındaki karanlık tipografinin değil, teknenin.
  *
- * Değer yapısı: gölge bandı koyu → AÇIK tipografi. Dantelin parlak halkaları
- * bandın üstünde ve altında kalıyor; hiçbir metin oraya binmiyor.
+ * DİKEY BÜTÇE ölçümle çizildi (canvas pikselleri, ekran yüzdesi):
+ *    %0–18   uzak tekne + boyun boğazı — sakin, orta koyu   → nav
+ *    %18–62  ışık almayan gövde — mean ~30-50, busy < 3.5   → BÜTÜN METİN
+ *    %62–100 havuzun eteği → dantel çekirdeği                → UI YOK
+ * Blok eskiden %45–94'e yayılıyordu: lede, CTA notu ve disiplin şeridi
+ * doğrudan dantelin (mean 129, busy 34) üstünde oturuyordu. Şerit ve not
+ * yukarı, havuzun dışına alındı; blok da sıkıştırıldı.
  */
 
 .kok {
@@ -115,17 +120,17 @@
   }
 }
 
-/* ---- orta blok: kirişin gölge bandının merkezi -------------------------- */
+/* ---- orta blok: ışığın ulaşmadığı gövde -------------------------------- */
 
 /* DİKKAT: ortalamak için transform KULLANILMIYOR — .gir animasyonu transform'u
    devralıyor (keyframe `transform: none` ile bitiyor) ve translate'i silerdi.
    Ortalama margin/inset ile. */
-/* top:44% tesadüf değil: kirişin gölge bandı orta sütunda kadrajın ~%50–88'ini
-   kaplıyor (ışın izlemeyle ölçüldü). Blok bandın merkezine oturuyor. */
+/* top:15% ölçüm sonucu: havuzun eteği ekranın ~%62'sinde başlıyor, blok da
+   şerit dâhil onun üstünde bitmeli. */
 .orta {
   position: absolute;
   z-index: 3;
-  top: 44%;
+  top: 15%;
   left: 0;
   right: 0;
   margin-inline: auto;
@@ -221,26 +226,28 @@
   transform: translateX(4px);
 }
 
+/* 0.5 → 0.72 alfa: eski değer ölçümde mean-129 dantelin üstünde kalıyordu ve
+   ekran görüntüsünde fiilen görünmüyordu. */
 .ctaNot {
   font-family: var(--font-mono), monospace;
   font-size: 0.66rem;
   letter-spacing: 0.14em;
-  color: rgba(180, 226, 234, 0.5);
+  color: rgba(196, 234, 241, 0.72);
 }
 
 /* ---- disiplin şeridi: yedi tel ------------------------------------------ */
 
 /* Yedi disiplin = yedi tel. --genlik, cookie shader'ını süren SAYININ TA
    KENDİSİ (ses.ts · telGenlikleri). Bir disiplin parlarken o telin gölgesi
-   yukarıda bulanıklaşıyor: etiket ile ışık ayrışamaz. Tırmalama 1→7→1
-   dolaşıyor; fikir hiçbir disiplinde durmuyor. */
+   aşağıdaki havuzda bulanıklaşıyor: etiket ile ışık ayrışamaz. Tırmalama
+   1→7→1 dolaşıyor; fikir hiçbir disiplinde durmuyor.
+
+   KONUM: eskiden bottom:6.5% idi — yani doğrudan dantelin (mean 105, busy 30)
+   üstünde, 0.5 opaklıkla: ölçülemez, okunamaz. Artık CTA'nın hemen altında,
+   havuzun dışında. Bilgi mimarisi de bunu istiyordu: başvurduğun şey bu yedi
+   ekip; listenin CTA'dan 25 ekran yüzdesi uzakta durmasının sebebi yoktu. */
 .serit {
-  position: absolute;
-  z-index: 3;
-  bottom: 6.5%;
-  left: 0;
-  right: 0;
-  margin-inline: auto;
+  margin: 2.1rem auto 0;
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -249,6 +256,8 @@
   width: min(60rem, 92vw);
 }
 
+/* Taban opaklık 0.5 → 0.72: eski değer havuzun üstünde okunmuyordu. Artık
+   ışık almayan gövdenin (mean ~40) üstünde; 0.72 ile kontrast ~7:1. */
 .disiplin {
   --genlik: 0;
   position: relative;
@@ -257,8 +266,7 @@
   letter-spacing: 0.2em;
   white-space: nowrap;
   color: #dff5f8;
-  opacity: calc(0.5 + var(--genlik) * 0.5);
-  text-shadow: 0 1px 10px rgba(4, 42, 50, 0.6);
+  opacity: calc(0.72 + var(--genlik) * 0.28);
 }
 
 /* Telin kendisi: durgunken ince çizgi, tırmalanınca kalınlaşıp söner —
@@ -276,11 +284,11 @@
 
 @media (max-width: 640px) {
   .orta {
-    top: 27%;
+    top: 13%;
   }
   .serit {
-    bottom: 5%;
-    gap: 0.55rem 0.9rem;
+    margin-top: 1.6rem;
+    gap: 0.5rem 0.85rem;
   }
 }
 

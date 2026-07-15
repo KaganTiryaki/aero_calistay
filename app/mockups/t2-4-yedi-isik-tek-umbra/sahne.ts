@@ -122,12 +122,25 @@ export type Parca = {
   rot: readonly [number, number, number];
 };
 
+/**
+ * ÖLÇEK NOTU: umbrayı metne yükseltmek için kütle z=-4'ten z=-7'ye asıldı, yani
+ * kameradan uzaklaştı (18.6 → 21.5 birim) ve kadrajda ~%14 küçüldü. Kahraman
+ * cismin ölçeği bu sahnenin jenerikleşmeye karşı asıl kozu, o yüzden geri
+ * alınıyor: pos VE boy birlikte %15 büyütüldü (ikisi birden → çatlak oranları
+ * korunur, parçalar birbirine girip birleşmez).
+ *
+ * NEDEN GRUBA scale VERİLMİYOR: kutleGrup.scale gölgeleri BOZAR. Shader dünya→
+ * parça dönüşümü için uParcaTers'i kullanıyor ve o, matrisin TRANSPOZU olarak
+ * kuruluyor — transpoz yalnız SAF DÖNÜŞTE tersine eşittir. Ölçek girerse ters
+ * dönüşüm sessizce yanlışlanır ve SDF gölgeleri cisimden ayrışır. Bu yüzden
+ * ölçek veriye gömülüyor, matrise değil.
+ */
 export const PARCALAR: readonly Parca[] = [
-  { pos: [-2.9, 0.15, 0.2], boy: [1.55, 1.05, 1.5], rot: [0.05, 0.21, -0.08] },
-  { pos: [0.5, -0.05, -0.4], boy: [1.25, 1.3, 1.6], rot: [-0.1, -0.33, 0.13] },
-  { pos: [3.3, 0.5, 0.5], boy: [1.0, 0.8, 1.2], rot: [0.18, 0.49, 0.26] },
+  { pos: [-3.34, 0.17, 0.23], boy: [1.78, 1.21, 1.73], rot: [0.05, 0.21, -0.08] },
+  { pos: [0.58, -0.06, -0.46], boy: [1.44, 1.5, 1.84], rot: [-0.1, -0.33, 0.13] },
+  { pos: [3.8, 0.58, 0.58], boy: [1.15, 0.92, 1.38], rot: [0.18, 0.49, 0.26] },
   // Kopmuş şarap: kütleden ayrılmış, çatlağın üstünde asılı duran küçük parça.
-  { pos: [-0.2, 1.8, 1.4], boy: [0.8, 0.5, 0.75], rot: [-0.29, 0.14, 0.41] },
+  { pos: [-0.23, 2.07, 1.61], boy: [0.92, 0.58, 0.86], rot: [-0.29, 0.14, 0.41] },
 ];
 
 /**
@@ -148,8 +161,13 @@ export const PARCALAR: readonly Parca[] = [
  * metnin altına değil ARKASINA geliyor. Lambalar yerinde, silüet yerinde.
  */
 export const KUTLE_MERKEZ = [0, 5.0, -7.0] as const;
-/** Sınır küresi: march'ın kapısı. Parçaların hepsini kapsayan EN DAR yarıçap. */
-export const KUTLE_YARICAP = 5.25;
+/**
+ * Sınır küresi: march'ın kapısı. Parçaların hepsini kapsayan EN DAR yarıçap.
+ * %15 ölçek büyütmesiyle birlikte güncellendi — DAR KALIRSA gölgeler kırpılır
+ * (kapı ışını erkenden eler). En uzak parça köşesi ≈ 5.65, + SDF yuvarlaması
+ * 0.14, + köşe yontma gürültüsü ~0.13 → 5.92. 6.05 küçük bir emniyet payı.
+ */
+export const KUTLE_YARICAP = 6.05;
 /** Kütle çok yavaş dönüyor: sirkülasyon. Gölgeler onunla birlikte kayıyor. */
 export const KUTLE_DONUS = 0.021;
 

@@ -50,6 +50,15 @@
 
 /* ---- üst bar: orta-koyu duvara karşı ince AÇIK -------------------------- */
 
+/* Marka + nav SOLDA, CTA sağda.
+   Nav neden ortada değil: kadrajın TAM ÜST ORTASI kulenin boğazı, yani sahnenin
+   EN PARLAK yeri — gök ağzı oraya düşüyor. Ortalanmış nav'ın orta linkleri
+   ("Süreç", "SSS") o parlaklığın üstüne biniyordu ve açık renkli yazı orada
+   kayboluyordu. Bu, ışıkla çözülebilecek bir sorun değil: ağzı karartmak
+   sahneyi öldürür, nav'ı koyulaştırmak yan duvarlarda görünmez yapar.
+   Doğru çözüm nav'ı parlak koridordan ÇIKARMAK. Solda ve sağda duvar var:
+   orta-koyu, sabit, açık tipografi için doğru zemin. UI sahnenin değer
+   yapısına göre diziliyor — sahne UI'a göre değil. */
 .ust {
   position: absolute;
   z-index: 3;
@@ -58,9 +67,13 @@
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
+  justify-content: flex-start;
+  gap: clamp(1.5rem, 3.5vw, 3rem);
   padding: 1.6rem clamp(1.1rem, 3.4vw, 2.6rem);
+}
+
+.ustCta {
+  margin-left: auto;
 }
 
 .marka {

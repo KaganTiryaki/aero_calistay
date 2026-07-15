@@ -33,8 +33,28 @@
 // böylece ışığı ters açıyla alır → yapısal olarak gölgede).
 export const L0: readonly [number, number, number] = [-0.12, -0.3, -0.95];
 
-// Bant, L0'a dik düzlemde (U,V) tanımlı.
-export const BANT_U = 22; // yarı uzunluk: çizgi kadrajı boydan boya geçer
+/*
+ * Bant, L0'a dik düzlemde (U,V) tanımlı.
+ *
+ * ASİMETRİK — ve bu şart. İlk sürüm BANT_U = 22 ile simetrikti ve "çizgi kadrajı
+ * boydan boya geçer" diyordu. GEÇMİYORDU: 1440x900'de çizgi ndc.x -0.593..+0.470
+ * arasında kalıyor, yani kadraj genişliğinin yalnız %53'ünü kaplayıp İKİ UCU DA
+ * HAVADA bitiyordu. Bant simetrik olduğu hâlde ekranda simetrik görünmüyor çünkü
+ * kamera x=-14'ten x=0'a bakıyor (15.6° yaw): +u ucu kameraya yaklaşıyor
+ * (derinlik 46), -u ucu uzaklaşıyor (derinlik 58), perspektif de yakın ucu daha
+ * çok açıyor. Aynı |u| iki yanda farklı ndc veriyor.
+ *
+ * Değerler ikili aramayla çözüldü: her iki uç da 390x844'ten 3440x1440'a kadar
+ * bütün en-boylarda |ndc.x| ≥ 1.1'e taşsın diye. Bulut da aynı u aralığında
+ * yaşadığı için bu düzeltme çizgiyle birlikte PARÇA BULUTUNU da kadraja yayıyor:
+ * eski hâlde kadrajın sol %20'si ve sağ %27'si bomboş duvardı.
+ *
+ * Not: çizgi ekranda DÜMDÜZ. u büyüdükçe gölge duvarda aşağı kayıyor (u=160'ta
+ * y=4.2'ye iniyor) ama aynı anda kameraya yaklaşıyor (derinlik 52→8.5); ikisi
+ * birbirini tam götürüyor, ndc.y her u için 0.241. Anamorfik kurgunun kendisi.
+ */
+export const BANT_SOL = 46; // +u ucu → ekranın SOLU
+export const BANT_SAG = 88; // -u ucu → ekranın SAĞI
 const H_MIN = 0.22;
 const H_MAX = 0.78;
 
@@ -55,10 +75,12 @@ const H_MAX = 0.78;
 const A_MIN = 6;
 const A_MAX = 26;
 
-// Hücre bölme
-const SUTUN_ADET = 26; // küme başına
+// Hücre bölme. SUTUN_ADET sabit DEĞİL: hedef hücre genişliğinden türetiliyor.
+// Sabit olsaydı bant uzayınca hücreler de uzayacak, parçalar iriyarı bloklara
+// dönüşecekti. Yonga ölçeği bandın uzunluğundan bağımsız kalmalı.
+const HUCRE_GEN = 0.24; // hedef hücre genişliği (U)
 const SATIR_BOL = 0.34; // hedef hücre yüksekliği (V) — satır sayısını bu belirler
-const HUCRE_KOMSU_TASMA = 1.03; // bkz. hucreler(): dikiş kapatma
+const HUCRE_KOMSU_TASMA = 1.03; // bkz. parcalar(): dikiş kapatma
 
 // ---- döngü ---------------------------------------------------------------
 export const CEVRIM = 20; // saniye
@@ -111,9 +133,13 @@ export function bantProfili(tohum: number) {
   const g1 = gurultu1(0, rnd, 24);
   const g2 = gurultu1(0, rnd, 24);
   return (u: number) => {
-    const s = (u + BANT_U) / (2 * BANT_U); // 0..1
-    const konik = 0.38 + 0.62 * smoothstep(s / 0.16) * smoothstep((1 - s) / 0.16);
-    const n = g1(s * 5.2) * 0.65 + g2(s * 11.7) * 0.35;
+    const s = (u + BANT_SAG) / (BANT_SOL + BANT_SAG); // 0..1
+    // Koniklik penceresi daraltıldı (0.16 → 0.06): bant artık 3x uzun, oransal
+    // pencere kalsaydı incelme kadrajın içine taşacaktı. Uçlar zaten kadrajın
+    // dışında bittiği için kalem kalkması görünmüyor; buradaki iş yalnız
+    // gölge kamerasının kenarında dejenere hücre bırakmamak.
+    const konik = 0.38 + 0.62 * smoothstep(s / 0.06) * smoothstep((1 - s) / 0.06);
+    const n = g1(s * 14) * 0.65 + g2(s * 31) * 0.35;
     return (H_MIN + (H_MAX - H_MIN) * n) * konik;
   };
 }
@@ -146,24 +172,37 @@ export type Parca = {
  * "kesintisiz" iddiası oradan çatlardı. %3 taşma birleşimi ihmal edilebilir
  * miktarda büyütüyor, karşılığında dikişi imkânsız kılıyor.
  */
-export function parcalar(kumeAdet: number, tohum = 20260715): Parca[] {
+export function parcalar(
+  kumeAdet: number,
+  seyrek = false,
+  tohum = 20260715,
+): Parca[] {
   const rnd = mulberry32(tohum);
   const h = bantProfili(tohum ^ 0x9e3779b9);
   const out: Parca[] = [];
 
-  const kumeGen = (2 * BANT_U) / kumeAdet;
+  const kumeGen = (BANT_SOL + BANT_SAG) / kumeAdet;
+  // pointer:coarse → hücreleri irileştir. Kapsama garantisi bozulmuyor (her
+  // hücrenin ilk parçası kesitini hâlâ tam kaplıyor), yalnız yonga sayısı düşüyor.
+  const sutunAdet = Math.max(
+    1,
+    Math.round(kumeGen / (seyrek ? HUCRE_GEN * 2.1 : HUCRE_GEN)),
+  );
 
   for (let k = 0; k < kumeAdet; k++) {
-    const u0 = -BANT_U + k * kumeGen;
-    const gu = kumeGen / SUTUN_ADET;
+    const u0 = -BANT_SAG + k * kumeGen;
+    const gu = kumeGen / sutunAdet;
 
-    for (let c = 0; c < SUTUN_ADET; c++) {
+    for (let c = 0; c < sutunAdet; c++) {
       const uc = u0 + (c + 0.5) * gu;
       const hh = h(uc);
 
       // İnce bölgede az satır: hücreleri gölge haritası tekseli altına
       // düşürmenin anlamı yok.
-      const satir = Math.max(1, Math.min(5, Math.round((2 * hh) / SATIR_BOL)));
+      const satir = Math.max(
+        1,
+        Math.min(5, Math.round((2 * hh) / (seyrek ? SATIR_BOL * 2.1 : SATIR_BOL))),
+      );
       const gv = (2 * hh) / satir;
       // Parça boyu hücreyle ORANTILI olmalı, sabit değil: kesit küçüldükçe
       // sabit boy parçaları iğneye çeviriyor — spagetti okuması tam olarak bu.
@@ -189,7 +228,7 @@ export function parcalar(kumeAdet: number, tohum = 20260715): Parca[] {
         });
 
         // --- ek parçalar: kesitin alt kümesi, serbest a/boy ---
-        const ek = rnd() < 0.55 ? (rnd() < 0.4 ? 2 : 1) : 0;
+        const ek = seyrek ? 0 : rnd() < 0.55 ? (rnd() < 0.4 ? 2 : 1) : 0;
         for (let e = 0; e < ek; e++) {
           const kucult = 0.4 + rnd() * 0.5;
           out.push({

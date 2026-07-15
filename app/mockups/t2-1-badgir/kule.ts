@@ -28,9 +28,9 @@ import { disciplines } from "@/lib/content";
 // Oran ÖNEMLİ ve tur 1'den değişti: 21 boy / 5.6 taban ile gök ağzı kameradan
 // 77.5° yukarıdaydı — yani kadrajın DIŞINDA kalıyordu, göğü görmüyordun.
 // Taban genişledi (6.5): ağız artık ~75°'de, kadrajın içinde.
-export const SAFT_H = 20.5; // gök ağzının yüksekliği
+export const SAFT_H = 17.5; // gök ağzının yüksekliği
 export const YARI_ALT = 6.5; // dipte yarı genişlik (apotem)
-export const YARI_UST = 2.4; // ağızda yarı genişlik
+export const YARI_UST = 3.3; // ağızda yarı genişlik
 
 /** y yüksekliğinde şaftın yarı genişliği. */
 export function yariCap(y: number) {
@@ -46,12 +46,31 @@ export const OLUK_SAYI = disciplines.length;
 /** İç bölme sayısı: 7 oluk → 6 bölme. */
 export const BOLME_SAYI = OLUK_SAYI - 1;
 
-// Bölmelerin alt ucu. Kameranın (y≈1.8) YUKARISINDA olmalı: kamera bölmelerin
-// altında durup yukarı bakınca yedi oluk yelpaze gibi açılıyor. Bölmeler yere
-// kadar inseydi kamera tek bir oluğun içinde kalır, yedilik görünmezdi.
-// Ayrıca metnin oturduğu dip bölgesi bölme ZONUNUN ALTINDA kalmalı ki oraya
-// şerit düşmesin — metin düşey şeritlerin üstünde okunmaz.
-export const BOLME_Y = 11.2;
+// Bölme zonu: bölmeler ASILI. Ne yere iniyorlar ne de ağza değiyorlar.
+//
+// Alt uç kameranın (y≈1.8) YUKARISINDA: kamera bölmelerin altında durup yukarı
+// bakınca yedi oluk yelpaze gibi açılıyor. Bölmeler yere inseydi kamera tek bir
+// oluğun içinde kalır, yedilik görünmezdi. Metnin oturduğu dip de zonun ALTINDA
+// kalmalı ki oraya şerit düşmesin — metin düşey şeritlerin üstünde okunmaz.
+//
+// ÜST UÇ AĞZA DEĞİYOR (BOLME_UST = SAFT_H) — ve bu, denenip geri alınmış bir
+// karar. Bölmeleri ağzın altında kesip "asılı" yapmayı denedim: gök genişliyor
+// ama bedeli ağırdı — bölmeler göğe karşı siluet olacağına PARLAK levhalara
+// dönüyor, dibe inen dolaysız ışık artıyor, kadraj yıkanıyor ve sahne
+// "sarnıç sütunları"na benziyordu (zaten yapılmış listesinde). Bölme ağza
+// değince oluk yeniden KOLİMATÖR oluyor: dibe dolaysız ışık inmiyor, metin
+// bölgesi sakin ve koyu kalıyor, bölmeler koyu kalıyor.
+//
+// Kolimatörün iki bilinen yan etkisi VAR ve ikisi de kadrajla çözüldü, geometri
+// ile değil (bkz. BadgirSahnesi cerceve()):
+//   · "Kapı" okuması: görünen yarığın en-boy oranı 7·cos(yükseliş açısı).
+//     Yani dik yukarı baktıkça yarık KARELEŞİYOR. Kamera merkeze çekilip açı
+//     72°→80° olunca oran 2.2'den 1.2'ye düşüyor: kapı değil, açıklık.
+//   · Dipteki "huzme" yelpazeleri: yan duvarlar sıyırma açısıyla göründüğünde
+//     oluşuyorlardı. Kamera duvardan uzaklaşıp merkeze gelince yan duvarlar
+//     sıyırma açısından çıkıyor ve yelpazeler kayboluyor.
+export const BOLME_ALT = 9.6;
+export const BOLME_UST = SAFT_H;
 
 /** i. iç bölmenin normalize x konumu (s = x / yariCap(y) ∈ [-1,1]). */
 export function bolmeKesir(i: number) {
@@ -119,7 +138,8 @@ ${GURULTU_GLSL}
 const float SAFT_H = ${f(SAFT_H)};
 const float YARI_ALT = ${f(YARI_ALT)};
 const float YARI_UST = ${f(YARI_UST)};
-const float BOLME_Y = ${f(BOLME_Y)};
+const float BOLME_ALT = ${f(BOLME_ALT)};
+const float BOLME_UST = ${f(BOLME_UST)};
 const int OLUK_SAYI = ${OLUK_SAYI};
 const float OLUK_SAYI_F = ${f(OLUK_SAYI)};
 
@@ -131,45 +151,52 @@ float yariCap(float y) {
  * Gök ağzının bir yüzeye düşürdüğü ışık — HUZME DEĞİL, ALAN IŞIĞI.
  *
  * GÖLGE TESTİ, ANALİTİK VE TAM — ÖRNEKLEMESİZ:
- * Bölmeler s = a_i düzlemleri ve BOLME_Y'den ağza (SAFT_H) kadar uzanıyor.
- * P'den ağızdaki bir S noktasına giden ışın:
- *   · s(t) monoton (iki lineerin oranı),
- *   · ışın BOLME_Y yüksekliğine vardığında normalize x = sg,
- *   · ağza vardığında normalize x = su.
- * Bölmeler ağza kadar çıktığı için: ışın ENGELSİZ ⟺ sg ile su ARASINDA hiç
- * bölme yok ⟺ ikisi AYNI OLUKTA. Yaklaşıklık değil, tam sonuç.
+ * Bölmeler s = a_i düzlemleri; BOLME_ALT ile BOLME_UST arasında ASILI.
+ * P'den ağızdaki bir S noktasına giden ışın bölme zonuna s0'da girip s1'de
+ * çıkıyor (s(t) monoton: iki lineerin oranı). Işın ENGELSİZ ⟺ s0 ile s1
+ * ARASINDA hiç bölme yok ⟺ ikisi AYNI OLUKTA. Yaklaşıklık değil, tam sonuç.
  *
- * Üstelik sg, su'nun LİNEER fonksiyonu: sg = c0 + c1·su. Yani her oluk için
- * "görünen su aralığı" KAPALI FORMDA çıkıyor → oluk başına tek örnek yetiyor,
- * aralığın UZUNLUĞU integrali taşıyor. Sonuç: ne god-ray veren seyrek örnek,
- * ne kar gürültüsü veren yoğun örnek. Kenarlar ızgaraya hizalı kalıyor →
- * düşey şeritler yaşıyor; aralık uzunluğu sürekli değiştiği için de bant
- * kırılması yok.
+ * Üstelik s0 ve s1'in İKİSİ de su'nun LİNEER fonksiyonu (girilen/çıkılan
+ * yükseklikler sabit → paydalar sabit). Yani her oluk için "görünen su
+ * aralığı" iki lineer kısıtın kesişimi = KAPALI FORM → oluk başına tek örnek
+ * yetiyor, aralığın UZUNLUĞU integrali taşıyor. Sonuç: ne god-ray veren seyrek
+ * örnek, ne kar gürültüsü veren yoğun örnek. Kenarlar ızgaraya hizalı →
+ * bölmeler göğe karşı keskin siluet; aralık uzunluğu sürekli değiştiği için de
+ * bant kırılması yok.
  *
- * c1→0 SINIRI BEDAVA: bölme zonunun İÇİNDEKİ bir nokta için tmin=0 → c1=0 →
- * (A-c0)/c1 ıraksıyor ve kesişim kendiliğinden "yalnız kendi oluğu" veriyor.
- * Zonun ALTINDA c1>0 → pencere yumuşak açılıyor. Tek formül iki rejimi de
- * doğru veriyor; eps sadece 0'a bölmeyi engelliyor.
+ * SINIR DURUMLARI BEDAVA (b→0'da eps):
+ *   · P zonun ALTINDA (metin bölgesi): t0,t1 > 0, iki kısıt da dar → pencere
+ *     yumuşak açılıyor, penumbra geniş.
+ *   · P zonun İÇİNDE: t0=0 → b0=eps → s0 kısıtı "kendi oluğu"na kilitleniyor.
+ *   · P zonun ÜSTÜNDE: t0=t1=0 → iki kısıt da aynı oluğa kilitleniyor ve o
+ *     oluk TÜM ağzı veriyor → doğru: üstteki nokta ağzı engelsiz görüyor.
+ * Tek formül üç rejimi de doğru veriyor; eps sadece 0'a bölmeyi engelliyor.
  */
 float agizIsigi(vec3 P, vec3 N) {
   float dy = SAFT_H - P.y;
   if (dy <= 1e-3) return 0.0;
 
-  float tmin = clamp((BOLME_Y - P.y) / dy, 0.0, 1.0);
-  float sPay = yariCap(max(P.y, BOLME_Y));
-  float c0 = P.x * (1.0 - tmin) / sPay;
-  float c1 = max(tmin * YARI_UST / sPay, 1e-4);
+  // Işının bölme zonuna giriş/çıkış parametreleri ve oradaki normalize x'i.
+  float t0 = clamp((BOLME_ALT - P.y) / dy, 0.0, 1.0);
+  float t1 = clamp((BOLME_UST - P.y) / dy, 0.0, 1.0);
+  float w0 = yariCap(P.y + t0 * dy);
+  float w1 = yariCap(P.y + t1 * dy);
+  float a0 = P.x * (1.0 - t0) / w0;
+  float b0 = max(t0 * YARI_UST / w0, 1e-4);
+  float a1 = P.x * (1.0 - t1) / w1;
+  float b1 = max(t1 * YARI_UST / w1, 1e-4);
 
   float toplam = 0.0;
   for (int j = 0; j < OLUK_SAYI; j++) {
-    // j. oluğun ağızdaki normalize x aralığı.
+    // j. oluğun normalize x aralığı.
     float A = -1.0 + 2.0 * float(j) / OLUK_SAYI_F;
     float B = A + 2.0 / OLUK_SAYI_F;
-    // sg(su) = c0 + c1·su bu oluğun içinde kalsın → su aralığı.
-    float lo = max(A, (A - c0) / c1);
-    float hi = min(B, (B - c0) / c1);
+    // Hem giriş (s0) hem çıkış (s1) bu oluğun içinde kalsın → iki lineer kısıt.
+    // Ağzın kendi sınırı [-1,1] de üçüncü kısıt.
+    float lo = max(max(-1.0, (A - a0) / b0), (A - a1) / b1);
+    float hi = min(min(1.0, (B - a0) / b0), (B - a1) / b1);
     float uzun = hi - lo;
-    if (uzun <= 0.0) continue; // bu oluk P'den görünmüyor
+    if (uzun <= 0.0) continue; // bu oluktan ağız görünmüyor
 
     float orta = (lo + hi) * 0.5;
     // Bölmeler z'de engel değil (şaftı boydan boya kesiyorlar) → z'de gölge
@@ -189,14 +216,26 @@ float agizIsigi(vec3 P, vec3 N) {
 }
 
 /**
- * Sekme: duvarlardan yansıyıp dibi dolduran ışık. Dipteki metin bölgesini
- * ölü karanlıktan kurtarıyor ve YUMUŞAK, yani oluk şeridi TAŞIMIYOR.
- * Rengi CYAN (bkz. palet notu): teal bu sahnede ışığın değil GÖLGENİN rengi.
- * Kısık olmak zorunda — sekme dolgu ışığıdır, anahtar ışık değil.
+ * Sekme: duvarlardan yansıyıp dibi dolduran ışık. Rengi CYAN (bkz. palet notu):
+ * teal bu sahnede ışığın değil GÖLGENİN rengi.
+ *
+ * DİPTEKİ TABAN NEDEN YÜKSELTİLDİ (0.030 → 0.085) — ölçülmüş bir karar:
+ * Bölmeler ağza kadar çıkınca oluk kolimatör oluyor; dipteki bir duvar noktası
+ * ağzın ancak dar bir penceresini görüyor. Dar pencere = KÜÇÜK kaynak = SERT
+ * gölge → dipte keskin kenarlı, üçgen, ışın gibi yelpazeler. Ekranda "duvara
+ * düşmüş ışık" değil "huzme" okuyorlardı.
+ *
+ * Yelpazenin kontrastı bir ORAN: pozlama düşürmek onu değiştirmiyor (ikisi de
+ * ölçekleniyor). Oranı düşürmenin tek fiziksel yolu dolgu ışığını yükseltmek.
+ * Gerçek bir bacada da dip zaten büyük ölçüde iç yansımayla aydınlanır: dolaysız
+ * ışık 1/d² ile ölürken sekme ölmüyor. Yani bu düzeltme hile değil, eksik olan
+ * fiziğin eklenmesi. Yelpazeler tamamen kaybolmuyor — kaybolmamalı da, "ışık-
+ * gölge" isteniyor — ama huzme olmaktan çıkıp duvardaki yumuşak bir aydınlığa
+ * dönüyorlar. Tepe hâlâ ağız ışığının: anahtar/dolgu oranı korunuyor.
  */
 float sekmeIsigi(float y) {
   float t = clamp(y / SAFT_H, 0.0, 1.0);
-  return 0.030 + 0.16 * t * t;
+  return 0.085 + 0.16 * t * t;
 }
 `;
 

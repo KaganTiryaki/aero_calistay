@@ -44,7 +44,17 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
-/* ---- üst bar: parlak duvarın önünde → KOYU tipografi -------------------- */
+/* ---- üst bar: duvarın KARANLIK tepesinde → AÇIK tipografi ---------------
+ *
+ * Eskiden koyu (#073f49) tipografiydi ve "parlak duvarın önünde" deniyordu.
+ * İki ayrı sebeple yanlıştı:
+ *   1. Sağ üstteki CTA, x=44'teki yan duvarın önüne düşüyordu — ölçümde
+ *      parlaklık 0.35, koyu metinle kontrast ~1.8:1. Okunmuyordu.
+ *   2. Işık havuzu artık ufuk bandında toplanıyor; duvarın tepesi (kadrajın
+ *      üst ~%12'si) ölçülen ~225'ten ~87'ye indi. Koyu metin orada ölür.
+ * Açık tipografi hem karanlık tepede hem yan duvarda çalışıyor — ve sayfanın
+ * geri kalanıyla (hero, şerit) aynı dile geliyor: her şey açık, zemin karanlık.
+ */
 
 .ust {
   position: absolute;
@@ -66,7 +76,7 @@
   font-family: var(--font-mono), monospace;
   font-size: 0.82rem;
   letter-spacing: 0.2em;
-  color: #073f49;
+  color: #e4f4f7;
 }
 
 .markaIsaret {
@@ -83,21 +93,21 @@
 
 .navLink {
   font-size: 0.86rem;
-  color: rgba(7, 63, 73, 0.74);
+  color: rgba(228, 244, 247, 0.82);
   text-decoration: none;
   transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navLink:hover {
-  color: #073f49;
+  color: #f2fcfd;
 }
 
 .ustCta {
   font-size: 0.82rem;
-  color: #073f49;
+  color: #e4f4f7;
   text-decoration: none;
   padding: 0.5rem 0.95rem;
-  border: 1px solid rgba(7, 63, 73, 0.3);
+  border: 1px solid rgba(228, 244, 247, 0.34);
   border-radius: 999px;
   transition:
     transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
@@ -106,7 +116,7 @@
 
 .ustCta:hover {
   transform: translateY(-1px);
-  border-color: rgba(7, 63, 73, 0.62);
+  border-color: rgba(228, 244, 247, 0.68);
 }
 
 @media (max-width: 780px) {

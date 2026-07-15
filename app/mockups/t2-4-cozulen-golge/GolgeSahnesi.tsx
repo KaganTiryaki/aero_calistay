@@ -15,8 +15,13 @@ import { L0, cozulmeSerit, mulberry32, parcalar, sapma } from "./cozulme";
  * salınırken gölgeleri dip duvarda kaos halinde savruluyor. Bir açıda hepsi
  * hizalanıp tek bir kesintisiz ufka dönüşüyor — sonra ışık geçiyor.
  *
- * KOMPOZİSYON (üstten alta): parça bulutu · ışıklı duvar + ufuk çizgisi ·
- * karanlık zemin (UI burada). Ufuk metin bandının ÜSTÜNDEN geçer.
+ * KOMPOZİSYON (üstten alta, 1440x900'de ölçüldü):
+ *   %0-12   duvarın karanlık tepesi (~87) — üst bar burada, AÇIK tipografiyle
+ *   %12-38  parça bulutu, aydınlanan duvarın önünde koyu siluetler (~81 / ~212)
+ *   %38-42  UFUK ÇİZGİSİ — ışık havuzunun tam ortasında (çizgi ~106, duvar ~219)
+ *   %42-59  duvarın alt yarısı, zemin birleşimine doğru kararıyor
+ *   %59-100 karanlık zemin — UI burada, AÇIK tipografiyle
+ * Ufuk metin bandının ÜSTÜNDEN geçer; hiçbir yerde metnin arkasında değil.
  *
  * OKUNABİLİRLİK — panel yok, ışık var:
  *   Işık yukarı-önden geliyor ve dip duvara neredeyse DİK çarpıyor (0.94) →
@@ -27,12 +32,14 @@ import { L0, cozulmeSerit, mulberry32, parcalar, sapma } from "./cozulme";
  *   koyuluk ışığın geometrisinin sonucu, üstüne serilmiş bir katman değil.
  *
  * KAMERA — iki işi birden yapıyor:
- *   1. ALÇAK: bulut V ekseninde ince (~1.6) ama U×L0 düzleminde 44×26. Alttan
+ *   1. ALÇAK: bulut V ekseninde ince (~1.6) ama U×L0 düzleminde 134×26. Alttan
  *      bakınca bu geniş yüz görünüyor → derinlemesine bir alan okunuyor.
  *      Yandan bakılsaydı "spagetti"ye düşerdi; brief'in uyardığı risk buydu.
- *   2. SOLDA (x=-14): L0 ekseninden ayrık. Eksen üstünden bakılsaydı bütün
- *      parçalar üst üste binip tek bir lekeye çökerdi ve dağınıklık hiç
- *      okunmazdı.
+ *   2. SOLDA (x=-14): L0 ekseninden ayrık (29.4°). Eksen üstünden bakılsaydı
+ *      bütün parçalar üst üste binip tek bir lekeye çökerdi ve dağınıklık hiç
+ *      okunmazdı. BEDELİ: kamera x=0'a bakıyor, yani 15.6° yaw var; bant
+ *      simetrik olsa bile ekranda simetrik DEĞİL. Bant sınırları (cozulme.ts)
+ *      bu yüzden asimetrik — bkz. oradaki not.
  */
 
 // ---- palet ---------------------------------------------------------------
@@ -44,13 +51,22 @@ const GOK_YANSIMA = "#cdeef4"; // parlak duvarın hacme geri verdiği
 const YER_YANSIMA = "#2e7a80";
 const SIS = "#bfe3ea";
 const DUVAR = "#dff3f7";
-const ZEMIN = "#2f757e";
+// Zemin ışığı 17°'lik sıyırma açısıyla aldığı için albedo'nun yalnız ~%30'u
+// geri dönüyor; ölçümde kadrajın dibi rgb(4,23,27)'ye kadar iniyordu — #04171B,
+// yani paletin en koyu değeri olan #073F49'un ÇOK altında, pratikte siyah.
+// Metin zaten oraya oturduğu için kontrast sorunu yok; sorun paletin kendisi.
+const ZEMIN = "#63b3bd";
 const PARCA = "#7fb3ba";
 
 // ---- mekân ---------------------------------------------------------------
 const DUVAR_Z = -30;
 const DUVAR_YUKSEK = 46;
-const SALON_X = 44;
+// Bant -88..+46'ya uzadığı için gölgenin sağ ucu duvarda x≈+89'a kadar gidiyor.
+// SALON_X=44 iken hem duvar geometrisi orada bitiyordu hem de x=44'teki yan
+// duvar kadrajın sağ %8'ini kesip çizginin ucunu ndc.x≈0.83'te yutuyordu:
+// çizgi sağ kenara ASLA ulaşamazdı. Salon çizgiyi taşıyacak kadar geniş.
+const SALON_X = 100;
+const YAN_DUVAR_X = 96;
 const UFUK_Y = 10.5; // gölge çizgisinin duvarda oturduğu yükseklik
 const D0 = 3; // bant düzleminin duvara L0 boyunca uzaklığı
 // D0 küçük: çizginin ışık salınırken duvarda ÖTELENME miktarı ≈ açı × D0.
@@ -134,21 +150,42 @@ function grenEkle(
   };
 }
 
-/* Dip duvar: ışık havuzu ufuk olayının çevresinde toplanıyor, kenarlara ve
-   zemin birleşimine doğru düşüyor. Metin bandı bu havuzun ALTINDA, zeminde —
-   yani havuz metnin arkasında değil; olayın kendisini taşıyor. */
+/*
+ * Dip duvar: ışık havuzu ufuk olayının çevresinde toplanıyor.
+ *
+ * ÖLÇÜLDÜ, TAHMİN DEĞİL: ilk sürümde duvar kadrajın üst %59'unda ortada 222,
+ * sol kenarda 206 okuyordu — bütün kadraj boyunca %7 oynama. Yani DÜZ AÇIK BİR
+ * DİKDÖRTGEN; brief'in yasakladığı perde etkisi, sahne kılığında. Sebep havuz
+ * gradyanının yokluğu değildi (gradyan vardı ve radyansı %45 düşürüyordu);
+ * duvarın ACES omzunda oturmasıydı: 0.55→1.0 radyans aralığının tamamı 206-222
+ * kod değerine eziliyordu. Modelleme yapılıyor, sonra ton eğrisi siliyordu.
+ *
+ * Çözüm havuzu YATAY BİR BANDA çevirmek + tabanı düşürmek:
+ *   · x/82 → havuz kadrajın bütün genişliğinde açık kalıyor. Çizgi ve bulut
+ *     kenarlara kadar aydınlık zemin buluyor (silüetler arkadan aydınlık;
+ *     koyu duvarda kaybolurlardı).
+ *   · (y-UFUK_Y)/13 → yukarı ve aşağı hızlı düşüş. Kadrajın tepesi (duvar y≈28)
+ *     artık ~87, ufuk bandı ~225. 100 kod değerlik DİKEY gradyan: düz panel öldü.
+ *   · taban 0.34 → 0.05. Eski taban duvarın en koyu yerini bile 177'de tutuyordu.
+ *
+ * Metin bandı bu havuzun ALTINDA, zeminde — havuz metnin arkasında değil,
+ * olayın kendisini taşıyor.
+ */
 const DUVAR_SEKIL = /* glsl */ `
-  vec2 d = vec2( ( vDunyaK.x ) / 34.0, ( vDunyaK.y - ${UFUK_Y.toFixed(1)} ) / 22.0 );
-  float havuz = 1.0 - smoothstep( 0.30, 1.45, length( d ) );
-  float temas = smoothstep( 0.0, 8.0, vDunyaK.y );   // zeminle birleşimde kararma
-  diffuseColor.rgb *= ( 0.34 + 0.66 * havuz ) * ( 0.45 + 0.55 * temas );
+  vec2 d = vec2( ( vDunyaK.x ) / 82.0, ( vDunyaK.y - ${UFUK_Y.toFixed(1)} ) / 13.0 );
+  float havuz = 1.0 - smoothstep( 0.25, 1.35, length( d ) );
+  float temas = smoothstep( 0.0, 7.0, vDunyaK.y );   // zeminle birleşimde kararma
+  diffuseColor.rgb *= ( 0.05 + 0.95 * havuz ) * ( 0.40 + 0.60 * temas );
 `;
 
 /* Zemin: duvardan sekmiş ışık birleşime yakın yeri hafifçe kaldırıyor, kameraya
-   doğru düşüyor. Düz koyu bir dikdörtgen yerine derinliği olan bir yüzey. */
+   doğru düşüyor. Düz koyu bir dikdörtgen yerine derinliği olan bir yüzey.
+   Taban 0.52 → 0.66: ölçümde kadrajın dibi rgb(5,42,48) okuyordu, paletin en
+   koyu değeri olan #073F49 = rgb(7,63,73)'ün ALTINDA. Saf siyah değil ama palet
+   dışı; metin de tam oraya oturuyor. */
 const ZEMIN_SEKIL = /* glsl */ `
   float yakin = 1.0 - smoothstep( 0.0, 46.0, abs( vDunyaK.z - ( ${DUVAR_Z.toFixed(1)} ) ) );
-  diffuseColor.rgb *= 0.52 + 0.48 * yakin;
+  diffuseColor.rgb *= 0.82 + 0.18 * yakin;
 `;
 
 type Props = {
@@ -187,11 +224,12 @@ export function GolgeSahnesi({ bildir, disiplinAdet, sinif }: Props) {
     // ---- sahne ------------------------------------------------------------
     const sahne = new THREE.Scene();
     sahne.background = new THREE.Color(SIS);
-    // Hava perspektifi: duvarı (~52 birim) ~%24 yıkıyor, bulutu (~32) ~%10.
-    // Parçalar duvardan daha az sis yediği için siluet kontrastı korunuyor,
-    // ama duvar/zemin birleşimindeki jilet gibi çizgi yumuşuyor — o keskin
-    // hat sahneyi iki düz dikdörtgen gibi okutan şeydi.
-    sahne.fog = new THREE.FogExp2(new THREE.Color(SIS).getHex(), 0.01);
+    // Hava perspektifi: duvar/zemin birleşimindeki jilet gibi hattı yumuşatıyor.
+    // 0.01 → 0.008: sis three'de ton eşlemesinden SONRA, çıkış uzayında
+    // karışıyor; 0.01'de duvarın tepesindeki koyuyu 57'den 101'e kaldırıp yeni
+    // dikey gradyanın yarısını yiyordu. Karanlığı sis değil ışık geometrisi
+    // belirlemeli.
+    sahne.fog = new THREE.FogExp2(new THREE.Color(SIS).getHex(), 0.008);
 
     const kamera = new THREE.PerspectiveCamera(50, 1, 0.5, 260);
     kamera.position.copy(KAMERA);
@@ -220,16 +258,24 @@ export function GolgeSahnesi({ bildir, disiplinAdet, sinif }: Props) {
     isik.target.position.copy(bantMerkez);
     sahne.add(isik.target);
     isik.castShadow = true;
-    isik.shadow.mapSize.set(kaba ? 1024 : 2048, kaba ? 1024 : 2048);
+    // Bant 3x uzadı → aynı 2048 U ekseninde teksel başına 31mm'den 93mm'ye
+    // düşerdi ve gu≈0.24'lük yongaların gölgesi 2-3 teksele inip kaos anında
+    // bloklaşırdı. Masaüstünde 4096: 46mm/teksel. ÇİZGİNİN KALINLIĞI bundan
+    // etkilenmiyor — o V ekseninde ve shadow.camera.up=V sayesinde ±11 birim
+    // 2048/4096 teksele yayılıyor (~5mm). Asıl kazanç orada, burada değil.
+    isik.shadow.mapSize.set(kaba ? 1024 : 4096, kaba ? 1024 : 4096);
     // Gölge kamerasının "up"ını V'ye çiviliyoruz → haritanın y ekseni bandın
     // KALINLIK ekseniyle hizalanıyor. Bant V'de ~1.6, U'da 44 olduğu için
     // kutuyu dikeyde dar tutmak tekselleri tam çizginin kenarına harcıyor:
     // 22/2048 ≈ 1cm. Kare bir kutu aynı hassasiyetin üçte birini verirdi.
     isik.shadow.camera.up.copy(V);
     const sk = isik.shadow.camera;
-    sk.left = -32; // U: kaos anında gölgeler bant ucundan taşıyor, kırpma olmasın
-    sk.right = 32;
-    sk.top = 11;
+    // U: bant artık [-88,+46]; kaos anında gölgeler uçtan a*θ ≈ 5.2 taşıyor.
+    // Hangi yerel eksenin +u'ya baktığına bel bağlamamak için simetrik ve
+    // cömert: her iki uç da payla içeride kalıyor.
+    sk.left = -95;
+    sk.right = 95;
+    sk.top = 11; // V = bandın KALINLIK ekseni — dar tutmak tekseli çizgiye harcar
     sk.bottom = -11;
     sk.near = 20;
     sk.far = 130;
@@ -283,11 +329,13 @@ export function GolgeSahnesi({ bildir, disiplinAdet, sinif }: Props) {
     grenEkle(yanMat, 0.09, 0.1);
     const yan = new THREE.Mesh(yanGeo, yanMat);
     yan.rotation.y = -Math.PI / 2;
-    yan.position.set(SALON_X, DUVAR_YUKSEK / 2, DUVAR_Z + 80);
+    yan.position.set(YAN_DUVAR_X, DUVAR_YUKSEK / 2, DUVAR_Z + 80);
     sahne.add(yan);
 
     // ---- parçalar: tek InstancedMesh --------------------------------------
-    const liste = parcalar(disiplinAdet);
+    // pointer:coarse → yonga sayısı düşüyor (brief'in zorunlu kapısı; ilk
+    // sürümde yalnız antialias kapanıyordu, parça sayısı aynı kalıyordu).
+    const liste = parcalar(disiplinAdet, kaba);
     const kutuGeo = new THREE.BoxGeometry(1, 1, 1);
     const parcaMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(PARCA),

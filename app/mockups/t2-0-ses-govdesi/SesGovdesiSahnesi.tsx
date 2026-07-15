@@ -30,16 +30,22 @@ import {
  * Fikir: tek bir tel duyulmaz, onu duyulur kılan gövdedir. Sayfa ekip
  * başvurusu topluyor — birey topluluk içinde duyulur hâle gelir.
  *
- * OKUNABİLİRLİK (reddedilen beyaz perdenin tam tersi):
- *   Metin, tablanın altındaki dev gergi kirişinin tekneye düşürdüğü gölgede
- *   duruyor. Bu bir panel DEĞİL çünkü (a) kirişin kendisi kadrajda görünüyor,
- *   (b) gölge teknenin eğri yüzeyinde büküldüğü için düz kenarlı değil,
- *   (c) kenarları penumbralı. "Bu katman olmasa metin okunur muydu?" → gölge
- *   zaten orada, çünkü kirişi görüyorsun.
+ * OKUNABİLİRLİK — "ışığın ulaşmadığı yer" (perde/panel/scrim DEĞİL):
+ *   Gül kadrajın alt yarısının üstünde ve neredeyse DİK aşağı bakıyor. Işık
+ *   havuzu bu yüzden kadrajın dibine çivilenmiş: göbeği dantel, eteği yukarı
+ *   doğru sönen düz bir rampa. Metin, rampanın bittiği yerde — teknenin ışık
+ *   ULAŞMAYAN derinliğinde — duruyor. Kaldırılacak bir katman yok.
+ *
+ *   ÖNCEKİ TUR NEDEN BATTI (ölçümle): ışık geriye, teknenin dibine YALAYARAK
+ *   tarıyordu. Koninin +θ kenarı neredeyse dikey, -θ kenarı neredeyse yatay →
+ *   havuz z ekseninde -15.5'ten +8.9'a smear oluyor, ekranın %48-100'ünü
+ *   yiyordu. Koniyi daraltmak çözmüyordu: +z kenarını %76'ya çekmek için
+ *   θ=0.06° gerekiyordu, yani kalem ışını. Çözüm koni değil AÇI: kaynağı
+ *   havuzun tam üstüne alıp dikleştirdik (eğim 5.7°), koni artık yalayan
+ *   açıları hiç görmüyor.
  *
  * Yasaklı motiflere karşı: halka/yörünge yok (gül kadraj dışında), god-ray
- * yok, kaustik yok, tel-kafes küre yok, sıcak/bej yok, saf siyah yok
- * (en koyu değer sis rengi #08424E'de tabanlanıyor).
+ * yok, kaustik yok, tel-kafes küre yok, sıcak/bej yok, saf siyah yok.
  */
 
 // ---- palet (tek hue ailesi: teal→cyan + beyazın onlarca opaklığı) ---------
@@ -61,33 +67,80 @@ const SIS = 0x08424e; // gövdenin havası; sahnenin EN KOYU değeri
 const AHSAP_A = 0x56767e; // kaburga tonu — mavi-gri, ASLA sıcak/bej
 const AHSAP_B = 0x4e7a72; // komşu kaburga, naneye bir tık (yeşile DEĞİL)
 const TABLA_RENK = 0x44666e;
-const KIRIS_RENK = 0x2c4a52;
-// Ortam gölgedeki teknenin değerini #073F49'a oturtuyor (albedo × ortam / π
-// hesaplanarak seçildi, göz kararı değil). Sahnenin en koyu yeri burası.
-const AMBIYANS = 0x4defff;
 
 /*
- * IŞIK RİGİ — kadraj denetimiyle seçildi (tarayıcısız ışın izleme, bkz. not).
- * Işık gülün ÜSTÜNDE (rozet = tablada bir delik) ve GERİYE tarıyor: kaynak
- * kirişin ilerisinde, koni kameraya doğru yatıyor.
+ * ORTAM — AmbientLight DEĞİL, HemisphereLight. Bu sahnenin en önemli ikinci
+ * kararı; nedeni ölçümde ortaya çıktı.
  *
- * Neden geriye: ışık kirişin tam tepesinde olsaydı gölgesi ekranda kirişin
- * hemen dibine düşer, ikisi TEK koyu kütle olarak okunurdu — yani tam da
- * reddedilen panelin ta kendisi. Geriye tarayan ışıkta gölge kirişten kopup
- * kadrajın alt yarısına atılıyor; arada AYDINLIK taban kalıyor. Kiriş ile
- * gölgesi arasındaki bu boşluk, gölgenin bir panel değil bir GÖLGE olduğunu
- * gösteren şey.
+ * SORUN: düz AmbientLight her yüzeye AYNI ışınımı verir. Tek nokta ışık koca
+ * teknenin yalnız dibine yetişebildiği için kadrajın üst üçte ikisi %100 ortam
+ * ışığındaydı → her kaburga aynı değerde. Ölçüm acımasızdı: ekranın %3'ünden
+ * %63'üne kadar HER satır mean 60-63, max 70-72. 10 değerlik bir bantta düz bir
+ * duvar. Kural (d) tam olarak bunu yasaklıyor: kontrastsız sahne "sakin" değil
+ * OLAYSIZ okur. Dantel perdesini, düz bir teal duvar kâğıdıyla takas etmiştim.
+ *
+ * ÇÖZÜM ve neden ikinci ışık DEĞİL: bu odanın en parlak yüzeyi tabandaki
+ * girih havuzu. Gerçek bir mekânda dolaylı ışık oradan, yani AŞAĞIDAN gelir;
+ * karanlık tavan ise neredeyse hiçbir şey geri vermez. HemisphereLight tam
+ * bunu modelliyor — yeni bir kaynak eklemiyor, VAR OLAN tek kaynağın sekmesini
+ * yönlü hâle getiriyor: yukarı bakan yüzeyler (teknenin dibi, metnin durduğu
+ * yer) sönük gökten; aşağı bakan yüzeyler (kaburgaların üst kıvrımı, tavan)
+ * parlak havuz sekmesinden besleniyor.
+ *
+ * Kadrajdaki karşılığı bedava geliyor: merkez (dip) sakin ve koyu, kenarlara
+ * doğru kaburgalar modelleniyor. Vinyet efektle değil, NORMALLE geliyor.
  */
-const ISIK = new THREE.Vector3(0, 13.0, 9);
-const ISIK_HEDEF = new THREE.Vector3(0, -1.5, 1);
-const KONI = 0.5; // spot yarı açısı (rad) — havuzun kenarı kadrajda kalsın
+/*
+ * GOK'ün DEĞERİ ölçümle ayarlandı, göz kararıyla değil. İlk deneme (0x2e6b73
+ * × 1.7) modellemeyi getirdi ama sahneyi çukura düşürdü: metin bölgesi mean
+ * 15-25, en koyu piksel #000405 — yani neredeyse SAF SİYAH, reddedilen "dip
+ * kapısı #000" hatasının ta kendisi. Taban ~2.4 kat kaldırıldı.
+ *
+ * Hedef bilerek KOYU (mean ~30-45), aydınlık değil: tek ışıklı bir mekânın
+ * gövdesi karanlıktır ve beyaz tipografi orada 10:1'in üstünde okur. Kuralın
+ * "en koyu değer #073F49" dediği şey sahnenin ortalaması değil TABANI — yani
+ * hiçbir yerde siyah çukur olmasın. #073F49'un kendisi de zaten R/B ≈ 0.10'luk
+ * bir renk; gölgedeki kırmızının düşük kalması hue'nun doğru olduğunu gösterir,
+ * yeter ki sıfıra çakılmasın.
+ */
+/*
+ * GOK'ün KIRMIZISI ayrı bir hikâye ve bu sahnenin en ince hatasıydı.
+ *
+ * Ölçüm: metin bölgesi #012F35 çıkıyordu, yani R/G = 0.015. Oysa paletin en
+ * koyu teali #073F49'un R/G'si 0.111, #0E4A46'nınki 0.189 — sahne paletten
+ * YEDİ KAT daha doygundu. Kanvasın %56'sında kırmızı kanal tam olarak SIFIRDI.
+ *
+ * Sebep tone mapping: ACES'in çıkış matrisi R = 1.605a − 0.531b − 0.074c.
+ * Yeterince doygun bir cyan'da bu ifade NEGATİFE düşüyor ve saturate() onu
+ * sıfıra kırpıyor. Yani "doygun cyan" burada bir üslup tercihi değil, gamut
+ * dışına taşma; kurucunun iki denemesinin "batmasının" (kendi ifadesi) sebebi
+ * de buydu — teşhisi doğruydu, ölçüsü yoktu.
+ *
+ * Düzeltme SEVİYEYE değil ORANA: 0x42 → 0x66 yalnız kırmızıyı kaldırıyor,
+ * G ve B kanalları bit düzeyinde aynı kalıyor (modelde çıkış 35,45 → 35,45),
+ * yani sahnenin parlaklığı ve kontrastı hiç değişmiyor; yalnız hue paletin
+ * içine dönüyor. Isınma yok: R hâlâ G'nin ~%15'i, sonuç koyu teal.
+ */
+const GOK = 0x66868f; // yukarı bakan yüzeyler — sönük tavanın verdiği az şey
+const YER = 0xa6f0ff; // aşağı bakan yüzeyler — girih havuzunun sekmesi
+const ORTAM_SIDDET = 2.8;
 
-// ---- gergi kirişi (bas barı) --------------------------------------------
-const KIRIS_Z0 = 4.2;
-const KIRIS_Z1 = 6.6;
-const KIRIS_UST = 5.6;
-const KIRIS_ALT = 1.8; // x=0'daki en alçak nokta; uçlara doğru kemerleniyor
-const KIRIS_YARI = 8.4; // yarı açıklık
+/*
+ * IŞIK RİGİ — ölçümle seçildi (bkz. dosya başındaki not).
+ * Gül (rozet) havuzun tam üstünde, tablanın üstünden neredeyse DİK aşağı
+ * bakıyor: eğim yalnız 5.7° (kaynak 0,12.5,-3.5 → hedef 0,-2.5,-2.0).
+ *
+ * Neden dik: koni yalayan açıları görmesin. Eski rigde koni dikey ile 57°
+ * arasını tarıyordu, havuz ekranın yarısına yayılıyordu. Dik konide havuz
+ * ekranda kompakt: çekirdek ~%75-100, eteği ~%62'ye kadar sönüyor.
+ *
+ * 5.7° eğim sıfır DEĞİL, çünkü tam dikey bakışta three'nin lookAt'i
+ * (forward ∥ up) dejenere olur ve cookie'nin u/v ekseni rastgele döner —
+ * 7 telin gölgesi gövde boyunca (z) değil rastgele bir yöne uzanırdı.
+ */
+const ISIK = new THREE.Vector3(0, 12.5, -3.5);
+const ISIK_HEDEF = new THREE.Vector3(0, -2.5, -2.0);
+const KONI = 0.34; // spot yarı açısı (rad)
 
 // ---- kamera --------------------------------------------------------------
 // Eğim -20°: teknenin dibi cepheye yakın görünsün. Düz bakışta taban aşırı
@@ -118,14 +171,6 @@ function damar(x: number, tohum: number) {
     return s - Math.floor(s);
   };
   return h(i) * (1 - u) + h(i + 1) * u;
-}
-
-/** Kirişin alt kemeri: ortada derin, uçlarda sığ. Hem gerçek luthier işi
- *  (traşlanmış bar) hem de mimari okuma (kemer). Düz kenar = panel riski. */
-function kirisAlt(x: number) {
-  const n = Math.min(Math.abs(x) / KIRIS_YARI, 1);
-  const k = Math.pow(Math.max(1 - n * n, 0), 0.35);
-  return TABLA_Y - ((TABLA_Y - KIRIS_ALT) * k + 0.14);
 }
 
 /**
@@ -213,7 +258,13 @@ function tekneGeometrisi() {
         nokta(phiLo + (phiHi - phiLo) * U[u], z, jit, v);
         konum.push(v.x, v.y, v.z);
         normal.push(n.x, n.y, n.z);
-        const dikis = u === 0 || u === U.length - 1 ? 0.40 : 1;
+        // Dikiş 0.40 → 0.58: 0.40'ta dikiş çizgileri sahnenin en koyu pikseliydi
+        // (ölçüm: #000D0E, kırmızı kanal sıfır — palet dışı). Zaten koyu bir
+        // gövdede albedoyu 0.40'la çarpmak siyah üretiyordu. 0.58 dikişi hâlâ
+        // dikiş bırakıyor (kaburga yüzü ile arasında ~1.7 kat fark var) ama
+        // tabanı tealde tutuyor. Kaburga ritmi bu çizgiden değil, yüzler
+        // arasındaki ton farkından geliyor — kaybedilen bir şey yok.
+        const dikis = u === 0 || u === U.length - 1 ? 0.58 : 1;
         const m = ton * g * dikis;
         renk.push(c.r * m, c.g * m, c.b * m);
       }
@@ -282,36 +333,6 @@ function tablaGeometrisi() {
   return geo;
 }
 
-/** Gergi kirişi: tablanın altında asılı, tekneyi rimden rime geçen dev kiriş.
- *  Alt kenarı kemerli → gölgesinin kenarı da kemerli. */
-function kirisGeometrisi() {
-  const MX = 64;
-  const konum: number[] = [];
-  const indeks: number[] = [];
-  // her x için 4 nokta: ön-üst, ön-alt, arka-alt, arka-üst
-  for (let i = 0; i <= MX; i++) {
-    const x = -KIRIS_YARI + 2 * KIRIS_YARI * (i / MX);
-    const alt = kirisAlt(x);
-    konum.push(x, KIRIS_UST, KIRIS_Z0);
-    konum.push(x, alt, KIRIS_Z0);
-    konum.push(x, alt, KIRIS_Z1);
-    konum.push(x, KIRIS_UST, KIRIS_Z1);
-  }
-  for (let i = 0; i < MX; i++) {
-    const a = i * 4;
-    const b = (i + 1) * 4;
-    // ön yüz (kameraya bakan), alt yüz, arka yüz
-    indeks.push(a + 0, b + 0, a + 1, a + 1, b + 0, b + 1);
-    indeks.push(a + 1, b + 1, a + 2, a + 2, b + 1, b + 2);
-    indeks.push(a + 2, b + 2, a + 3, a + 3, b + 2, b + 3);
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(konum, 3));
-  geo.setIndex(indeks);
-  geo.computeVertexNormals();
-  return geo;
-}
-
 type Props = {
   /** Her karede 7 telin genliği. setState YOK — doğrudan DOM. */
   bildir?: (genlik: number[]) => void;
@@ -372,9 +393,6 @@ export function SesGovdesiSahnesi({ bildir, sinif }: Props) {
     const cookieMat = new THREE.ShaderMaterial({
       uniforms: {
         uGenlik: { value: new Array(TEL_SAYI).fill(0) },
-        uVLo: { value: 0.3 },
-        uVHi: { value: 0.6 },
-        uPenumbra: { value: 0.045 },
         uParlak: { value: 1 },
       },
       vertexShader: COOKIE_VERTEX,
@@ -393,18 +411,20 @@ export function SesGovdesiSahnesi({ bildir, sinif }: Props) {
 
     // ---- tek ışık: kadraj dışındaki gül ----------------------------------
     // Yoğunluk kandela; mesafe sönümü 1/d² (havuz merkezi d≈15 → /226).
-    // 4200, dantelin çekirdeğini #6FE0F0 civarına oturtacak şekilde
-    // hesaplandı: diffuse = dotNL·ışık·I·(1/d²)·cookie·albedo/π.
-    const spot = new THREE.SpotLight(0xdff8ff, 4200, 0, KONI, 1, 2);
+    // Eski rigde ışık tabana ~29° eğik çarpıyordu (dotNL 0.87); şimdi dik
+    // çarpıyor (dotNL≈0.99) → aynı şiddet daha parlak. Ölçümle 4200 → 3000:
+    // çekirdek hâlâ #6FE0F0'a çıkıyor ama etek görünürlük eşiğinin altına
+    // düşüyor, yani dantel metin bölgesine sızmıyor.
+    const spot = new THREE.SpotLight(0xdff8ff, 3000, 0, KONI, 1, 2);
     spot.position.copy(ISIK);
     spot.target.position.copy(ISIK_HEDEF);
     spot.map = hedef.texture;
     sahne.add(spot);
     sahne.add(spot.target);
 
-    // Ortam: gölgedeki teknenin değerini #073F49'a tabanlar — saf siyah YOK.
-    // three ortamı da albedo/π ile çarpıyor; 0.9 bu yüzden 3 kat yetersizdi.
-    sahne.add(new THREE.AmbientLight(AMBIYANS, 1.0));
+    // Yönlü sekme (bkz. GOK/YER notu). Saf siyah YOK: en koyu yüzey bile
+    // GOK'ten pay alıyor, dolayısıyla taban değeri #073F49 civarında kalıyor.
+    sahne.add(new THREE.HemisphereLight(GOK, YER, ORTAM_SIDDET));
     /*
      * "Sekme" dolgu ışığı KALDIRILDI. İki nedenle:
      *  1. Bug: (0, -1, 7)'de duruyordu, tekne dibi ise y≈-1.5 → aradaki mesafe
@@ -433,50 +453,6 @@ export function SesGovdesiSahnesi({ bildir, sinif }: Props) {
       side: THREE.FrontSide,
     });
     sahne.add(new THREE.Mesh(tablaGeo, tablaMat));
-
-    const kirisGeo = kirisGeometrisi();
-    const kirisMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color().setHex(KIRIS_RENK, THREE.SRGBColorSpace),
-      roughness: 0.7,
-      metalness: 0,
-      side: THREE.DoubleSide,
-    });
-    sahne.add(new THREE.Mesh(kirisGeo, kirisMat));
-
-    // ---- kirişin cookie'deki siluetı -------------------------------------
-    /*
-     * Kiriş x boyunca uzanıyor ve ışık x=0'da → siluetinin kenarları, ışığı
-     * içeren ve x yönünü barındıran düzlemlerdir; projektif dönüşüm doğruyu
-     * doğruya taşıdığı için cookie'de u eksenine PARALEL iki doğru olurlar.
-     * Yani silueti iki skaler (vLo, vHi) tam tanımlıyor.
-     * Kemerli alt kenar bu skalerlere x=0'daki (en alçak) noktasıyla giriyor:
-     * ışık havuzu zaten x≈0 çevresinde yoğun, uçlarda ışık yok — yaklaşımın
-     * hatası görünmediği yerde kalıyor.
-     */
-    const kirisBandi = () => {
-      spot.updateMatrixWorld();
-      spot.target.updateMatrixWorld();
-      spot.shadow.updateMatrices(spot);
-      const m = spot.shadow.matrix;
-      const p = new THREE.Vector4();
-      let lo = Infinity;
-      let hi = -Infinity;
-      const alt = kirisAlt(0);
-      for (const y of [alt, KIRIS_UST]) {
-        for (const z of [KIRIS_Z0, KIRIS_Z1]) {
-          p.set(0, y, z, 1).applyMatrix4(m);
-          const v = p.y / p.w;
-          lo = Math.min(lo, v);
-          hi = Math.max(hi, v);
-        }
-      }
-      cookieMat.uniforms.uVLo.value = lo;
-      cookieMat.uniforms.uVHi.value = hi;
-      // Penumbra rozetin AÇIKLIK genişliğinden geliyor: gül nokta değil, geniş
-      // bir delik. Kenarın yumuşaklığı uydurma değil, açıklığın açısal boyu.
-      cookieMat.uniforms.uPenumbra.value = 0.052;
-    };
-    kirisBandi();
 
     // ---- fare parallaksı --------------------------------------------------
     const fare = { x: 0, y: 0 };
@@ -577,8 +553,6 @@ export function SesGovdesiSahnesi({ bildir, sinif }: Props) {
       tekneMat.dispose();
       tablaGeo.dispose();
       tablaMat.dispose();
-      kirisGeo.dispose();
-      kirisMat.dispose();
       cookieGeo.dispose();
       cookieMat.dispose();
       hedef.dispose();

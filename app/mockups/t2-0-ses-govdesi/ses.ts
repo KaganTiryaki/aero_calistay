@@ -56,28 +56,32 @@ export function telGenlikleri(t: number, dis: number[]) {
 
 // ---- cookie shader --------------------------------------------------------
 /*
- * SpotLight.map olarak her karede yeniden çizilen 512² doku. İçinde ÜÇ engel
- * üst üste duruyor — üçü de gerçek, üçü de sahnedeki bir nesnenin ışık
- * kaynağından görünen siluetı:
+ * SpotLight.map olarak her karede yeniden çizilen 512² doku. İçinde İKİ engel
+ * var — ikisi de gerçek, ikisi de kaynaktan görünen bir siluet:
  *
  *   · rozet (gül) kafesi  → ışığın geçtiği delikler = dantel
  *   · 7 tel               → sabit x'te düz çizgiler; bulanıklığı = genlik
- *   · bas barı            → tablanın altındaki dev kirişin siluetı, v bandı
  *
- * NEDEN GÖLGE HARİTASI YOK: ışık kaynağı rozetin ÜSTÜNDE, rozet ve teller de
- * kiriş de kaynak ile tekne arasında. Nokta kaynak için bir engelin kestiği
- * ışın kümesi = o engelin kaynaktan görünen siluetinin konisi; yani projektif
- * bir dokuda birebir kodlanabilir. Shadow map'in vereceği şeyi cookie zaten
- * matematiksel olarak tam veriyor — üstelik penumbra genişliği elimde kalıyor
- * (shadow map'te kalmazdı). Bkz. uPenumbra.
+ * BAS BARI BANDI KALDIRILDI. Neden: bandın kendisi çalışıyordu (ölçüldü:
+ * ekranın ~%50–56'sı) ama metin bloğu ekranın %45–94'ünü kaplıyor. 5%'lik bir
+ * bant 49%'luk bir bloğu okunur kılamaz; bandı koyulaştırmak (0.93→0.985) bu
+ * yüzden hiçbir şeyi değiştirmedi — sorun bandın KOYULUĞU değil GENİŞLİĞİ idi.
+ * Kirişin kendisi de kadrajın üst %14'ünde düz, detaysız, neredeyse siyah bir
+ * kütleydi (ölçüm: mean 17, max 17, busy 0.00 — birebir düz dolgu). Işık
+ * almayan bir engeli sahnede tutmanın bedeli, kazancından büyüktü.
+ *
+ * Okunabilirlik artık şuradan geliyor: ışık havuzu kadrajın ALTINA sabitlendi,
+ * metin ise teknenin ışık ULAŞMAYAN derinliğinde duruyor. Kaldırılacak bir
+ * katman yok — "bu katman olmasa okunur muydu?" sorusunun nesnesi kalmadı.
+ *
+ * NEDEN GÖLGE HARİTASI YOK: rozet ve teller kaynak ile tekne arasında. Nokta
+ * kaynak için bir engelin kestiği ışın kümesi = o engelin kaynaktan görünen
+ * siluetinin konisi; yani projektif bir dokuda birebir kodlanabilir.
  */
 export const COOKIE_FRAGMENT = /* glsl */ `
   precision highp float;
 
   uniform float uGenlik[${TEL_SAYI}];
-  uniform float uVLo;      // bas barı siluetinin alt kenarı (cookie v)
-  uniform float uVHi;      // üst kenarı
-  uniform float uPenumbra; // rozet açıklığının açısal boyundan gelen yarı gölge
   uniform float uParlak;   // gövde rezonansı: çok hafif genel nabız
 
   varying vec2 vUv;
@@ -105,15 +109,22 @@ export const COOKIE_FRAGMENT = /* glsl */ `
     // sahneyi neredeyse simsiyah bırakıyor hem de kaburgalara düştüğünde
     // dantel değil yüksek frekanslı gürültü olarak okunuyordu. Rozet AHŞAP
     // değil IŞIK olmalı: delikler baskın, ahşap ince bir ağ.
+    // FREKANS ile OPAKLIK iki ayrı ayar; ikisini de ayrı ayrı yakmak gerekti:
+    //  · 0.168 aralık / 0.0175 kalınlık → çubuklar dokunun yarısını yiyor,
+    //    sahne simsiyah (opaklık hatası).
+    //  · 0.30 aralık / 0.012 kalınlık → ışık geliyor ama kafes DEVASA; ekranda
+    //    hücre başına ~230px düşüyor, dantel değil dev girih duvarı oluyor ve
+    //    tam başlığın arkasından geçiyor (frekans hatası).
+    // Doğrusu: SIK ve İNCE. ~20 hücre havuzu geçiyor, hücre ~70px → dantel.
     float ahsap = 0.0;
-    ahsap = max(ahsap, cubukAilesi(q, 0.0, 0.30, 0.012));
-    ahsap = max(ahsap, cubukAilesi(q, PI / 3.0, 0.30, 0.012));
-    ahsap = max(ahsap, cubukAilesi(q, 2.0 * PI / 3.0, 0.30, 0.012));
+    ahsap = max(ahsap, cubukAilesi(q, 0.0, 0.125, 0.0070));
+    ahsap = max(ahsap, cubukAilesi(q, PI / 3.0, 0.125, 0.0070));
+    ahsap = max(ahsap, cubukAilesi(q, 2.0 * PI / 3.0, 0.125, 0.0070));
     // ince ikinci aile: kafesin içindeki dolgu. Tam opak değil → dantelin içi
     // tek değerde ölü kalmıyor.
-    ahsap = max(ahsap, cubukAilesi(q, PI / 6.0, 0.155, 0.0055) * 0.5);
+    ahsap = max(ahsap, cubukAilesi(q, PI / 6.0, 0.065, 0.0030) * 0.5);
     // merkez göbeği: rozetin ortasındaki dolu madalyon
-    ahsap = max(ahsap, 1.0 - smoothstep(0.055, 0.08, d));
+    ahsap = max(ahsap, 1.0 - smoothstep(0.030, 0.048, d));
     return clamp(ahsap, 0.0, 1.0);
   }
 
@@ -140,20 +151,27 @@ export const COOKIE_FRAGMENT = /* glsl */ `
 
   void main() {
     vec2 p = (vUv - 0.5) * 2.0;
+    float r = length(p);
 
-    float isik = 1.0 - rozetKafesi(p);
+    /*
+     * Rozetin kafesi yalnız açıklığın ÇEKİRDEĞİNDE çözülüyor; kenara doğru
+     * dantel yerini düz bir ışığa bırakıyor. Bu bir hile değil, gülün derinliği:
+     * kafes kalın bir tahtaya oyulmuş, eğik ışınlar oyuğun yan duvarına sürtüp
+     * kendi gölgesini yiyor — açıklığın kıyısında desen çözünmez, ışık yıkanır.
+     *
+     * Kompozisyondaki karşılığı: havuzun göbeği DANTEL (yüksek frekans, olay),
+     * eteği düz bir IŞIK RAMPASI (alçak frekans, sakin). Metin rampanın üstünde
+     * duruyor: karanlık değil, sadece olaysız. "Sakin ≠ olaysız" tuzağına
+     * düşmemek için ekranın altında gerçek bir dantel çekirdeği bırakıldı.
+     */
+    float cozunurluk = 1.0 - smoothstep(0.30, 0.86, r);
+    float isik = 1.0 - rozetKafesi(p) * cozunurluk;
+
     // Rozetin dış kenarı BİLEREK geniş ve yumuşak: çemberin kendisi asla
     // kadraja girmesin, sadece döktüğü ışık görünsün. Halka motifi yasak.
-    isik *= 1.0 - smoothstep(0.62, 1.12, length(p));
+    isik *= 1.0 - smoothstep(0.34, 1.05, r);
 
-    isik *= 1.0 - telGolgesi(p) * 0.90;
-
-    // Bas barı: v ekseninde tam genişlikte bant. Kiriş x boyunca uzanıyor ve
-    // ışık x=0'da → siluetinin kenarları cookie'de u eksenine paralel doğrular.
-    float band =
-      smoothstep(uVLo - uPenumbra, uVLo + uPenumbra, vUv.y) *
-      (1.0 - smoothstep(uVHi - uPenumbra, uVHi + uPenumbra, vUv.y));
-    isik *= 1.0 - band * 0.93;
+    isik *= 1.0 - telGolgesi(p) * 0.90 * cozunurluk;
 
     // Dantelin çekirdeği #6FE0F0, kuyruğu #22B8DC. Sıcak hiçbir şey yok.
     vec3 renk = mix(vec3(0.133, 0.722, 0.863), vec3(0.437, 0.878, 0.941), pow(isik, 1.6));

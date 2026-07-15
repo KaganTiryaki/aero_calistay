@@ -100,21 +100,26 @@ export function SesGovdesi({
           </a>
           <span className={stil.ctaNot}>{ctaNot}</span>
         </div>
-      </div>
 
-      <div className={`${stil.serit} ${stil.gir}`} style={{ animationDelay: "0.72s" }}>
-        {disiplinler.map((d, i) => (
-          <span
-            key={d}
-            ref={(el) => {
-              seritRef.current[i] = el;
-            }}
-            className={stil.disiplin}
-          >
-            {d}
-            <span className={stil.disiplinCizgi} aria-hidden="true" />
-          </span>
-        ))}
+        {/* Şerit .orta'nın İÇİNDE ve akışta: mutlak konumlandırılıp `calc(top +
+            22.4rem)` gibi sihirli bir sayıyla hizalandığında CTA notunun üstüne
+            biniyordu (ölçüldü: not %57-59, şerit %59-61). Akışta duran bir
+            kardeş hiçbir ekran boyunda, hiçbir font yüklenme sırasında
+            çakışamaz — sihirli sayı yok. */}
+        <div className={`${stil.serit} ${stil.gir}`} style={{ animationDelay: "0.72s" }}>
+          {disiplinler.map((d, i) => (
+            <span
+              key={d}
+              ref={(el) => {
+                seritRef.current[i] = el;
+              }}
+              className={stil.disiplin}
+            >
+              {d}
+              <span className={stil.disiplinCizgi} aria-hidden="true" />
+            </span>
+          ))}
+        </div>
       </div>
     </main>
   );
