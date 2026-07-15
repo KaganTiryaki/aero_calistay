@@ -37,7 +37,28 @@ export function TeamGallery() {
           />
         </Reveal>
 
+        {/* genel koordinatörler — larger slots, one per person */}
+        <Reveal className="mb-4">
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-label">
+            {teamGallery.coordinatorsTitle}
+          </h3>
+        </Reveal>
+
+        <div className="mb-10 grid grid-cols-2 gap-4 sm:max-w-md">
+          {teamGallery.coordinators.map((c, i) => (
+            <Reveal key={c.name} delay={i * 0.06}>
+              <PhotoSlot ratio="4 / 5" caption={c.name} />
+            </Reveal>
+          ))}
+        </div>
+
         {/* one slot per committee, captioned with the team name */}
+        <Reveal className="mb-4">
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-label">
+            {teamGallery.committeesTitle}
+          </h3>
+        </Reveal>
+
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {teams.committees.map((c, i) => (
             <Reveal key={c.name} delay={(i % 4) * 0.06}>
