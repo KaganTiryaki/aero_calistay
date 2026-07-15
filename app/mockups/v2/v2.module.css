@@ -465,116 +465,77 @@
   color: var(--b-58);
 }
 
-/* ---- Sağ: sirkülasyon yörüngesi ---------------------------------------- */
+/* ---- 3B akıntı sahnesi -------------------------------------------------- */
 
-.sag {
-  position: relative;
-  display: none;
-  aspect-ratio: 1;
-  width: 100%;
-  max-width: 560px;
-  justify-self: center;
-}
-
-@media (min-width: 1040px) {
-  .sag {
-    display: block;
-  }
-}
-
-.yorungeSvg {
+/* Kuyu: WebGL parlaması additive — sadece ışık EKLER. Zemin her yerde aydınlık
+   olunca eklenen ışık okunmuyordu (yedi düğüm görünmez oluyordu). Alanı
+   karartmak yerine yalnız halkanın oturduğu bölgede derinlik açıyoruz: sağda
+   ışık kuyusu, solda ve genelde alan aydınlık kalıyor. Işık-gölge = sinema. */
+.kuyu {
   position: absolute;
   inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    56% 64% at 71% 50%,
+    rgba(4, 44, 52, 0.6) 0%,
+    rgba(5, 54, 62, 0.34) 44%,
+    rgba(9, 74, 85, 0) 74%
+  );
+}
+
+@media (max-width: 1039px) {
+  .kuyu {
+    background: radial-gradient(
+      80% 44% at 50% 30%,
+      rgba(4, 44, 52, 0.5) 0%,
+      rgba(9, 74, 85, 0) 74%
+    );
+  }
+}
+
+/* WebGL katmanı: CSS ışık alanının üstünde, içeriğin altında. Sahne kendi
+   duraklatmasını yapıyor (IO + visibilitychange + reduced-motion). */
+.sahne3b {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sahne3b > div {
   width: 100%;
   height: 100%;
-  color: #ffffff;
-  overflow: visible;
 }
 
-.yorungeDon {
-  transform-origin: 50% 50%;
+.sahne3b canvas {
+  display: block;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .yorungeDon {
-    animation: don 240s linear infinite;
-  }
-}
-
-@keyframes don {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.kiris {
-  stroke: var(--nane);
-  stroke-opacity: 0.55;
-  stroke-width: 1;
-  transition:
-    x2 1.2s var(--easing),
-    y2 1.2s var(--easing);
-}
-
-.hale {
-  fill: var(--nane);
-  opacity: 0.18;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .hale {
-    animation: hale 2.4s var(--easing);
-    transform-box: fill-box;
-    transform-origin: 50% 50%;
-  }
-}
-
-@keyframes hale {
-  from {
-    opacity: 0.4;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 0.14;
-    transform: scale(1);
-  }
-}
-
-.cekirdekDisk {
-  fill: rgba(255, 255, 255, 0.1);
-  stroke: rgba(255, 255, 255, 0.28);
-  stroke-width: 1;
-}
-
-/* Disiplin etiketleri: HTML, SVG'nin üstünde — gerçek metin, gerçek font. */
-.etiket {
+/* Perde: akıntı sağda parlarken sol sütun okunur kalsın. Zerreler başlığın
+   üstünden geçince metin kayboluyordu — kontrast şansa bırakılmaz. */
+.perde {
   position: absolute;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-  white-space: nowrap;
-  color: var(--b-40);
-  transition:
-    color 1.2s var(--easing),
-    text-shadow 1.2s var(--easing);
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    rgba(9, 78, 88, 0.42) 0%,
+    rgba(10, 84, 94, 0.24) 32%,
+    rgba(11, 90, 102, 0) 58%
+  );
 }
 
-.etiketAktif {
-  color: var(--b-95);
-  text-shadow: 0 0 24px rgba(67, 214, 168, 0.6);
-}
-
-/* JS yok / reduced-motion: hepsi okunur — statik base katman. */
-.sagStatik .etiket {
-  color: var(--b-78);
-}
-
-.merkezMark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--b-58);
+@media (max-width: 1039px) {
+  .perde {
+    background: linear-gradient(
+      180deg,
+      rgba(9, 78, 88, 0.3) 0%,
+      rgba(9, 78, 88, 0.62) 42%,
+      rgba(9, 78, 88, 0.3) 100%
+    );
+  }
 }
 
 /* ---- Scroll ipucu ------------------------------------------------------ */

@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import styles from "./v2.module.css";
+
+// three.js ~150KB gzip: ilk bundle'a girerse CLAUDE.md'deki <150KB bütçesini
+// tek başına yer. Ayrı chunk + yalnız istemci.
+const AkintiSahnesi = dynamic(
+  () => import("./AkintiSahnesi").then((m) => m.AkintiSahnesi),
+  { ssr: false },
+);
 
 type Disiplin = { name: string; note: string };
 
@@ -18,29 +26,6 @@ type Props = {
   navLinkleri: readonly { label: string; href: string }[];
   disiplinler: readonly Disiplin[];
 };
-
-/* Yörünge geometrisi: 7 disiplin, tepeden saat yönünde.
-   Koordinatlar modül kapsamında bir kez ve YUVARLANARAK hesaplanır — ham
-   Math.cos/sin çıktısı sunucu ile istemcide farklı basılıp hydration
-   mismatch üretiyor. */
-const VB = 400;
-const MERKEZ = VB / 2;
-const R_DUGUM = 140;
-const R_ETIKET = 0.435; // konteyner yüzdesi
-
-const yuvarla = (n: number) => Math.round(n * 100) / 100;
-
-const geometri = Array.from({ length: 7 }, (_, i) => {
-  const rad = ((-90 + (i * 360) / 7) * Math.PI) / 180;
-  const cos = Math.cos(rad);
-  const sin = Math.sin(rad);
-  return {
-    cx: yuvarla(MERKEZ + R_DUGUM * cos),
-    cy: yuvarla(MERKEZ + R_DUGUM * sin),
-    sol: yuvarla(50 + R_ETIKET * 100 * cos),
-    ust: yuvarla(50 + R_ETIKET * 100 * sin),
-  };
-});
 
 /* Zerreler: sabit tohum, Math.random YOK — SSR ile istemci aynı basmalı. */
 const zerreler = [
@@ -126,6 +111,15 @@ export function Sahne({
   return (
     <>
       <div className={styles.isik} aria-hidden="true" />
+
+      {/* Akıntı: gerçek WebGL sahnesi — halka, akan zerreler, yedi düğüm.
+          Sahne CSS zemininin üstünde, içeriğin altında yaşar. */}
+      <div className={styles.kuyu} aria-hidden="true" />
+      <div className={styles.sahne3b}>
+        <AkintiSahnesi aktif={aktif} toplam={disiplinler.length} />
+      </div>
+      <div className={styles.perde} aria-hidden="true" />
+
       <div className={styles.zerreler} aria-hidden="true">
         {zerreler.map((z, i) => (
           <span
@@ -246,96 +240,6 @@ export function Sahne({
           </div>
         </div>
 
-        {/* --- Sirkülasyon: yedi disiplin bir yörüngede, fikir aralarında --- */}
-        <div
-          className={`${styles.sag} ${statik ? styles.sagStatik : ""} ${styles.gir}`}
-          style={{ animationDelay: "0.5s" }}
-          aria-hidden="true"
-        >
-          <svg className={styles.yorungeSvg} viewBox={`0 0 ${VB} ${VB}`} fill="none">
-            <g className={styles.yorungeDon}>
-              <circle
-                cx={MERKEZ}
-                cy={MERKEZ}
-                r="188"
-                stroke="currentColor"
-                strokeOpacity="0.1"
-                strokeWidth="1"
-                strokeDasharray="1 8"
-              />
-            </g>
-
-            <circle
-              cx={MERKEZ}
-              cy={MERKEZ}
-              r={R_DUGUM}
-              stroke="currentColor"
-              strokeOpacity="0.2"
-              strokeWidth="1"
-            />
-            <circle
-              cx={MERKEZ}
-              cy={MERKEZ}
-              r="88"
-              stroke="currentColor"
-              strokeOpacity="0.1"
-              strokeWidth="1"
-              strokeDasharray="2 10"
-            />
-
-            {!statik && (
-              <line
-                className={styles.kiris}
-                x1={MERKEZ}
-                y1={MERKEZ}
-                x2={geometri[aktif].cx}
-                y2={geometri[aktif].cy}
-              />
-            )}
-
-            {geometri.map((g, i) => (
-              <g key={i}>
-                {i === aktif && (
-                  <circle className={styles.hale} cx={g.cx} cy={g.cy} r="20" />
-                )}
-                <circle
-                  cx={g.cx}
-                  cy={g.cy}
-                  r={i === aktif ? 5.5 : 3}
-                  fill={i === aktif ? "#43d6a8" : "rgba(255,255,255,0.45)"}
-                />
-              </g>
-            ))}
-
-            <circle
-              className={styles.cekirdekDisk}
-              cx={MERKEZ}
-              cy={MERKEZ}
-              r="30"
-            />
-          </svg>
-
-          {disiplinler.map((d, i) => (
-            <span
-              key={d.name}
-              className={`${styles.etiket} ${i === aktif ? styles.etiketAktif : ""}`}
-              style={{ left: `${geometri[i].sol}%`, top: `${geometri[i].ust}%` }}
-            >
-              {d.name}
-            </span>
-          ))}
-
-          <span className={styles.merkezMark}>
-            <svg width="22" height="22" viewBox="0 0 15 15" fill="none">
-              <path
-                d="M7.5 1.4 12.4 13.2 7.5 10.1 2.6 13.2Z"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-        </div>
       </div>
 
       <div className={styles.ipucu}>
