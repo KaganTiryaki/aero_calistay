@@ -1,0 +1,260 @@
+/*
+ * UI, kazı çukurunun İÇİNDE durur. Perde/scrim yok: okunabilirliği sahnenin
+ * ışık tasarımı veriyor (steril bant = yüksek ambient, gölgesiz, açık zemin).
+ * Buradaki tek iş, tipografiyi o zeminin üstüne doğru ölçekte oturtmak ve
+ * gölgeleri sahnenin key light'ıyla (sol-arka, alçak) aynı yöne düşürmek.
+ */
+
+.root {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #e7f1f2;
+  font-family: var(--kz-body), system-ui, sans-serif;
+  /* saf #fff/#000 yok — zemin de sahnenin clear color'ı ile aynı */
+  color: #0a3f44;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.ui {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  pointer-events: none;
+}
+
+.ui a,
+.ui button {
+  pointer-events: auto;
+}
+
+/* ---- nav: kadrenin üst kenarı, alanın sığ (üst toprak) kareleri üstünde ---- */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px clamp(18px, 3.4vw, 44px);
+}
+
+.marka {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.markaAd {
+  font-family: var(--kz-display), Georgia, serif;
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+  color: #08363c;
+}
+
+.markaAyrac {
+  width: 1px;
+  height: 13px;
+  background: rgba(8, 54, 60, 0.28);
+  align-self: center;
+}
+
+.markaAlt {
+  font-family: var(--kz-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(7, 63, 73, 0.84);
+}
+
+.navLinkler {
+  display: flex;
+  gap: clamp(14px, 1.8vw, 28px);
+}
+
+.navLink {
+  font-family: var(--kz-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(7, 63, 73, 0.88);
+  text-decoration: none;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover {
+  color: #08363c;
+}
+
+.navCta {
+  font-family: var(--kz-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #08363c;
+  text-decoration: none;
+  padding: 9px 17px;
+  border: 1px solid rgba(10, 63, 68, 0.5);
+  border-radius: 999px;
+  transition:
+    background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navCta:hover {
+  background: #0c4c4e;
+  color: #eefafb;
+}
+
+/* ---- çukurun içi ---------------------------------------------------------- */
+.orta {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.durum {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--kz-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: #0f5a63;
+}
+
+/* kazı karesi işareti: küçük, açık, boş bir kare */
+.durumIsaret {
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(15, 90, 99, 0.75);
+}
+
+.baslik {
+  margin: 18px 0 0;
+  font-family: var(--kz-display), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(38px, 5.6vw, 84px);
+  line-height: 0.97;
+  letter-spacing: -0.022em;
+  color: #093c41;
+  /* zeminin kendi gölge yönüyle aynı: sol-arka key → sağ-aşağı gölge */
+  text-shadow: 0.055em 0.05em 0.12em rgba(9, 52, 58, 0.14);
+}
+
+.baslikAlt {
+  display: block;
+}
+
+.ctaSatir {
+  margin-top: clamp(22px, 3vw, 34px);
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #0c4c4e;
+  color: #eefafb;
+  font-family: var(--kz-body), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.005em;
+  text-decoration: none;
+  padding: 15px 30px;
+  border-radius: 999px;
+  /* sahnenin key light'ı ile aynı yön: düğme zeminin üstünde duran bir nesne */
+  box-shadow: 13px 11px 26px -7px rgba(9, 52, 58, 0.46);
+  transition:
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 17px 15px 32px -7px rgba(9, 52, 58, 0.5);
+}
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk {
+  transform: translateX(3px);
+}
+
+.ctaNot {
+  font-family: var(--kz-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  color: rgba(7, 63, 73, 0.78);
+}
+
+/* ---- alt kenar: disiplinler düz bir satır — çember YOK -------------------- */
+.altSerit {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 14px;
+  padding: 0 clamp(18px, 3.4vw, 44px) clamp(22px, 3vw, 34px);
+}
+
+.disiplin {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--kz-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(7, 63, 73, 0.82);
+}
+
+.disiplinAyrac {
+  flex: none;
+  width: 3px;
+  height: 3px;
+  background: rgba(7, 63, 73, 0.32);
+  border-radius: 50%;
+}
+
+@media (max-width: 780px) {
+  .navLinkler {
+    display: none;
+  }
+  .markaAyrac,
+  .markaAlt {
+    display: none;
+  }
+  .altSerit {
+    gap: 0 10px;
+  }
+  .disiplin {
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navLink,
+  .navCta,
+  .cta,
+  .ctaOk {
+    transition: none;
+  }
+  .cta:hover {
+    transform: none;
+  }
+}

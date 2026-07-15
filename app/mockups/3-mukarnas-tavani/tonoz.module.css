@@ -1,0 +1,324 @@
+/*
+ * MUKARNAS TAVANI — UI katmanı.
+ *
+ * Harman kuralı: UI sahnenin ARKASINDA duran bir şeyin ÜSTÜNE yapıştırılmıyor;
+ * sahnenin kendi mimarisine oturuyor. Tonoz üst ~%58'i doldurur, kornişin
+ * altında düz sıva başlar. Nav tam kornişin dibine, gerçek bir taçkapıdaki
+ * KİTABE bandının yerine oturur; metin onun altındaki boş sıvaya.
+ *
+ * Perde/scrim YOK. Okunabilirlik sahnenin ışık tasarımından geliyor:
+ * duvarın orta bandı zaten sahnenin en parlak yeri (temas gölgesi + girişten
+ * gelen sönümlü ışık), ışık dalgası ise tanımı gereği yalnız hücrelerde yaşar
+ * ve buraya inemez.
+ */
+
+.root {
+  /* Tek mürekkep, onlarca opaklık. Hiyerarşi renkten değil şeffaflıktan. */
+  --murekkep: #0e4a46;
+  --m-90: rgba(14, 74, 70, 0.9);
+  --m-64: rgba(14, 74, 70, 0.64);
+  --m-46: rgba(14, 74, 70, 0.46);
+  --m-28: rgba(14, 74, 70, 0.28);
+  --m-14: rgba(14, 74, 70, 0.14);
+  --cyan: #1a93b6;
+  --nane: #2aa87f;
+
+  /* Kornişin ekrandaki EN ALÇAK noktası, kamera matrisi üzerinden ölçüldü.
+     UI bandı bunun ALTINDA başlamalı — yoksa nav tonozun üstüne biner.
+
+     DÜZELTME: önceki değerler (%56.9 / %50.9) yalnız DURGUN kamerayı ölçüyordu
+     ve sahnenin kendi parallax'ını unutuyordu. Gerçek en-kötü hâl (fare + nefes,
+     tüm köşeler tarandı): yatayda %61.3, portrede %53.6. Eski %60'lık bant
+     bunun ÜSTÜNDE kalıyordu → fare sol-üste gidince nav tonoza biniyordu.
+     Ölçüm: 4 duvarın korniş halkası, fare (±1,±1) ve nefes (±1) uçlarında. */
+  --bant: 63%;
+  --easing: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #dff1f4;
+  color: var(--murekkep);
+  font-family: var(--font-mk-ui), system-ui, sans-serif;
+  isolation: isolate;
+}
+
+.tuval {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Konumlandırılmış ::before, konumsuz canvas'ın ÜSTÜNE boyanır — canvas'ı
+   kendi katmanına al, yoksa sahne hiç görünmez. */
+.tuval canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sahne kurulana kadar boş beyaz flaş olmasın: sıva tonunda zemin. */
+.tuval::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#cfe7ea, #eef8f9 62%, #e3f1f2);
+}
+
+.alan {
+  position: absolute;
+  inset: var(--bant) 0 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 clamp(18px, 5vw, 60px) clamp(20px, 3.4vh, 34px);
+  pointer-events: none;
+}
+
+.alan > * {
+  pointer-events: auto;
+}
+
+/* ---- Kitabe: kornişin dibindeki yazı bandı ----------------------------- */
+
+.kitabe {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: clamp(10px, 1.8vh, 20px);
+  font-family: var(--font-mk-mono), ui-monospace, monospace;
+  font-size: clamp(9.5px, 0.72vw, 11.5px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.marka {
+  color: var(--murekkep);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.markaIkinci {
+  color: var(--m-46);
+  font-weight: 400;
+}
+
+.baglar {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 2vw, 30px);
+}
+
+.bag {
+  color: var(--m-64);
+  text-decoration: none;
+  transition: color 0.4s var(--easing);
+}
+
+.bag:hover {
+  color: var(--murekkep);
+}
+
+.bagCta {
+  color: var(--cyan);
+  font-weight: 500;
+}
+
+.bagCta:hover {
+  color: var(--murekkep);
+}
+
+/* ---- Hero: kitabenin altındaki boş sıva -------------------------------- */
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2.1vh, 22px);
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mk-mono), ui-monospace, monospace;
+  font-size: clamp(9.5px, 0.74vw, 11.5px);
+  letter-spacing: 0.24em;
+  color: var(--m-64);
+}
+
+.nabiz {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nane);
+  box-shadow: 0 0 0 0 rgba(42, 168, 127, 0.5);
+  animation: nabiz 2.8s var(--easing) infinite;
+}
+
+@keyframes nabiz {
+  0% {
+    box-shadow: 0 0 0 0 rgba(42, 168, 127, 0.45);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px rgba(42, 168, 127, 0);
+  }
+}
+
+.baslik {
+  margin: 0;
+  font-family: var(--font-mk-display), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.3rem, 6.4vw, 5rem);
+  line-height: 0.94;
+  letter-spacing: -0.022em;
+  color: var(--murekkep);
+  max-width: 16ch;
+}
+
+/* Tek vurgu: temanın kendisi. Işık gibi geçip giden bir kelime. */
+.akan {
+  font-style: italic;
+  color: var(--cyan);
+}
+
+.yil {
+  font-family: var(--font-mk-mono), ui-monospace, monospace;
+  font-size: 0.3em;
+  letter-spacing: 0.08em;
+  color: var(--m-46);
+  vertical-align: 0.9em;
+  margin-left: 0.35em;
+}
+
+.disiplinler {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px clamp(8px, 1vw, 14px);
+  max-width: 46rem;
+  font-family: var(--font-mk-mono), ui-monospace, monospace;
+  font-size: clamp(8.5px, 0.66vw, 10.5px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--m-46);
+}
+
+.ayrac {
+  color: var(--cyan);
+  opacity: 0.5;
+}
+
+.eylem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px clamp(14px, 1.6vw, 22px);
+  margin-top: clamp(2px, 0.8vh, 10px);
+}
+
+.cta {
+  --z: var(--murekkep);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 26px;
+  border-radius: 999px;
+  background: var(--z);
+  color: #f2fbfc;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition:
+    transform 0.6s var(--easing),
+    background-color 0.6s var(--easing),
+    color 0.6s var(--easing),
+    box-shadow 0.6s var(--easing);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  --z: #22b8dc;
+  color: #06343a;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -10px rgba(14, 74, 70, 0.5);
+}
+
+.ok {
+  transition: transform 0.6s var(--easing);
+}
+
+.cta:hover .ok,
+.cta:focus-visible .ok {
+  transform: translateX(4px);
+}
+
+.not {
+  font-size: 12.5px;
+  color: var(--m-46);
+}
+
+/* ---- Alt künye: sahnenin dibi ------------------------------------------ */
+
+.dip {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-family: var(--font-mk-mono), ui-monospace, monospace;
+  font-size: clamp(8.5px, 0.62vw, 10px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--m-28);
+}
+
+.dip a {
+  color: var(--m-46);
+  text-decoration: none;
+  transition: color 0.4s var(--easing);
+}
+
+.dip a:hover {
+  color: var(--murekkep);
+}
+
+@media (max-width: 860px) {
+  .root {
+    /* Portrede dikey FOV açılıyor → korniş yukarı çıkıyor. En kötü hâl ölçüldü:
+       mobil %53.6, tablet(768) %54.3. %56 gerçek pay bırakır. (Dokunmatikte
+       parallax zaten kapalı; ama fareli 768px pencere bu bandı kullanır.) */
+    --bant: 56%;
+  }
+  .kitabe .baglar {
+    display: none;
+  }
+  .baslik {
+    max-width: 12ch;
+  }
+  .dip {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nabiz {
+    animation: none;
+  }
+  .cta,
+  .ok,
+  .bag {
+    transition: none;
+  }
+}

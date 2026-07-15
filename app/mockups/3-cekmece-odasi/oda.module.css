@@ -1,0 +1,354 @@
+/*
+ * ÇEKMECE ODASI — UI katmanı.
+ *
+ * Kural: UI sahnenin İÇİNDE durur, yanına kaçmaz. Kompozisyon ortalanmıştır;
+ * metin odanın ortasındaki havada, sisle düz soluk bir düzleme inen uzak
+ * duvarın önünde okunur. Perde/scrim gradyanı YOK — kontrast odanın kendi
+ * ışığından geliyor: koyu teal metin, kemik beyazı oda.
+ */
+
+.root {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #dbeae9; /* sahnenin sis rengiyle aynı: canvas yüklenene dek zıplama yok */
+  color: #0e4a46;
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Canvas: tam kanvas, UI'ın ARKASINDA. Yarım ekrana sürülmüş değil. */
+.sahne {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.sahne :global(.odaKap) {
+  width: 100%;
+  height: 100%;
+}
+
+.sahne :global(canvas) {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Film grain: saf düzlem yok. Odanın kemik beyazına doku bırakır. */
+.gren {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.13;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  animation: gren 7s steps(6) infinite;
+}
+
+@keyframes gren {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -2%); }
+  80% { transform: translate(3%, 2%); }
+}
+
+/* Vinyet: odanın köşelerini toplar, gözü ortadaki havaya iter. */
+.vinyet {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    118% 92% at 50% 48%,
+    rgba(14, 74, 70, 0) 42%,
+    rgba(14, 74, 70, 0.1) 76%,
+    rgba(7, 63, 73, 0.24) 100%
+  );
+}
+
+.icerik {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: clamp(1.1rem, 2.4vw, 2rem) clamp(1.1rem, 4vw, 3.2rem);
+}
+
+/* ---- Üst şerit --------------------------------------------------------- */
+.ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.marka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  color: #0e4a46;
+}
+
+.markaIsaret {
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1px solid rgba(14, 74, 70, 0.35);
+  color: #0e4a46;
+}
+
+.nav {
+  display: none;
+  gap: clamp(1rem, 2.2vw, 2.1rem);
+}
+
+@media (min-width: 900px) {
+  .nav { display: flex; }
+}
+
+.navLink {
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: rgba(14, 74, 70, 0.66);
+  text-decoration: none;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navLink:hover { color: #0e4a46; }
+
+.ustCta {
+  padding: 0.5rem 1.05rem;
+  border: 1px solid rgba(14, 74, 70, 0.4);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #0e4a46;
+  text-decoration: none;
+  transition:
+    background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ustCta:hover {
+  background: #0e4a46;
+  color: #eaf6f5;
+}
+
+/* ---- Gövde: odanın ortasındaki hava ------------------------------------ */
+.govde {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: clamp(1.5rem, 4vh, 3rem) 0;
+}
+
+.blok {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Okuma bandı: sahnedeki keep-out hacmiyle aynı yeri tutar. */
+  max-width: 46rem;
+}
+
+.durum {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  color: rgba(14, 74, 70, 0.7);
+}
+
+.nabiz {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #0e9c7d;
+  box-shadow: 0 0 0 0 rgba(67, 214, 168, 0.7);
+  animation: nabiz 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes nabiz {
+  0% { box-shadow: 0 0 0 0 rgba(67, 214, 168, 0.65); }
+  70%, 100% { box-shadow: 0 0 0 9px rgba(67, 214, 168, 0); }
+}
+
+.baslik {
+  margin: clamp(0.9rem, 2.2vh, 1.5rem) 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(2.9rem, 8.2vw, 6.4rem);
+  line-height: 0.93;
+  letter-spacing: -0.025em;
+  color: #0b3d3c;
+}
+
+.satir { display: block; }
+
+.italik {
+  font-style: italic;
+  /* Aksan metne renk olarak DEĞİL, odanın astarıyla aynı nane olarak girer. */
+  color: #12836a;
+}
+
+.yil {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.24em;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  vertical-align: 0.9em;
+  margin-left: 0.5em;
+  color: rgba(14, 74, 70, 0.5);
+}
+
+.ozet {
+  margin: clamp(1rem, 2.4vh, 1.6rem) 0 0;
+  max-width: 34rem;
+  font-size: clamp(0.95rem, 1.15vw, 1.06rem);
+  line-height: 1.6;
+  color: rgba(14, 74, 70, 0.72);
+}
+
+/* Disiplinler: çember YOK. Odanın kaydı gibi tek satır, ayraçlı bir künye. */
+.disiplinler {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 0.9rem;
+  margin-top: clamp(1.1rem, 2.6vh, 1.7rem);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  /* 0.52 alfa parlak zeminin üstünde 2.7:1 veriyordu — küçük metin için okunmaz.
+     Bu satırlar odanın en aydınlık yerine denk geliyor; 0.75 → 4.8:1. */
+  color: rgba(14, 74, 70, 0.75);
+}
+
+.disiplin {
+  position: relative;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.disiplin:not(:last-child)::after {
+  content: "/";
+  margin-left: 0.9rem;
+  color: rgba(14, 74, 70, 0.24);
+}
+
+.disiplinAktif { color: #12836a; }
+
+.alt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem 1.1rem;
+  margin-top: clamp(1.5rem, 3.4vh, 2.4rem);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  background: #0e4a46;
+  color: #eefaf8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover { transform: translateY(-2px); }
+
+.ctaOk {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta:hover .ctaOk { transform: translateX(4px); }
+
+.ctaNot {
+  font-size: 0.78rem;
+  color: rgba(14, 74, 70, 0.72);
+}
+
+/* ---- Alt şerit --------------------------------------------------------- */
+.altSerit {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  /* Alt şerit tam zeminin (odanın en parlak yüzeyi) üstünde duruyor. */
+  color: rgba(14, 74, 70, 0.75);
+}
+
+.altLink {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.altLink:hover { color: #0e4a46; }
+
+.kaydir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.kaydirCizgi {
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(14, 74, 70, 0) 0%,
+    rgba(14, 74, 70, 0.7) 100%
+  );
+}
+
+/* ---- Tek reveal imzası ------------------------------------------------- */
+.gir {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gir 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gir {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* reduced-motion base katman: hareket sonradan eklenen şey. */
+@media (prefers-reduced-motion: reduce) {
+  .gir {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .gren { animation: none; }
+  .nabiz { animation: none; }
+  .cta,
+  .ctaOk,
+  .navLink,
+  .disiplin,
+  .ustCta,
+  .altLink {
+    transition: none;
+  }
+}

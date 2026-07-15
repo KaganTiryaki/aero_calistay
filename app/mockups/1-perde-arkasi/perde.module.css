@@ -1,0 +1,235 @@
+/*
+ * Metin bezin ÜSTÜNE basılıdır — sahnenin önünde duran ayrı bir katman değil.
+ * Bunu taklit etmiyoruz: .ui'nin tamamı `mix-blend-mode: multiply` ile perdeyle
+ * çarpılıyor, yani mürekkep gerçekten kumaşın dokusunu, kıvrımını ve arkadan
+ * geçen siluetleri emiyor. Aynı sebeple hiçbir yerde scrim/perde gradyanı yok:
+ * çarpım kontrastı oransal koruduğu için gölgeye giren metin de okunur kalıyor.
+ */
+
+.sahne {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #dfe9e8;
+  isolation: isolate; /* multiply yalnızca kanvasla karışsın, sayfayla değil */
+  font-family: var(--perde-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.kanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.ui {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: #0d4a46; /* mürekkep — koyu teal */
+  mix-blend-mode: multiply;
+}
+
+.ui a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ui a:focus-visible {
+  outline: 2px solid #0d4a46;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+/* --- üst: bezin dikiş çizgisinin hemen altı (shader'da y ≈ 0.427) ---------- */
+.nav {
+  position: absolute;
+  top: 8vh;
+  left: clamp(1.25rem, 4vw, 3.6rem);
+  right: clamp(1.25rem, 4vw, 3.6rem);
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+}
+
+.mark {
+  font-family: var(--perde-mono), ui-monospace, monospace;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+}
+
+.markAlt {
+  font-size: 0.74rem;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.links {
+  display: flex;
+  gap: clamp(0.9rem, 2.2vw, 1.9rem);
+  margin-left: auto;
+  font-size: 0.86rem;
+}
+
+/* Not: bu opaklıklar çarpım altında doğrudan KONTRAST demek. Düşük opaklık =
+   zayıf mürekkep = siluetin üstüne denk gelince küçük yazı okunmuyor. Bu yüzden
+   hiyerarşi burada agresif solmayla değil, ölçü ve harf aralığıyla kuruluyor. */
+.links a {
+  opacity: 0.92;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.links a:hover {
+  opacity: 1;
+}
+
+.navCta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.45rem 1.05rem;
+  border: 1px solid color-mix(in srgb, #0d4a46 42%, transparent);
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navCta:hover {
+  transform: translateY(-1px);
+}
+
+/* --- orta: kadranın tam merkezi. Arkası, perdeden EN UZAK siluetlerin
+       yaşadığı bant — geniş penumbra yüzünden kendiliğinden sakin. ---------- */
+.orta {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 58rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.kicker {
+  font-family: var(--perde-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  opacity: 0.92;
+  margin: 0;
+}
+
+.baslik {
+  font-family: var(--perde-display), Georgia, serif;
+  font-weight: 460;
+  font-variation-settings: "opsz" 96, "SOFT" 30, "WONK" 1;
+  font-size: clamp(2.7rem, 8.2vw, 7.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.yil {
+  font-family: var(--perde-mono), ui-monospace, monospace;
+  font-size: 0.26em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  vertical-align: 0.95em;
+  opacity: 0.5;
+  margin-left: 0.35em;
+}
+
+/* `.ui a` (0,1,1) `.cta`yı (0,1,0) yenip mürekkep rengini dayatıyordu:
+   koyu hapın üstünde koyu yazı = görünmez etiket. Etiket kasten AÇIK — çarpım
+   altında hap koyulaşırken etiket bezin rengine düşüyor, yani yazı mürekkebin
+   içinden oyulmuş gibi duruyor. */
+.ui a.cta {
+  display: inline-flex;
+  align-items: center;
+  background: #0e4a46;
+  color: #f4faf7;
+  padding: 1rem 2.3rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 0.4rem;
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.note {
+  font-family: var(--perde-mono), ui-monospace, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  opacity: 0.85;
+  margin: -0.7rem 0 0;
+}
+
+/* --- alt: bezin serbest ucu, ışık altından sıyırıyor (shader y < -0.40) ---- */
+.serit {
+  position: absolute;
+  bottom: 6.4vh;
+  left: clamp(1.25rem, 4vw, 3.6rem);
+  right: clamp(1.25rem, 4vw, 3.6rem);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.55rem clamp(0.7rem, 2vw, 1.5rem);
+  font-family: var(--perde-mono), ui-monospace, monospace;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  opacity: 0.88;
+}
+
+.serit li {
+  list-style: none;
+  display: flex;
+  align-items: center;
+}
+
+.serit li + li::before {
+  content: "·";
+  margin-right: clamp(0.7rem, 2vw, 1.5rem);
+  opacity: 0.5;
+}
+
+@media (max-width: 860px) {
+  .links {
+    display: none;
+  }
+
+  .navCta {
+    margin-left: auto;
+  }
+
+  .markAlt {
+    display: none;
+  }
+
+  .nav {
+    top: 7.5vh;
+  }
+
+  .serit {
+    bottom: 6vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui a {
+    transition: none;
+  }
+}
