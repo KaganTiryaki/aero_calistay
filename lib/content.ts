@@ -82,7 +82,22 @@ export const about = {
     "Her sezon robotlarımızı tasarlıyor, üretiyor, programlıyor ve ulusal ile uluslararası arenada ülkemizi temsil etmek için çalışıyoruz.",
     "Amacımız yalnızca robot yapmak değil; geleceğin mühendislerini yetiştirmek, takım ruhunu geliştirmek ve bilimi daha fazla gence ulaştırmaktır.",
   ],
-  photoCaption: "AERO Robotics Team",
+  // Fotoğraflar public/aero-frc/ içinde. Yenisi gelince aynı isimle değiştir.
+  photos: {
+    banner: {
+      src: "/aero-frc/takim-banner.jpg",
+      alt: "AERO Robotics Team, FRC 2026 tanıtım panosu önünde takımca",
+    },
+    robot: {
+      src: "/aero-frc/robot-9026.jpg",
+      alt: "AERO'nun 9026 numaralı robotu yarışma sahasında",
+    },
+    trophy: {
+      src: "/aero-frc/takim-kupa.jpg",
+      alt: "AERO Robotics Team, kazandığı kupayla birlikte",
+    },
+  },
+  photoCaption: "AERO Robotics Team · 9026",
 } as const;
 
 export const vision = {
