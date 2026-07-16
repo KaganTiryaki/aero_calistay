@@ -64,6 +64,14 @@ export function StickyNav() {
     setTimeout(() => scrollToId(href), 10);
   };
 
+  // Telefon menüsü: en üste "Katılım" (başvuru formu) eklenir, böylece
+  // numaralandırma bölüm indeksleriyle hizalanır → 01 Katılım … 07 Aero FRC.
+  // Masaüstü nav'ı etkilemez; o hâlâ nav.links'i kullanır.
+  const mobileLinks = [
+    { label: "Katılım", href: site.applyUrl || "#", external: Boolean(site.applyUrl) },
+    ...nav.links.map((l) => ({ label: l.label, href: l.href, external: false })),
+  ];
+
   return (
     <header
       className={cn(
@@ -160,11 +168,13 @@ export function StickyNav() {
               className="relative z-[111] mt-16 flex flex-1 flex-col justify-between px-8 py-10"
             >
               <nav className="flex flex-col gap-1">
-                {nav.links.map((l, i) => (
+                {mobileLinks.map((l, i) => (
                   <m.a
                     key={l.href}
                     href={l.href}
-                    onClick={(e) => go(e, l.href)}
+                    target={l.external ? "_blank" : undefined}
+                    rel={l.external ? "noopener noreferrer" : undefined}
+                    onClick={(e) => (l.external ? setOpen(false) : go(e, l.href))}
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.06 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
@@ -181,7 +191,7 @@ export function StickyNav() {
               <m.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.06 + nav.links.length * 0.06 }}
+                transition={{ delay: 0.06 + mobileLinks.length * 0.06 }}
                 className="flex flex-col gap-6"
               >
                 <Cta label={nav.cta.label} />
