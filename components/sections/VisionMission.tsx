@@ -5,7 +5,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionAtmosphere } from "@/components/ui/SectionAtmosphere";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { DisciplineWheel } from "@/components/ui/DisciplineWheel";
-import { vision, mission } from "@/lib/content";
+import { about, vision, mission } from "@/lib/content";
 
 function Statement({
   tag,
@@ -55,6 +55,28 @@ export function VisionMission() {
 
       <div className="relative z-10 mx-auto max-w-6xl">
         <SectionHeader index="01" eyebrow="Neden buradayız?" title="Vizyon & Misyon" />
+
+        {/* who we are — the AERO team behind the workshop */}
+        <Reveal className="mb-16 md:mb-20">
+          <div className="flex gap-5 md:gap-6">
+            <span aria-hidden className="spine mt-1 w-[2px] shrink-0 self-stretch" />
+            <div className="max-w-3xl">
+              <span className="mb-3 block font-mono text-[11px] uppercase tracking-[0.28em] text-brand-turq/80">
+                {about.tag}
+              </span>
+              <h3 className="mb-5 font-display text-3xl text-ink md:text-4xl">
+                {about.label}
+              </h3>
+              <div className="space-y-4">
+                {about.body.map((p, i) => (
+                  <p key={i} className="text-[17px] leading-relaxed text-muted">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
 
         {/* editorial statements */}
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">

@@ -71,6 +71,18 @@ export const disciplines = [
   },
 ] as const;
 
+// "Biz Kimiz?" — çalıştayı düzenleyen AERO Robotics Team'i tanıtan giriş bloğu
+// (Vizyon & Misyon'un hemen üstünde, aynı bölümde).
+export const about = {
+  tag: "AERO — FRC",
+  label: "Biz Kimiz?",
+  body: [
+    "AERO Robotics Team; teknolojiye, mühendisliğe ve bilime tutkuyla bağlı öğrencilerden oluşan bir FIRST Robotics Competition takımıdır.",
+    "Her sezon robotlarımızı tasarlıyor, üretiyor, programlıyor ve ulusal ile uluslararası arenada ülkemizi temsil etmek için çalışıyoruz.",
+    "Amacımız yalnızca robot yapmak değil; geleceğin mühendislerini yetiştirmek, takım ruhunu geliştirmek ve bilimi daha fazla gence ulaştırmaktır.",
+  ],
+} as const;
+
 export const vision = {
   label: "Vizyonumuz",
   body: "Gençleri fikir üretmeye teşvik eden, onları kalıpların dışına çıkmaya iten ve farklı bakış açılarını bir araya getirerek zengin bir düşünce ve tartışma ortamı sağlayan bir çalıştay düzenlemektir. Yenilikçi ve ilham verici bir etkinlik düzenleyerek katılımcıların sadece bugünlerine değil, geleceklerine de yön veren bir deneyim sunmayı hedefliyoruz. Amacımız; bu çalıştaydan geçen her öğrencinin kendine yeni şeyler katması; sorgulayan, bilinçli, cesur ve üretken bir birey olarak kendi yolunu çizebilmesi ve fark yaratabilmesidir.",
