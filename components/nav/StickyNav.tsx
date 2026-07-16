@@ -64,11 +64,11 @@ export function StickyNav() {
     setTimeout(() => scrollToId(href), 10);
   };
 
-  // Telefon menüsü: en üste "Katılım" (başvuru formu) eklenir, böylece
-  // numaralandırma bölüm indeksleriyle hizalanır → 01 Katılım … 07 Aero FRC.
+  // Telefon menüsü: en üste "Katılım" eklenir; landing'in tepesine (#anasayfa)
+  // götürür. Numaralandırma 1 Katılım … 7 Aero FRC olur.
   // Masaüstü nav'ı etkilemez; o hâlâ nav.links'i kullanır.
   const mobileLinks = [
-    { label: "Katılım", href: site.applyUrl || "#", external: Boolean(site.applyUrl) },
+    { label: "Katılım", href: "#anasayfa", external: false },
     ...nav.links.map((l) => ({ label: l.label, href: l.href, external: false })),
   ];
 
@@ -181,7 +181,7 @@ export function StickyNav() {
                     className="flex items-baseline gap-4 border-b border-hairline/40 py-4 font-display text-3xl text-ink/90 transition-colors hover:text-brand-turq"
                   >
                     <span className="font-mono text-[11px] text-brand-turq/60">
-                      0{i + 1}
+                      {i + 1}
                     </span>
                     {l.label}
                   </m.a>
