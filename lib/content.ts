@@ -29,6 +29,7 @@ export const nav = {
     { label: "Süreç", href: "#surec" },
     { label: "SSS", href: "#sss" },
     { label: "İletişim", href: "#iletisim" },
+    { label: "Aero FRC", href: "#aero-frc" },
   ],
   cta: { label: "Ekibe Katıl", href: "#basvuru" },
 } as const;
@@ -71,16 +72,17 @@ export const disciplines = [
   },
 ] as const;
 
-// "Biz Kimiz?" — çalıştayı düzenleyen AERO Robotics Team'i tanıtan giriş bloğu
-// (Vizyon & Misyon'un hemen üstünde, aynı bölümde).
+// "AERO FRC Nedir?" — çalıştayı düzenleyen AERO Robotics Team'i tanıtan,
+// İletişim'in altındaki bağımsız bölüm (07). Tanıtım metni + takım foto slotu.
 export const about = {
-  tag: "AERO — FRC",
-  label: "Biz Kimiz?",
+  eyebrow: "Biz kimiz?",
+  title: "AERO FRC Nedir?",
   body: [
     "AERO Robotics Team; teknolojiye, mühendisliğe ve bilime tutkuyla bağlı öğrencilerden oluşan bir FIRST Robotics Competition takımıdır.",
     "Her sezon robotlarımızı tasarlıyor, üretiyor, programlıyor ve ulusal ile uluslararası arenada ülkemizi temsil etmek için çalışıyoruz.",
     "Amacımız yalnızca robot yapmak değil; geleceğin mühendislerini yetiştirmek, takım ruhunu geliştirmek ve bilimi daha fazla gence ulaştırmaktır.",
   ],
+  photoCaption: "AERO Robotics Team",
 } as const;
 
 export const vision = {

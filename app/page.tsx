@@ -6,6 +6,7 @@ import { TeamGallery } from "@/components/sections/TeamGallery";
 import { Process } from "@/components/sections/Process";
 import { Faq } from "@/components/sections/Faq";
 import { Contact } from "@/components/sections/Contact";
+import { AboutAero } from "@/components/sections/AboutAero";
 import { Footer } from "@/components/layout/Footer";
 
 export default function Page() {
@@ -20,6 +21,7 @@ export default function Page() {
         <Process />
         <Faq />
         <Contact />
+        <AboutAero />
       </main>
       <Footer />
     </>
