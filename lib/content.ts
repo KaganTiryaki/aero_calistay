@@ -12,7 +12,7 @@ export const site = {
   // Google girişi istiyor. Herkese açık olması için Forms → Yayınla/Ayarlar'dan
   // yanıtlayıcıları "Bağlantısı olan herkes" yap ve giriş/e-posta zorunluluğunu kapat.
   applyUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfQXUUCWI9a_TGkq2loiYO1eUCVJBMLHySOLFwa7w9MUqPIYA/viewform",
-  applyDeadline: "2026-08-09T00:00:00", // 8 Ağustos 2026 23:59'da kapanır (9 Ağu 00:00); değişirse güncelle
+  applyDeadline: "2026-08-02T00:00:00", // 1 Ağustos 2026 23:59'da kapanır (2 Ağu 00:00); değişirse güncelle
   socials: {
     instagram: "https://www.instagram.com/aero_cal/",
     instagramHandle: "@aero_cal",
