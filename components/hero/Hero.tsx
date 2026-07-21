@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { m, useReducedMotion, type Variants } from "motion/react";
 import { FlowField } from "./FlowField";
 import { Countdown } from "./Countdown";
@@ -14,11 +14,12 @@ const container: Variants = {
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
 };
 const item: Variants = {
-  hidden: { opacity: 0, y: 24, filter: "blur(8px)" },
+  // transform + opacity only (no animated blur filter): cheaper on every device
+  // and in line with the project's motion rules.
+  hidden: { opacity: 0, y: 24 },
   show: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
   },
 };
@@ -31,7 +32,12 @@ const MESH =
 
 export function Hero() {
   const reduce = useReducedMotion();
+  const [coarse, setCoarse] = useState(false);
   const meshRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCoarse(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   useEffect(() => {
     const el = meshRef.current;
@@ -61,7 +67,7 @@ export function Hero() {
         className="absolute inset-[-4%] z-0 transition-transform duration-300 ease-out will-change-transform"
         style={{ backgroundImage: MESH }}
       />
-      {!reduce && <FlowField />}
+      {!reduce && !coarse && <FlowField />}
       <div aria-hidden className="vignette" />
       <div aria-hidden className="grain-overlay" />
 

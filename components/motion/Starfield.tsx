@@ -73,9 +73,11 @@ export function Starfield() {
     };
 
     let scrollY = window.scrollY;
+    // Desktop parallax reads scrollY inside the rAF loop. On touch/reduced-motion
+    // the field is static, so we DON'T redraw per scroll event (that synchronous
+    // full-canvas clear on every scroll was a real mobile scroll-jank source).
     const onScroll = () => {
       scrollY = window.scrollY;
-      if (reduce) draw(0);
     };
 
     const draw = (t: number) => {
@@ -142,7 +144,7 @@ export function Starfield() {
     } else {
       raf = requestAnimationFrame(loop);
     }
-    window.addEventListener("scroll", onScroll, { passive: true });
+    if (!reduce) window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVis);
 

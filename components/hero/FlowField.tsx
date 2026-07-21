@@ -17,6 +17,11 @@ export function FlowField() {
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Touch / low-power devices: the hero's CSS mesh gradient + vignette + grain
+    // ARE the base render. Skip the particle engine entirely instead of just
+    // scaling it down — 700 additive-blend particles at 60fps is what freezes
+    // weak phones on open. (Hero also stops rendering us on coarse; belt & braces.)
+    if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;

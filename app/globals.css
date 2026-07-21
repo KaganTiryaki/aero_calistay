@@ -515,6 +515,51 @@
   .aurora, .swirl, .flowlines { animation: none !important; }
 }
 
+/* ================================================================== */
+/* TOUCH / LOW-POWER DEVICES — static base layer                       */
+/* Phones can't afford ~15 always-animating blur+blend layers, per-    */
+/* scroll backdrop-filter re-blurs, and full-screen mix-blend grain.   */
+/* Keep the exact same static gradient atmosphere; remove only the     */
+/* continuous repainting that freezes/crashes weak phones on open.     */
+/* ================================================================== */
+@media (pointer: coarse) {
+  /* Freeze all continuous decorative motion (static gradient look stays). */
+  .aurora, .swirl, .flowlines, .ambient-blob,
+  .text-flow-anim, .shimmer, .rule-flow::after {
+    animation: none !important;
+  }
+
+  /* Un-promote the backmost glows + drop blend: dozens of promoted
+     blur+screen layers are GPU-memory pressure → the "won't open" crash. */
+  .aurora, .swirl, .ambient-blob {
+    will-change: auto;
+    mix-blend-mode: normal;
+  }
+  .aurora { filter: blur(46px); }
+
+  /* Drop the heaviest purely-decorative layers entirely on touch. */
+  .swirl, .flowlines, .spine::after, .grain-overlay {
+    display: none;
+  }
+
+  /* Kill per-scroll backdrop-filter recompute (a top mobile jank source);
+     substitute a near-opaque background so surfaces stay legible. */
+  .glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(6, 12, 16, 0.92);
+  }
+  .panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(180deg, rgba(13, 26, 37, 0.94), rgba(8, 16, 23, 0.9));
+  }
+  .overlay-backdrop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 /* depth lift for panels — a touch more presence over the richer bg */
 .panel {
   box-shadow:

@@ -9,9 +9,10 @@ import { site } from "@/lib/content";
  * fade to reveal the hero. Reduced-motion → dismissed immediately.
  */
 export function Preloader() {
-  const [progress, setProgress] = useState(0);
+  const [fill, setFill] = useState(false);
   const [fading, setFading] = useState(false);
   const [gone, setGone] = useState(false);
+  const [dur, setDur] = useState(1050);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -20,35 +21,27 @@ export function Preloader() {
       return;
     }
 
+    // The bar now fills via a single CSS width transition instead of a per-frame
+    // rAF + setState (which fired ~60 React re-renders/sec during first paint —
+    // exactly when a weak phone is busiest). Shorter on touch. 4 re-renders total.
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const DUR = coarse ? 650 : 1050;
+    setDur(DUR);
+
     // lock scroll while the curtain is up
     document.body.style.overflow = "hidden";
 
-    const DUR = 1050;
-    let raf = 0;
-    let startT = 0;
-    let outTimer = 0;
-
-    const tick = (t: number) => {
-      if (!startT) startT = t;
-      const p = Math.min(1, (t - startT) / DUR);
-      // ease-out for a decisive finish
-      const eased = 1 - Math.pow(1 - p, 2.2);
-      setProgress(eased);
-      if (p < 1) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        setFading(true);
-        outTimer = window.setTimeout(() => {
-          setGone(true);
-          document.body.style.overflow = "";
-        }, 560);
-      }
-    };
-    raf = requestAnimationFrame(tick);
+    const startTimer = window.setTimeout(() => setFill(true), 20);
+    const fadeTimer = window.setTimeout(() => setFading(true), DUR);
+    const goneTimer = window.setTimeout(() => {
+      setGone(true);
+      document.body.style.overflow = "";
+    }, DUR + 560);
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(outTimer);
+      window.clearTimeout(startTimer);
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(goneTimer);
       document.body.style.overflow = "";
     };
   }, []);
@@ -72,7 +65,12 @@ export function Preloader() {
         <span className="text-muted">{site.year}</span>
       </p>
       <div className="preloader-bar">
-        <span style={{ width: `${Math.round(progress * 100)}%` }} />
+        <span
+          style={{
+            width: fill ? "100%" : "0%",
+            transition: `width ${dur}ms var(--ease-flow)`,
+          }}
+        />
       </div>
     </div>
   );
