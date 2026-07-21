@@ -19,9 +19,6 @@ function diffTo(target: number): Parts | null {
 
 const UNITS: { key: keyof Parts; label: string }[] = [
   { key: "d", label: "gün" },
-  { key: "h", label: "saat" },
-  { key: "m", label: "dk" },
-  { key: "s", label: "sn" },
 ];
 
 /**
@@ -45,7 +42,7 @@ export function Countdown() {
       const p = diffTo(target);
       setParts(p);
       if (!p) window.clearInterval(id); // deadline reached — stop ticking
-    }, 1000);
+    }, 60000);
     return () => window.clearInterval(id);
   }, []);
 
