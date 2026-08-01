@@ -6,7 +6,7 @@ import { CurrentField } from "@/components/ui/CurrentField";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Cta } from "@/components/ui/Cta";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { teams } from "@/lib/content";
+import { apply, teams } from "@/lib/content";
 
 export function Teams() {
   const committees = teams.committees;
@@ -74,9 +74,13 @@ export function Teams() {
         {/* CTA band */}
         <Reveal className="mt-14 flex flex-col items-start justify-between gap-6 rounded-2xl border border-hairline/60 bg-surface/30 p-8 sm:flex-row sm:items-center">
           <div>
-            <p className="mb-1 font-display text-2xl text-ink">Sen de aramıza katıl.</p>
+            <p className="mb-1 font-display text-2xl text-ink">
+              {apply.open ? "Sen de aramıza katıl." : apply.closedTitle}
+            </p>
             <p className="text-muted">
-              İlgilendiğin ekibe yardımcı üye olarak başvur.
+              {apply.open
+                ? "İlgilendiğin ekibe yardımcı üye olarak başvur."
+                : apply.closedLine}
             </p>
           </div>
           <MagneticButton strength={0.2} radius={160}>

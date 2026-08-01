@@ -1,10 +1,11 @@
-import { site } from "@/lib/content";
+import { apply, site } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 /**
  * The one precious action. Uses the brand flow gradient with a soft glow.
  * Points to the Google Form when `site.applyUrl` is set; otherwise stays an
  * inert placeholder so the layout is complete before the link exists.
+ * `apply.open === false` iken link yerine pasif "kapandı" rozeti render eder.
  */
 export function Cta({
   label,
@@ -17,6 +18,25 @@ export function Cta({
 }) {
   const href = site.applyUrl || "#";
   const external = Boolean(site.applyUrl);
+
+  if (!apply.open) {
+    return (
+      <span
+        aria-disabled
+        className={cn(
+          "inline-flex items-center gap-2.5 rounded-full border border-hairline/70 bg-surface/40 font-medium text-muted",
+          size === "lg" ? "px-8 py-4 text-[17px]" : "px-5 py-2.5 text-sm",
+          className,
+        )}
+      >
+        <span
+          aria-hidden
+          className="h-1.5 w-1.5 rounded-full bg-brand-turq/35"
+        />
+        <span>{apply.closedLabel}</span>
+      </span>
+    );
+  }
 
   return (
     <a

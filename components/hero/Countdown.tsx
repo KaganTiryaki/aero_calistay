@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { site } from "@/lib/content";
+import { apply, site } from "@/lib/content";
 
 type Parts = { d: number; h: number; m: number; s: number };
 
@@ -34,6 +34,7 @@ export function Countdown() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (!apply.open) return; // başvurular kapandı — sayaç yok
     const target = Date.parse(site.applyDeadline || "");
     if (Number.isNaN(target)) {
       setReady(true);

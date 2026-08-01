@@ -48,6 +48,7 @@ Tüm metinler ve ayarlar **[`lib/content.ts`](lib/content.ts)** içinde. Bileşe
 | **Okul / çalıştay adı, yıl** | `site.school`, `site.event`, `site.year`, `site.navMark` |
 | **Google Form linki** | `site.applyUrl` (boşken CTA'lar pasif placeholder) |
 | **Son başvuru tarihi (geri sayım)** | `site.applyDeadline` (ISO; geçerli & gelecekteyse hero'da sayaç, boş/geçmişse gizli) |
+| **Başvurular açık/kapalı** | `apply.open` — `false` iken tüm CTA'lar pasif "kapandı" rozeti, geri sayım gizli, davet metinleri `apply.closed*` metinleriyle değişir |
 | **Sosyal (Instagram · TikTok · e-posta)** | `site.socials` (IG + TikTok bağlı; e-posta boşsa satırı gizli) |
 | Vizyon / Misyon metni | `vision.body` / `mission.body` |
 | **Ekipler + başkanlar** | `teams.committees` (`lead` = başkan · `blurb` + `tasks[]` = explorer detayında) |

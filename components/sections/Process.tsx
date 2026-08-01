@@ -5,7 +5,7 @@ import { SectionAtmosphere } from "@/components/ui/SectionAtmosphere";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Cta } from "@/components/ui/Cta";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { process } from "@/lib/content";
+import { apply, process } from "@/lib/content";
 
 export function Process() {
   return (
@@ -60,7 +60,9 @@ export function Process() {
           className="mt-16 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="max-w-md text-muted">
-            Hazırsan başvur — birkaç dakika sürer.
+            {apply.open
+              ? "Hazırsan başvur — birkaç dakika sürer."
+              : apply.closedLine}
           </p>
           <MagneticButton strength={0.2} radius={160}>
             <Cta label="Ekibe Katıl" />

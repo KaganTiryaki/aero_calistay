@@ -40,6 +40,21 @@ export const hero = {
   ctaNote: "Google Form üzerinden · birkaç dakika",
 } as const;
 
+/**
+ * Ekip başvurusu anahtarı. `open: false` iken sitedeki tüm "Ekibe Katıl"
+ * butonları pasif "kapandı" rozetine döner, hero'daki geri sayım gizlenir ve
+ * davet metinleri kapanış metniyle değişir. Yeniden açmak için `open: true`.
+ */
+export const apply = {
+  open: false,
+  closedLabel: "Başvurular kapandı",
+  closedStatus: "Ekip başvuruları kapandı",
+  closedNote: "Yeni duyurular Instagram'da · @aero_cal",
+  closedTitle: "Ekip başvuruları kapandı.",
+  closedLine:
+    "Başvuru dönemi sona erdi. Başvuran herkese teşekkürler — sonuçları ve yeni duyuruları Instagram'dan paylaşacağız.",
+} as const;
+
 // name = çarkta görünen etiket · note = seçilince açılan kısa açıklama.
 export const disciplines = [
   {
@@ -133,7 +148,7 @@ export const teams = {
     },
     {
       name: "Akademi",
-      lead: "Asya Koşak · Cantürk Özcan",
+      lead: "Selim Ensar Baykal · Berken Bahadır Kışlakçı",
       blurb: "Çalıştayın akademik içeriğini hazırlayan ekip: disiplinler, oturumlar ve masa düzeni.",
       tasks: ["Oturum & içerik hazırlığı", "Disiplin masaları", "Konuşmacı koordinasyonu"],
     },
@@ -272,7 +287,7 @@ export const faqs = [
   },
   {
     q: "Nasıl başvururum?",
-    a: "“Ekibe Katıl” butonundan Google Form'a gider, birkaç dakikada başvurunu tamamlarsın.",
+    a: "Ekip başvuruları kapandı; form artık yanıt almıyor. Yeni bir alım açıldığında Instagram'dan (@aero_cal) duyuracağız.",
   },
   {
     q: "Değerlendirme ve mülakat süreci nasıl işliyor?",

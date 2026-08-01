@@ -7,7 +7,7 @@ import { Countdown } from "./Countdown";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { Cta } from "@/components/ui/Cta";
 import { AeroMark } from "@/components/ui/AeroMark";
-import { hero, site, disciplines } from "@/lib/content";
+import { apply, hero, site, disciplines } from "@/lib/content";
 
 const container: Variants = {
   hidden: {},
@@ -100,22 +100,36 @@ export function Hero() {
         </m.h1>
 
         <m.div variants={item} className="mt-11 flex flex-col items-center gap-5">
-          <span className="inline-flex items-center gap-2.5 rounded-full border border-brand-turq/25 bg-brand/[0.07] px-[18px] py-2.5 text-[13.5px] font-medium text-[#bdede5] backdrop-blur-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-turq/70" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-turq shadow-[0_0_12px_2px_rgba(84,227,229,0.9)]" />
-            </span>
-            {hero.status}
+          {/* başvurular kapandıyken: nabız yok, sönük rozet */}
+          <span
+            className={
+              apply.open
+                ? "inline-flex items-center gap-2.5 rounded-full border border-brand-turq/25 bg-brand/[0.07] px-[18px] py-2.5 text-[13.5px] font-medium text-[#bdede5] backdrop-blur-sm"
+                : "inline-flex items-center gap-2.5 rounded-full border border-hairline/70 bg-surface/40 px-[18px] py-2.5 text-[13.5px] font-medium text-muted backdrop-blur-sm"
+            }
+          >
+            {apply.open ? (
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-turq/70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-turq shadow-[0_0_12px_2px_rgba(84,227,229,0.9)]" />
+              </span>
+            ) : (
+              <span aria-hidden className="h-2 w-2 rounded-full bg-brand-turq/30" />
+            )}
+            {apply.open ? hero.status : apply.closedStatus}
           </span>
 
           <Countdown />
 
-          <MagneticButton>
-            <Cta label={hero.cta} />
-          </MagneticButton>
+          {/* kapalıyken buton yok: durum rozeti zaten mesajı veriyor */}
+          {apply.open && (
+            <MagneticButton>
+              <Cta label={hero.cta} />
+            </MagneticButton>
+          )}
 
           <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#4e6e6b]">
-            {hero.ctaNote}
+            {apply.open ? hero.ctaNote : apply.closedNote}
           </span>
         </m.div>
       </m.div>
