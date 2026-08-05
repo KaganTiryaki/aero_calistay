@@ -31,12 +31,12 @@ export const nav = {
     { label: "İletişim", href: "#iletisim" },
     { label: "Aero FRC", href: "#aero-frc" },
   ],
-  cta: { label: "Ekip Başvuruları Açık! Tıkla!", href: "#basvuru" },
+  cta: { label: "Ekip Başvuruları Açık!", href: "#basvuru" },
 } as const;
 
 export const hero = {
   status: "Ekip Başvuruları Açık!",
-  cta: "Ekip Başvuruları Açık! Tıkla!",
+  cta: "Ekip Başvuruları Açık!",
   ctaNote: "Başvurular bir hafta açık · Google Form üzerinden",
 } as const;
 
@@ -189,7 +189,7 @@ export const teams = {
       tasks: ["İdari süreçler", "Belgeler & takip", "Genel koordinasyon"],
     },
   ],
-  cta: "Ekip Başvuruları Açık! Tıkla!",
+  cta: "Ekip Başvuruları Açık!",
 } as const;
 
 // "Ekibimiz" — ekibin yüzleri. Fotoğraflar henüz yok; her komite için boş
