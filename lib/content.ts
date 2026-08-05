@@ -11,8 +11,8 @@ export const site = {
   // Google Form (public /d/e/.../viewform linki). UYARI: form şu an ziyaretçiden
   // Google girişi istiyor. Herkese açık olması için Forms → Yayınla/Ayarlar'dan
   // yanıtlayıcıları "Bağlantısı olan herkes" yap ve giriş/e-posta zorunluluğunu kapat.
-  applyUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfQXUUCWI9a_TGkq2loiYO1eUCVJBMLHySOLFwa7w9MUqPIYA/viewform",
-  applyDeadline: "2026-08-02T00:00:00", // 1 Ağustos 2026 23:59'da kapanır (2 Ağu 00:00); değişirse güncelle
+  applyUrl: "https://forms.gle/UP675FmduEVrZH5B9",
+  applyDeadline: "2026-08-12T23:59:59", // 5 Ağustos'tan itibaren bir hafta
   socials: {
     instagram: "https://www.instagram.com/aero_cal/",
     instagramHandle: "@aero_cal",
@@ -31,13 +31,13 @@ export const nav = {
     { label: "İletişim", href: "#iletisim" },
     { label: "Aero FRC", href: "#aero-frc" },
   ],
-  cta: { label: "Ekibe Katıl", href: "#basvuru" },
+  cta: { label: "Ekip Başvuruları Açık! Tıkla!", href: "#basvuru" },
 } as const;
 
 export const hero = {
-  status: "Ekip başvuruları açık",
-  cta: "Ekibe Katıl",
-  ctaNote: "Google Form üzerinden · birkaç dakika",
+  status: "Ekip Başvuruları Açık!",
+  cta: "Ekip Başvuruları Açık! Tıkla!",
+  ctaNote: "Başvurular bir hafta açık · Google Form üzerinden",
 } as const;
 
 /**
@@ -46,7 +46,7 @@ export const hero = {
  * davet metinleri kapanış metniyle değişir. Yeniden açmak için `open: true`.
  */
 export const apply = {
-  open: false,
+  open: true,
   closedLabel: "Başvurular kapandı",
   closedStatus: "Ekip başvuruları kapandı",
   closedNote: "Yeni duyurular Instagram'da · @aero_cal",
@@ -189,7 +189,7 @@ export const teams = {
       tasks: ["İdari süreçler", "Belgeler & takip", "Genel koordinasyon"],
     },
   ],
-  cta: "Ekibe Katıl",
+  cta: "Ekip Başvuruları Açık! Tıkla!",
 } as const;
 
 // "Ekibimiz" — ekibin yüzleri. Fotoğraflar henüz yok; her komite için boş
