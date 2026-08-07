@@ -160,7 +160,7 @@ export const teams = {
     },
     {
       name: "Medya",
-      lead: "Eren Azaplar · Ebrar Aygün",
+      lead: "Ebrar Aygün",
       blurb: "Sosyal medya, içerik ve fotoğraf/video üreten ekip.",
       tasks: ["Sosyal medya içerikleri", "Fotoğraf & video", "İçerik takvimi"],
     },
