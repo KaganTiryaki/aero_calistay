@@ -12,7 +12,7 @@ export const site = {
   // Google girişi istiyor. Herkese açık olması için Forms → Yayınla/Ayarlar'dan
   // yanıtlayıcıları "Bağlantısı olan herkes" yap ve giriş/e-posta zorunluluğunu kapat.
   applyUrl: "https://forms.gle/UP675FmduEVrZH5B9",
-  applyDeadline: "2026-08-12T23:59:59", // 5 Ağustos'tan itibaren bir hafta
+  applyDeadline: "2026-08-13T22:05:18", // 8 Ağustos'tan itibaren 5 gün 22 saat
   socials: {
     instagram: "https://www.instagram.com/aero_cal/",
     instagramHandle: "@aero_cal",
@@ -31,13 +31,13 @@ export const nav = {
     { label: "İletişim", href: "#iletisim" },
     { label: "Aero FRC", href: "#aero-frc" },
   ],
-  cta: { label: "Ekip Başvuruları Açık!", href: "#basvuru" },
+  cta: { label: "Akademi Ekibi Başvuruları Açık", href: "#basvuru" },
 } as const;
 
 export const hero = {
-  status: "Ekip Başvuruları Açık!",
-  cta: "Ekip Başvuruları Açık!",
-  ctaNote: "Başvurular bir hafta açık · Google Form üzerinden",
+  status: "Akademi Ekibi Başvuruları Açık",
+  cta: "Akademi Ekibi Başvuruları Açık",
+  ctaNote: "Başvurular 5 gün 22 saat açık · Google Form üzerinden",
 } as const;
 
 /**
@@ -189,7 +189,7 @@ export const teams = {
       tasks: ["İdari süreçler", "Belgeler & takip", "Genel koordinasyon"],
     },
   ],
-  cta: "Ekip Başvuruları Açık!",
+  cta: "Akademi Ekibi Başvuruları Açık",
 } as const;
 
 // "Ekibimiz" — ekibin yüzleri. Fotoğraflar henüz yok; her komite için boş
