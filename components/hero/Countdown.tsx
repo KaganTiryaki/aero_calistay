@@ -62,7 +62,7 @@ export function Countdown() {
           <div key={key} className="flex items-start gap-2.5 md:gap-3.5">
             <div className="flex flex-col items-center">
               <span className="min-w-[2.2ch] text-center font-display text-2xl leading-none tabular-nums text-ink md:text-3xl">
-                {String(parts[key]).padStart(2, "0")}
+                {parts[key]}
               </span>
               <span className="mt-1.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-[#4e6e6b]">
                 {label}

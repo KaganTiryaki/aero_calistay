@@ -20,7 +20,7 @@ export function Faq() {
             questions run edge-to-edge and answers open downward, readable. */}
         <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <SectionHeader index="05" eyebrow="SSS" title="Sıkça Sorulan Sorular" />
+            <SectionHeader index="5" eyebrow="SSS" title="Sıkça Sorulan Sorular" />
             <Reveal delay={0.1}>
               <p className="max-w-xs text-muted">
                 Aradığın yanıt yoksa Instagram&apos;dan (@aero_cal) yazman yeterli.
@@ -54,7 +54,7 @@ export function Faq() {
                           isOpen ? "text-brand-turq" : "text-label",
                         )}
                       >
-                        {String(i + 1).padStart(2, "0")}
+                        {i + 1}
                       </span>
                       <span
                         className={cn(

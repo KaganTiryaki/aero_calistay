@@ -54,15 +54,15 @@ export function VisionMission() {
       <div ref={spotRef} aria-hidden className="pointer-events-none absolute inset-0 z-0" />
 
       <div className="relative z-10 mx-auto max-w-6xl">
-        <SectionHeader index="01" eyebrow="Neden buradayız?" title="Vizyon & Misyon" />
+        <SectionHeader index="1" eyebrow="Neden buradayız?" title="Vizyon & Misyon" />
 
         {/* editorial statements */}
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">
           <Reveal>
-            <Statement tag="V — 01" label={vision.label} body={vision.body} />
+            <Statement tag="V — 1" label={vision.label} body={vision.body} />
           </Reveal>
           <Reveal delay={0.1}>
-            <Statement tag="M — 02" label={mission.label} body={mission.body} />
+            <Statement tag="M — 2" label={mission.label} body={mission.body} />
           </Reveal>
         </div>
 

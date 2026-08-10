@@ -13,7 +13,7 @@ export function Process() {
       <SectionAtmosphere tone="flux" variant={0} />
 
       <div className="relative z-10 mx-auto max-w-5xl">
-        <SectionHeader index="04" eyebrow={process.eyebrow} title={process.title} />
+        <SectionHeader index="4" eyebrow={process.eyebrow} title={process.title} />
 
         <Reveal className="mb-16 max-w-2xl">
           <p className="text-lg leading-relaxed text-muted">{process.intro}</p>

@@ -29,7 +29,7 @@ export function TeamGallery() {
 
       <div className="relative z-10 mx-auto max-w-6xl">
         <SectionHeader
-          index="03"
+          index="3"
           eyebrow={teamGallery.eyebrow}
           title={teamGallery.title}
         />

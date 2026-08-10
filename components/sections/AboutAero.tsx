@@ -62,7 +62,7 @@ export function AboutAero() {
       <SectionAtmosphere tone="warm" variant={0} />
 
       <div className="relative z-10 mx-auto max-w-6xl">
-        <SectionHeader index="07" eyebrow={about.eyebrow} title={about.title} />
+        <SectionHeader index="7" eyebrow={about.eyebrow} title={about.title} />
 
         <Reveal className="mb-10 max-w-2xl md:mb-12">
           <div className="space-y-5">

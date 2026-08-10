@@ -17,7 +17,7 @@ export function Teams() {
       <CurrentField />
 
       <div className="relative z-10 mx-auto max-w-6xl">
-        <SectionHeader index="02" eyebrow={teams.eyebrow} title={teams.title} />
+        <SectionHeader index="2" eyebrow={teams.eyebrow} title={teams.title} />
 
         <Reveal className="mb-14 max-w-2xl">
           <p className="text-lg leading-relaxed text-muted">{teams.intro}</p>
@@ -37,12 +37,12 @@ export function Teams() {
                   aria-hidden
                   className="section-index pointer-events-none absolute -right-1 -top-5 select-none text-[5.5rem] leading-none opacity-25 transition-opacity duration-300 group-hover:opacity-45"
                 >
-                  {String(i + 1).padStart(2, "0")}
+                  {i + 1}
                 </span>
 
                 <div className="relative">
                   <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-brand-turq/70">
-                    Ekip · {String(i + 1).padStart(2, "0")}
+                    Ekip · {i + 1}
                   </p>
                   <h3 className="mb-3 font-display text-2xl text-ink">{c.name}</h3>
                   <p className="mb-6 text-sm leading-relaxed text-muted">{c.blurb}</p>
