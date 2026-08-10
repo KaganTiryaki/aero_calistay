@@ -35,7 +35,7 @@ export function Teams() {
                 {/* ghost index */}
                 <span
                   aria-hidden
-                  className="section-index pointer-events-none absolute -right-1 -top-5 select-none text-[5.5rem] leading-none opacity-25 transition-opacity duration-300 group-hover:opacity-45"
+                  className="section-index pointer-events-none absolute right-3 top-2 select-none text-[4.5rem] leading-none opacity-30 transition-opacity duration-300 group-hover:opacity-45 md:right-4 md:top-3 md:text-[5rem]"
                 >
                   {i + 1}
                 </span>
