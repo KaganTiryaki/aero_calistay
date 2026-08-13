@@ -12,7 +12,7 @@ export const site = {
   // Google girişi istiyor. Herkese açık olması için Forms → Yayınla/Ayarlar'dan
   // yanıtlayıcıları "Bağlantısı olan herkes" yap ve giriş/e-posta zorunluluğunu kapat.
   applyUrl: "https://forms.gle/UP675FmduEVrZH5B9",
-  applyDeadline: "2026-08-13T22:05:18", // 8 Ağustos'tan itibaren 5 gün 22 saat
+  applyDeadline: "2026-08-13T22:00:00", // Son başvuru: 13 Ağustos, 22:00
   socials: {
     instagram: "https://www.instagram.com/aero_cal/",
     instagramHandle: "@aero_cal",
@@ -37,7 +37,7 @@ export const nav = {
 export const hero = {
   status: "Akademi Ekibi Başvuruları Açık",
   cta: "Akademi Ekibi Başvuruları Açık",
-  ctaNote: "Başvurular 5 gün 22 saat açık · Google Form üzerinden",
+  ctaNote: "Son başvuru: 13 Ağustos, 22:00 · Google Form üzerinden",
 } as const;
 
 /**
@@ -46,11 +46,11 @@ export const hero = {
  * davet metinleri kapanış metniyle değişir. Yeniden açmak için `open: true`.
  */
 export const apply = {
-  open: true,
-  closedLabel: "Başvurular kapandı",
-  closedStatus: "Ekip başvuruları kapandı",
+  open: false,
+  closedLabel: "Başvurular kapanmıştır",
+  closedStatus: "Başvurular kapanmıştır",
   closedNote: "Yeni duyurular Instagram'da · @aero_cal",
-  closedTitle: "Ekip başvuruları kapandı.",
+  closedTitle: "Başvurular kapanmıştır.",
   closedLine:
     "Başvuru dönemi sona erdi. Başvuran herkese teşekkürler — sonuçları ve yeni duyuruları Instagram'dan paylaşacağız.",
 } as const;
