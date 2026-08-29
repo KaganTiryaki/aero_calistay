@@ -142,7 +142,7 @@ export const teams = {
     },
     {
       name: "Halkla İlişkiler",
-      lead: "Nilsu Tunalı · Merve Öktem",
+      lead: "Özgü Naz Karaca · Işık Sağlam",
       blurb: "Kurumlar ve katılımcılarla iletişimi, iş birliklerini ve dış ilişkileri yürüten ekip.",
       tasks: ["Kurum & katılımcı iletişimi", "İş birlikleri", "Davet ve takip"],
     },
