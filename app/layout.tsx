@@ -1,13 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { fraunces, hanken, plexMono } from "@/lib/fonts";
-import { SmoothScroll } from "@/components/motion/SmoothScroll";
-import { MotionProvider } from "@/components/motion/MotionProvider";
-import { Preloader } from "@/components/motion/Preloader";
-import { Cursor } from "@/components/motion/Cursor";
-import { ScrollProgress } from "@/components/motion/ScrollProgress";
-import { SiteBackground } from "@/components/layout/SiteBackground";
-import { SideRails } from "@/components/layout/SideRails";
 import { site } from "@/lib/content";
 
 const fullTitle = `${site.event} ${site.year} — ${site.school}`;
@@ -48,16 +41,7 @@ export default function RootLayout({
       lang="tr"
       className={`${fraunces.variable} ${hanken.variable} ${plexMono.variable}`}
     >
-      <body>
-        <MotionProvider>
-          <Preloader />
-          <SiteBackground />
-          <ScrollProgress />
-          <SideRails />
-          <Cursor />
-          <SmoothScroll>{children}</SmoothScroll>
-        </MotionProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

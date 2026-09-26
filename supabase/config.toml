@@ -1,0 +1,4 @@
+project_id = "aero-operations"
+
+[functions.process-mail-queue]
+verify_jwt = false

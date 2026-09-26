@@ -325,3 +325,35 @@ export const contact = {
 export const footer = {
   rights: `© 2026 ${site.school}. Tüm hakları saklıdır.`,
 } as const;
+
+export const operations = {
+  title: "AERO Etkinlik Yönetimi",
+  nav: [
+    { href: "/panel/basvurular", label: "Başvurular" },
+    { href: "/panel/onay", label: "Onay ve e-posta" },
+    { href: "/panel/onaylananlar", label: "Onaylananlar" },
+    { href: "/panel/gonderimler", label: "Gönderimler" },
+    { href: "/panel/kartlar", label: "Kartlar" },
+    { href: "/panel/ayarlar", label: "Ayarlar" },
+    { href: "/tara", label: "QR tara" },
+  ],
+  login: { title: "Personel girişi", description: "Yönetim ve giriş görevlileri için güvenli erişim.", email: "E-posta", password: "Şifre", submit: "Giriş yap", reset: "Şifre sıfırlama bağlantısı gönder", sent: "Bağlantı e-postanıza gönderildi." },
+  applications: { title: "Başvurular", description: "Listeyi ekleyin, kontrol edin ve kabul edilecek kişileri seçin.", add: "Başvuru ekle", paste: "Tablodan yapıştır", save: "Kaydet", firstName: "Ad", lastName: "Soyad", email: "E-posta", search: "İsim veya e-posta ara", selectPage: "Bu sayfayı seç", selectAll: "Filtrelenenlerin tümünü seç", toApproval: "Seçilenlerle devam et", empty: "Henüz başvuru yok. İlk kişiyi ekleyin." },
+  approval: { title: "Onay ve e-posta", description: "Komiteleri belirleyin ve e-postaları kuyruğa alın.", committee: "Komite", allCommittee: "Seçilen herkese ata", preview: "E-posta önizlemesi", send: "Onay e-postalarını gönder", empty: "Önce Başvurular bölümünden kişi seçin." },
+  approved: { title: "Onaylananlar", description: "Gönderimi doğrulanan kişilerin kartları burada görünür.", qr: "QR indir", card: "Kartları aç", cancel: "Onayı iptal et", rotate: "QR yenile", csv: "CSV indir", empty: "Henüz doğrulanmış onay yok." },
+  sending: { title: "Gönderimler", description: "Kuyruk, sağlayıcı ve teslimat durumları.", empty: "Henüz gönderim grubu yok." },
+  applicationStatus: { pending: "Bekliyor", approval_queued: "Onay kuyruğunda", approved: "Onaylandı", cancelled: "İptal edildi" },
+  mailStatus: { queued: "Sırada", sending: "Gönderiliyor", provider_accepted: "Brevo'da bekliyor", sent: "Gönderildi", quota_wait: "Kota bekliyor", uncertain: "Sonuç belirsiz", failed: "Hata", cancelled: "İptal edildi" },
+  deliveryStatus: { unknown: "Henüz bilinmiyor", delivered: "Teslim edildi", deferred: "Ertelendi", soft_bounced: "Geçici teslimat hatası", hard_bounced: "Teslim edilemedi", blocked: "Engellendi", invalid: "Geçersiz adres", complained: "Spam bildirimi", error: "Teslimat hatası", unsubscribed: "Abonelikten çıktı" },
+  cards: { title: "Yaka kartları", description: "Kartları yüzde 100 ölçekte A4'e basın.", print: "Yazdır / PDF kaydet", empty: "Basılacak onaylı kişi yok." },
+  settings: { title: "Ayarlar", committees: "Komiteler", newCommittee: "Komite ekle", staff: "Personel", invite: "Davet gönder", checkInOpen: "Girişi aç", checkInClosed: "Girişi kapat" },
+  scanner: { title: "QR giriş", open: "Kamerayı aç", stop: "Kamerayı kapat", manual: "Manuel kart kodu", check: "Girişi kaydet", next: "Sıradaki kişi", recorded: "Giriş kaydedildi", already: "Daha önce giriş yaptı", invalid: "Geçersiz kart", inactive: "İptal edilmiş kart", closed: "Girişler henüz açık değil", offline: "Doğrulanamadı — bağlantıyı kontrol edin" },
+  mail: {
+    subject: "AERO Sirkülasyon Çalıştayı — Başvurunuz onaylandı",
+    greeting: "Merhaba",
+    acceptanceBefore: "AERO Sirkülasyon Çalıştayı başvurunuz",
+    acceptanceAfter: "komitesine kabul edilmiştir.",
+    welcome: "Sizi aramızda görmekten mutluluk duyuyoruz.",
+    signature: "AERO Sirkülasyon Çalıştayı Ekibi",
+  },
+} as const;
