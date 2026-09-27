@@ -1,3 +1,5 @@
+alter table public.mail_jobs add column reservation_day date;
+
 create function public.claim_mail_jobs(p_worker uuid, p_limit integer default 20)
 returns setof public.mail_jobs language plpgsql security definer set search_path = '' as $$
 declare
@@ -30,7 +32,7 @@ begin
   loop
     update public.mail_jobs set status = 'sending', lease_owner = p_worker,
       lease_until = now() + interval '2 minutes', first_send_at = coalesce(first_send_at, now()),
-      attempts = attempts + 1, updated_at = now() where id = v_id;
+      reservation_day = v_date, attempts = attempts + 1, updated_at = now() where id = v_id;
     v_count := v_count + 1;
     return query select * from public.mail_jobs where id = v_id;
   end loop;
@@ -53,6 +55,7 @@ create function public.mark_mail_job(
 ) returns boolean language plpgsql security definer set search_path = '' as $$
 declare
   v_updated uuid;
+  v_reservation_day date;
 begin
   if p_status not in ('provider_accepted', 'uncertain', 'quota_wait', 'queued', 'failed') then
     raise exception 'INVALID_STATUS';
@@ -61,9 +64,11 @@ begin
     last_error = left(p_error, 500), next_attempt_at = coalesce(p_next_attempt, next_attempt_at),
     lease_owner = null, lease_until = null, updated_at = now()
     where id = p_job_id and status = 'sending' and lease_owner = p_worker and lease_until > now()
-    returning id into v_updated;
+    returning id, reservation_day into v_updated, v_reservation_day;
   if v_updated is not null and p_status in ('quota_wait', 'queued', 'failed') then
-    update public.mail_provider_state set reserved_today = greatest(0, reserved_today - 1),
+    update public.mail_provider_state set
+      reserved_today = case when sent_day = v_reservation_day then greatest(0, reserved_today - 1)
+        else reserved_today end,
       send_blocked_until = case when p_status in ('quota_wait', 'queued') and p_next_attempt is not null
         then greatest(coalesce(send_blocked_until, p_next_attempt), p_next_attempt)
         else send_blocked_until end where id = 1;

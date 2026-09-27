@@ -13,7 +13,10 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
-  const configured = hasPublicSupabaseConfig(process.env);
+  const configured = hasPublicSupabaseConfig({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  });
   useEffect(() => { setRecovery(new URLSearchParams(window.location.search).get("recovery") === "1"); }, []);
   async function login(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError("");

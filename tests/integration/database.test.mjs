@@ -135,6 +135,24 @@ test('definite quota rejection releases reservation and pauses new sends', async
   await pg.close();
 });
 
+test('a previous-day send failure does not free a new-day mail slot', async () => {
+  const pg = await database();
+  const admin = '01010101-0101-4101-8101-010101010101';
+  const worker = '02020202-0202-4202-8202-020202020202';
+  const event = (await pg.query('select id from public.events limit 1')).rows[0].id;
+  await pg.query('insert into auth.users(id) values ($1)', [admin]);
+  await pg.query("insert into public.staff_members(user_id,event_id,role) values ($1,$2,'admin')", [admin, event]);
+  const committee = (await pg.query("insert into public.committees(event_id,name) values ($1,'Etik') returning id", [event])).rows[0].id;
+  const app = (await pg.query("insert into public.applications(event_id,first_name,last_name,email) values ($1,'Ece','Can','ece@example.com') returning id", [event])).rows[0].id;
+  await queue(pg, '03030303-0303-4303-8303-030303030303', admin,
+    [{ applicationId: app, version: 1, committeeId: committee, email: 'ece@example.com', subject: 'Kabul', html: 'Kabul', text: 'Kabul' }]);
+  const job = (await pg.query('select id from public.claim_mail_jobs($1,1)', [worker])).rows[0].id;
+  await pg.query("update public.mail_provider_state set sent_day = ((now() at time zone 'Europe/Istanbul')::date + 1), reserved_today = 5 where id = 1");
+  await pg.query("select public.mark_mail_job($1,$2,'failed',null,'Adres geçersiz')", [job, worker]);
+  assert.equal((await pg.query('select reserved_today from public.mail_provider_state')).rows[0].reserved_today, 5);
+  await pg.close();
+});
+
 test('failed approval can be reopened explicitly without reusing the old job', async () => {
   const pg = await database();
   const admin = '77777777-7777-4777-8777-777777777777';
@@ -158,6 +176,27 @@ test('failed approval can be reopened explicitly without reusing the old job', a
   assert.equal(app.version, 3);
   assert.equal((await pg.query('select status from public.mail_jobs where id=$1', [job])).rows[0].status, 'failed');
   assert.ok((await pg.query('select reopened_at from public.mail_jobs where id=$1', [job])).rows[0].reopened_at);
+  await pg.close();
+});
+
+test('Brevo invalid_email makes an unapproved application recoverable', async () => {
+  const pg = await database();
+  const admin = 'abababab-abab-4bab-8bab-abababababab';
+  const event = (await pg.query('select id from public.events limit 1')).rows[0].id;
+  await pg.query('insert into auth.users(id) values ($1)', [admin]);
+  await pg.query("insert into public.staff_members(user_id,event_id,role) values ($1,$2,'admin')", [admin, event]);
+  const committee = (await pg.query("insert into public.committees(event_id,name) values ($1,'Etik') returning id", [event])).rows[0].id;
+  const app = (await pg.query("insert into public.applications(event_id,first_name,last_name,email) values ($1,'Ece','Can','ece@example.com') returning id", [event])).rows[0].id;
+  await queue(pg, 'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd', admin,
+    [{ applicationId: app, version: 1, committeeId: committee, email: 'ece@example.com', subject: 'Kabul', html: 'Kabul', text: 'Kabul' }]);
+  const job = (await pg.query('select id,tag from public.mail_jobs')).rows[0];
+  await pg.query('select public.record_mail_event($1,$2,$3,$4,$5,$6::timestamptz)',
+    ['invalid-event', job.tag, 'message-1', 'ece@example.com', 'invalid_email', '2026-09-26T10:00:00Z']);
+  assert.equal((await pg.query('select status from public.mail_jobs where id=$1', [job.id])).rows[0].status, 'failed');
+  assert.equal((await pg.query('select status from public.applications where id=$1', [app])).rows[0].status, 'approval_queued');
+  await pg.query("select set_config('request.jwt.claim.sub',$1,false)", [admin]);
+  await pg.exec('set role authenticated');
+  assert.equal((await pg.query('select public.reopen_failed_approval($1) as reopened', [job.id])).rows[0].reopened, true);
   await pg.close();
 });
 

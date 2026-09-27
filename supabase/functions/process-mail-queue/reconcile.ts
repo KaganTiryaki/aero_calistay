@@ -18,7 +18,7 @@ function nextCheck(firstSend: string): string {
 export async function reconcileJobs(db: Db, apiKey: string): Promise<number> {
   const { data: jobs, error } = await db.from("mail_jobs")
     .select("id,tag,recipient_email,provider_message_id,status,first_send_at,next_attempt_at")
-    .in("status", ["provider_accepted", "uncertain"])
+    .in("status", ["provider_accepted", "uncertain", "sent"])
     .lte("next_attempt_at", new Date().toISOString()).order("next_attempt_at").limit(20);
   if (error) throw error;
   let matched = 0;
@@ -51,7 +51,7 @@ export async function reconcileJobs(db: Db, apiKey: string): Promise<number> {
     if (complete) {
       const { error: updateError } = await db.from("mail_jobs")
         .update({ next_attempt_at: nextCheck(job.first_send_at) }).eq("id", job.id)
-        .in("status", ["provider_accepted", "uncertain"]);
+        .in("status", ["provider_accepted", "uncertain", "sent"]);
       if (updateError) throw updateError;
     }
   }

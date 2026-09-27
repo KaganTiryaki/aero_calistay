@@ -301,7 +301,9 @@ begin
       'soft_bounce', 'blocked', 'invalid_email', 'spam', 'error', 'unsubscribed') and
       p_provider_time is not null and (last_delivery_event_at is null or p_provider_time >= last_delivery_event_at)
       then p_provider_time else last_delivery_event_at end,
-    status = case when p_event in ('request', 'delivered') then 'sent' else status end,
+    status = case when p_event in ('request', 'delivered') then 'sent'
+      when p_event = 'invalid_email' and status <> 'sent' then 'failed'
+      else status end,
     updated_at = now() where id = v_job.id;
   if p_event in ('request', 'delivered') then
     select * into v_app from public.applications where id = v_job.application_id for update;
