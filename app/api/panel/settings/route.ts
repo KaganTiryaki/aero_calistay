@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireStaff } from "@/lib/auth/permissions";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { failure, json, protectMutation } from "@/lib/http";
+import { startAdminActivity } from "@/lib/activity/server";
 
 export async function GET() {
   try {
@@ -23,10 +24,13 @@ export async function PATCH(request: NextRequest) {
     const staff = await requireStaff("admin");
     const parsed = z.object({ checkInOpen: z.boolean() }).safeParse(await request.json());
     if (!parsed.success) return json({ error: "Geçersiz ayar." }, 400);
+    const finish = await startAdminActivity(request, staff, "check_in_setting", staff.eventId,
+      { open: parsed.data.checkInOpen });
     const { data, error } = await createAdminSupabase().from("events")
       .update({ check_in_open: parsed.data.checkInOpen }).eq("id", staff.eventId)
       .select("check_in_open").single();
     if (error) throw error;
+    await finish("succeeded");
     return json(data);
   } catch (error) { return failure(error); }
 }

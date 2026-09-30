@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireStaff } from "@/lib/auth/permissions";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { csvRow } from "@/lib/security";
 import { failure, privateHeaders } from "@/lib/http";
+import { startAdminActivity } from "@/lib/activity/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const staff = await requireStaff("admin");
     const client = createAdminSupabase();
@@ -21,6 +22,9 @@ export async function GET() {
         names.get(item.committee_id) ?? "", item.approved_at ?? ""])));
       if (!data || data.length < 1000) break;
     }
+    const finish = await startAdminActivity(request, staff, "csv_export", undefined,
+      { count: Math.max(0, lines.length - 1) });
+    await finish("succeeded");
     return new NextResponse(`\ufeff${lines.join("\r\n")}`, { headers: { ...privateHeaders,
       "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=aero-onaylananlar.csv" } });
   } catch (error) { return failure(error); }

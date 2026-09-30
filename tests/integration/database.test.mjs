@@ -7,6 +7,7 @@ import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 const migration1 = readFileSync(new URL('../../supabase/migrations/202609260001_aero_operations.sql', import.meta.url), 'utf8');
 const migration2 = readFileSync(new URL('../../supabase/migrations/202609260002_mail_queue_and_badges.sql', import.meta.url), 'utf8');
 const migration3 = readFileSync(new URL('../../supabase/migrations/202609260003_retry_failed_approval.sql', import.meta.url), 'utf8');
+const migration4 = readFileSync(new URL('../../supabase/migrations/202609300001_admin_activity.sql', import.meta.url), 'utf8');
 
 async function database() {
   const pg = await PGlite.create({ extensions: { pgcrypto } });
@@ -18,6 +19,7 @@ async function database() {
   await pg.exec(migration1);
   await pg.exec(migration2);
   await pg.exec(migration3);
+  await pg.exec(migration4);
   return pg;
 }
 
@@ -31,7 +33,27 @@ test('migrations apply and keep anon away from participant data', async () => {
   assert.equal(events.rows[0].count, 1);
   await pg.exec('set role anon');
   await assert.rejects(pg.query('select * from public.applications'), /permission denied|row-level security/i);
+  await assert.rejects(pg.query('select * from public.admin_activity'), /permission denied|row-level security/i);
   await pg.exec('reset role');
+  await pg.close();
+});
+
+test('activity history is readable only by an active admin and cannot be written by browser users', async () => {
+  const pg = await database();
+  const admin = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const staff = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const event = (await pg.query('select id from public.events limit 1')).rows[0].id;
+  await pg.query('insert into auth.users(id) values ($1),($2)', [admin, staff]);
+  await pg.query("insert into public.staff_members(user_id,event_id,role) values ($1,$3,'admin'),($2,$3,'staff')", [admin, staff, event]);
+  await pg.query("insert into public.admin_activity(actor_id,event_id,action,outcome,device_class) values ($1,$2,'login','succeeded','desktop')", [admin, event]);
+  await pg.query("select set_config('request.jwt.claim.sub',$1,false)", [staff]);
+  await pg.exec('set role authenticated');
+  assert.equal((await pg.query('select count(*)::int as count from public.admin_activity')).rows[0].count, 0);
+  await assert.rejects(pg.query("insert into public.admin_activity(action,device_class) values ('forged','desktop')"), /permission denied/i);
+  await pg.exec('reset role');
+  await pg.query("select set_config('request.jwt.claim.sub',$1,false)", [admin]);
+  await pg.exec('set role authenticated');
+  assert.equal((await pg.query('select count(*)::int as count from public.admin_activity')).rows[0].count, 1);
   await pg.close();
 });
 

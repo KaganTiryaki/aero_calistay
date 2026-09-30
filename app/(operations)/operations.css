@@ -13,7 +13,7 @@
 .ops-nav a:hover,.ops-nav a:focus-visible{background:#18343b;color:#fff}
 .ops-main{max-width:1220px;margin:auto;padding:42px 28px 100px}
 .ops-page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:27px}
-.ops h1{font-family:var(--font-fraunces),Georgia,serif;font-weight:500;font-size:clamp(30px,4vw,50px);line-height:1.12;letter-spacing:-.035em;margin:0}
+.ops h1{font-family:var(--font-fraunces),Georgia,serif;font-weight:500;font-size:clamp(30px,4vw,50px);line-height:1.12;letter-spacing:-.035em;margin:0;}
 .ops h2{font-family:var(--font-fraunces),Georgia,serif;font-weight:500;font-size:25px;line-height:1.2;margin:0 0 18px}
 .ops p{line-height:1.5}.ops-page-head p{margin:10px 0 0;color:#a8c3bf}
 .ops-stack{display:grid;gap:22px}.ops-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}

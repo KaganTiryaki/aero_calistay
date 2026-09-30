@@ -1,15 +1,14 @@
 # AERO etkinlik yönetimi: kurulum ve etkinlik günü
 
-Bu sistem henüz gerçek Supabase/Brevo hesabına bağlanmadı. `MAIL_QUEUE_ENABLED=false` ile başlatın. Gerçek kişilere e-posta göndermeden önce aşağıdaki bağlantı ve prova adımlarını bitirin.
+`MAIL_QUEUE_ENABLED=false` ile başlayın. Gerçek kişilere e-posta göndermeden önce bağlantı ve prova adımlarını bitirin.
 
 ## İlk kurulum
 
 1. AERO için ayrı bir Supabase projesi ve Brevo Free hesabı açın. Mevcut başka projenin veritabanını veya posta anahtarlarını kullanmayın.
-2. Supabase migration dosyalarını sırayla uygulayın. Auth içinde herkese açık kayıt olmayı kapatın. Proje URL'si ve publishable key'i `.env.local` içine, secret key'i yalnızca sunucu ortamına girin. `.env.example` yalnızca değişken adlarını gösterir.
+2. Supabase migration dosyalarını sırayla, `202609300001_admin_activity.sql` dahil uygulayın. Auth içinde herkese açık kayıt olmayı kapatın. Proje URL'si ve publishable key'i `.env.local` içine, secret key'i yalnızca sunucu ortamına girin. `.env.example` yalnızca değişken adlarını gösterir.
 3. Brevo'da transactional gönderimi ve gönderen alan adını doğrulayın. DNS ekranındaki Brevo code ve DKIM kayıtlarını alan adı yönetiminde uygulayın. Mevcut DMARC kaydını veya posta hizmetini kendiliğinizden değiştirmeyin. Ayrı bir API anahtarı, SMTP anahtarı ve rastgele webhook bearer token'ı üretin.
-4. Supabase Auth özel SMTP'yi Brevo `smtp-relay.brevo.com:587` ve **SMTP anahtarı** ile yapılandırın. Test personeline şifre sıfırlama e-postası gönderip çalıştığını doğrulayın. API anahtarı SMTP parolası değildir.
-   Supabase Auth Redirect URLs listesine `https://aerocalistay.org/auth/callback` adresini ekleyin. Davet ve sıfırlama bağlantıları bu sayfada oturum kurup yeni şifre ekranına geçer; iki akışı da test hesabıyla açın.
-5. İlk yöneticiyi `node --env-file=.env.local scripts/bootstrap-admin.mjs yonetici@example.com` ile davet edin. Bu işlem davet e-postası gönderir; test adresiyle başlayın.
+4. Ortak yönetici hesabını oluşturmak için `node --env-file=.env.local scripts/bootstrap-shared-admin.mjs` çalıştırın. Betik 43 karakterlik rastgele şifre üretir, Supabase Auth hesabını ve `admin` rolünü açar, şifreyi kullanıcının Documents klasöründe tek kullanımlık dosyaya yazar ve `ADMIN_LOGIN_EMAIL` değerini `.env.local` içine ekler. Dosyayı yalnızca yöneticilere güvenli bir kanaldan iletip silin. Canlı dağıtımın sunucu ortamına da aynı `ADMIN_LOGIN_EMAIL` değerini girin.
+5. Ortak şifreyi bilen 15 yönetici aynı hesabı kullanır. Giriş ve yönetim işlemlerinde zaman, IP, tarayıcı/cihaz başlığı, tarayıcı çerezi kimliği ve Supabase oturum kimliği tutulur. Bunlar kişiyi kesin olarak tanımlamaz; aynı ağ veya cihazdan gelen iki yöneticiyi ayırmayabilir.
 6. Edge Function'ı yalnızca ilgili Supabase projesine dağıtın. `supabase/config.toml` JWT denetimini kapatır; fonksiyon kendi `MAIL_QUEUE_SECRET` bearer sırrını zorunlu tutar. Brevo API anahtarı, gönderici ve yanıt adresi de fonksiyon sırlarıdır.
 7. Önce `MAIL_ENV=test`, `MAIL_TEST_ALLOWLIST` (yalnız test alıcıları) ve `MAIL_QUEUE_ENABLED=false` kullanın. Test hesabında tek alıcıyla Brevo `201/messageId`, tag, `request` ve `delivered` olaylarını, webhook bearer doğrulamasını, günlük kredi yanıtını ve idempotency anahtarının gerçek davranışını kontrol edin. Sözleşme sonuçlarını kaydedin. Belirsiz gönderimde otomatik tekrar **kapalı** kalır. Canlı `MAIL_ENV=production` için `BREVO_CONTRACT_VERIFIED=true` ayrıca zorunludur.
 8. Supabase Vault'a `aero_project_url` ve `aero_mail_queue_secret` girin. `supabase/setup-cron.sql` dosyasını özel projede çalıştırın. Cron geçmişinden dakikalık çağrıları, panelde işleyici ve uzlaştırma zamanlarını doğrulayın. Test alıcılarıyla gönderim çalışınca ve domain hazır olunca canlı ortamda `MAIL_QUEUE_ENABLED=true` yapın.
@@ -21,14 +20,15 @@ Bu sistem henüz gerçek Supabase/Brevo hesabına bağlanmadı. `MAIL_QUEUE_ENAB
 - `Gönderimler`: `provider_accepted` Brevo'nun API kabulüdür; onay/QR ancak `request` veya `delivered` olayıyla oluşur. `uncertain` işini körlemesine yeniden göndermeyin; Brevo raporunda tag ve mesaj kimliğini araştırın. Kesin başarısız işte “Başvuruyu yeniden aç” ile kişiyi yeni sürüm olarak tekrar seçilebilir hale getirin; e-postayı kontrol edip yeniden kuyruğa alın.
 - `Onaylananlar`: doğrulananları ve teslimat durumunu görün. Teslimat hatası onayı otomatik kaldırmaz. İptal kartı geçersiz kılar. QR yenileme eski baskıyı geçersiz kılar.
 - `Kartlar`: ilk taslak 90 × 120 mm; gerçek kartlık ölçüsüne göre yüzde 100 ölçekte test baskısı alın. E-posta kartta yoktur.
-- `Ayarlar`: gerçek komiteleri ekleyin, görevli hesaplarını davet edin ve ancak hazır olduğunuzda girişi açın.
-- `/tara`: görevli kamerayı açar veya kartın altındaki manuel kodu girer. Ağ hatasında başarı gösterilmez; aynı kart tekrar okutulursa ilk giriş saati görünür.
+- `Ayarlar`: gerçek komiteleri ekleyin ve ancak hazır olduğunuzda girişi açın. Personel hesapları panelden davet edilmez.
+- `İşlem geçmişi`: ortak hesabın giriş ve işlem zamanını, IP/cihaz izini ve oturum numarasını inceleyin. `Sonuç doğrulanmalı` kaydı işlem başladıktan sonra sunucu/bağlantı hatası olabileceğini gösterir; asıl kayıt durumunu ayrıca kontrol edin.
+- `/tara`: yönetici kamerayı açar veya kartın altındaki manuel kodu girer. Ağ hatasında başarı gösterilmez; aynı kart tekrar okutulursa ilk giriş saati görünür.
 
 ## Etkinlikten önce
 
 - Supabase projesinin aktif olduğunu, dışa aktarılmış ve güvenli saklanan bir yedeği, Brevo günlük hakkını ve Cron'un son başarılı çalışmasını kontrol edin. Free planda otomatik yedek ve kesintisiz proje etkinliği varsaymayın.
 - 10, 20, 30, 50, 250 ve 350 kişilik sentetik grupları sağlayıcı taklidiyle deneyin; gerçek ücretsiz e-posta kotasını prova için tüketmeyin. Varsayılan kabul bütçesi 290/gün, personel rezervi 10/gündür.
-- En az bir Android Chrome ve bir iPhone Safari ile gerçek boyutta basılmış kartı okutun. Kamera izni, manuel kod, tekrar okutma, pasif görevli ve ağ kesintisini deneyin.
+- En az bir Android Chrome ve bir iPhone Safari ile gerçek boyutta basılmış kartı okutun. Kamera izni, manuel kod, tekrar okutma, yetkisiz hesap ve ağ kesintisini deneyin.
 - Etkinliğin giriş saatini ve kartlık ölçüsünü, gerçek komiteleri ve personel listesini organizatörle doğrulayın. Yedek basılı listeyi sınırlı erişimle saklayın.
 - Canlı domainin HTTPS ve Vercel bağlantısını kontrol edin. Önizleme ortamından gerçek katılımcılara e-posta çıkarmayın.
 

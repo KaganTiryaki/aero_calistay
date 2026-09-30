@@ -9,6 +9,15 @@ export function sameOrigin(origin: string | null, target: string): boolean {
   }
 }
 
+export function requestTargetOrigin(headers: Headers, fallbackProtocol: string): string {
+  const host = headers.get("host");
+  const forwarded = headers.get("x-forwarded-proto")?.split(",", 1)[0]?.trim();
+  const protocol = forwarded === "https" || forwarded === "http" ? `${forwarded}:` : fallbackProtocol;
+  if (!host || !["http:", "https:"].includes(protocol)) return "";
+  try { return new URL(`${protocol}//${host}`).origin; }
+  catch { return ""; }
+}
+
 export function verifyBearer(header: string | null, token: string): boolean {
   if (!header?.startsWith("Bearer ") || !token) return false;
   const actual = createHash("sha256").update(header.slice(7)).digest();

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireStaff } from "@/lib/auth/permissions";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { failure, json, protectMutation } from "@/lib/http";
+import { startAdminActivity } from "@/lib/activity/server";
 
 export async function GET() {
   try {
@@ -20,10 +21,12 @@ export async function POST(request: NextRequest) {
     const staff = await requireStaff("admin");
     const parsed = z.object({ name: z.string().trim().min(1).max(120) }).safeParse(await request.json());
     if (!parsed.success) return json({ error: "Komite adı gerekli." }, 400);
+    const finish = await startAdminActivity(request, staff, "committee_create");
     const { data, error } = await createAdminSupabase().from("committees")
       .insert({ event_id: staff.eventId, name: parsed.data.name }).select("id,name,active").single();
-    if (error?.code === "23505") return json({ error: "Komite zaten var." }, 409);
+    if (error?.code === "23505") { await finish("denied"); return json({ error: "Komite zaten var." }, 409); }
     if (error) throw error;
+    await finish("succeeded", { targetId: data.id });
     return json(data, 201);
   } catch (error) { return failure(error); }
 }
@@ -34,11 +37,14 @@ export async function PATCH(request: NextRequest) {
     const staff = await requireStaff("admin");
     const parsed = z.object({ id: z.string().uuid(), active: z.boolean() }).safeParse(await request.json());
     if (!parsed.success) return json({ error: "Geçersiz komite." }, 400);
+    const finish = await startAdminActivity(request, staff, "committee_update", parsed.data.id,
+      { active: parsed.data.active });
     const { data, error } = await createAdminSupabase().from("committees")
       .update({ active: parsed.data.active }).eq("event_id", staff.eventId).eq("id", parsed.data.id)
       .select("id,active").maybeSingle();
     if (error) throw error;
-    if (!data) return json({ error: "Komite bulunamadı." }, 404);
+    if (!data) { await finish("denied"); return json({ error: "Komite bulunamadı." }, 404); }
+    await finish("succeeded");
     return json(data);
   } catch (error) { return failure(error); }
 }

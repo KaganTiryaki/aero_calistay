@@ -5,6 +5,7 @@ import { requireStaff } from "@/lib/auth/permissions";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { renderApprovalMail } from "@/lib/mail/approval-template";
 import { failure, json, protectMutation } from "@/lib/http";
+import { startAdminActivity } from "@/lib/activity/server";
 
 const bodySchema = z.object({
   batchId: z.string().uuid(),
@@ -81,14 +82,17 @@ export async function POST(request: NextRequest) {
       return { ...selection, email: app.email, subject: mail.subject, html: mail.html, text: mail.text };
     });
     if (stale) return await existingBatch() ?? json({ error: "Seçim değişti; listeyi yenileyin." }, 409);
+    const finish = await startAdminActivity(request, staff, "approval_batch_create", submission.batchId,
+      { count: submission.selections.length });
     const { data, error } = await client.rpc("queue_approval_batch", {
       p_batch_id: submission.batchId, p_actor: staff.userId, p_jobs: jobs, p_request_hash: requestHash,
     });
     if (error) {
       const repeat = await existingBatch();
-      if (repeat) return repeat;
+      if (repeat) { await finish("succeeded"); return repeat; }
       throw error;
     }
+    await finish("succeeded");
     return json({ batchId: data }, 201);
   } catch (error) { return failure(error); }
 }

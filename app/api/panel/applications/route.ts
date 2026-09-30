@@ -4,6 +4,7 @@ import { requireStaff } from "@/lib/auth/permissions";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { validateApplication } from "@/lib/applications/validation";
 import { failure, json, protectMutation } from "@/lib/http";
+import { startAdminActivity } from "@/lib/activity/server";
 
 const applicationBody = z.object({ firstName: z.string(), lastName: z.string(), email: z.string() });
 const updateBody = applicationBody.extend({ id: z.string().uuid(), version: z.number().int().positive() });
@@ -32,13 +33,15 @@ export async function POST(request: NextRequest) {
     const parsed = applicationBody.safeParse(await request.json());
     if (!parsed.success) return json({ error: "Geçersiz başvuru." }, 400);
     const input = validateApplication(parsed.data);
+    const finish = await startAdminActivity(request, staff, "application_create");
     const client = createAdminSupabase();
     const { data, error } = await client.from("applications").insert({
       event_id: staff.eventId, first_name: input.firstName, last_name: input.lastName,
       email: input.email, created_by: staff.userId,
     }).select("id,first_name,last_name,email,status,version").single();
-    if (error?.code === "23505") return json({ error: "Bu e-posta zaten kayıtlı." }, 409);
+    if (error?.code === "23505") { await finish("denied"); return json({ error: "Bu e-posta zaten kayıtlı." }, 409); }
     if (error) throw error;
+    await finish("succeeded", { targetId: data.id });
     return json(data, 201);
   } catch (error) { return failure(error); }
 }
@@ -50,14 +53,16 @@ export async function PATCH(request: NextRequest) {
     const parsed = updateBody.safeParse(await request.json());
     if (!parsed.success) return json({ error: "Geçersiz başvuru." }, 400);
     const input = validateApplication(parsed.data);
+    const finish = await startAdminActivity(request, staff, "application_update", parsed.data.id);
     const { data, error } = await createAdminSupabase().from("applications")
       .update({ first_name: input.firstName, last_name: input.lastName, email: input.email,
         version: parsed.data.version + 1, updated_at: new Date().toISOString() })
       .eq("id", parsed.data.id).eq("event_id", staff.eventId).eq("version", parsed.data.version)
       .eq("status", "pending").select("id,version").maybeSingle();
-    if (error?.code === "23505") return json({ error: "Bu e-posta zaten kayıtlı." }, 409);
+    if (error?.code === "23505") { await finish("denied"); return json({ error: "Bu e-posta zaten kayıtlı." }, 409); }
     if (error) throw error;
-    if (!data) return json({ error: "Kayıt değişti; listeyi yenileyin." }, 409);
+    if (!data) { await finish("denied"); return json({ error: "Kayıt değişti; listeyi yenileyin." }, 409); }
+    await finish("succeeded");
     return json(data);
   } catch (error) { return failure(error); }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sameOrigin } from "@/lib/security";
+import { requestTargetOrigin, sameOrigin } from "@/lib/security";
 
 export const privateHeaders = { "Cache-Control": "private, no-store" };
 
@@ -14,6 +14,6 @@ export function failure(error: unknown) {
 }
 
 export function protectMutation(request: NextRequest) {
-  if (!sameOrigin(request.headers.get("origin"), request.nextUrl.origin)) throw new Error("FORBIDDEN");
+  if (!sameOrigin(request.headers.get("origin"), requestTargetOrigin(request.headers, request.nextUrl.protocol))) throw new Error("FORBIDDEN");
   if (!request.headers.get("content-type")?.startsWith("application/json")) throw new Error("BAD_REQUEST");
 }
