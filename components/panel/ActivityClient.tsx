@@ -61,6 +61,7 @@ export function ActivityClient() {
       <tbody>{items.map((item) => <tr key={item.id}>
         <td>{new Date(item.created_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}</td>
         <td><strong>{labels[item.action] ?? item.action}</strong>{item.target_id && <small> #{item.target_id.slice(0, 8)}</small>}
+          {item.details?.suspicious === true && <div><span className="ops-pill ops-pill--warning">Şüpheli giriş</span></div>}
           {Object.keys(item.details ?? {}).length > 0 && <div><small>{JSON.stringify(item.details)}</small></div>}</td>
         <td><span className="ops-pill" data-tone={item.outcome === "succeeded" ? "good" : "wait"}>
           {item.outcome === "succeeded" ? "Tamamlandı" : item.outcome === "denied" ? "Reddedildi" : "Sonuç doğrulanmalı"}</span></td>

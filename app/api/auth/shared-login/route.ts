@@ -1,9 +1,10 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { startAdminActivity } from "@/lib/activity/server";
 import { isSharedAdminAuthorized } from "@/lib/auth/login-policy";
+import { checkLoginRateLimit, recordLoginFailure, resetLoginFailures } from "@/lib/auth/login-rate-limit";
 import { json, protectMutation } from "@/lib/http";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -26,11 +27,19 @@ export async function POST(request: NextRequest) {
     });
     request.cookies.set("aero_device_id", deviceId);
     const finish = await startAdminActivity(request, null, "login");
+    const limit = await checkLoginRateLimit(request, deviceId);
+    if (!limit.allowed) {
+      await finish("denied", { details: { reason: "rate_limit", failureCount: limit.failureCount, suspicious: true, waitSeconds: limit.waitSeconds } });
+      return NextResponse.json({ error: "Çok fazla başarısız deneme. Lütfen bekleyin." }, { status: 429, headers: { "Cache-Control": "private, no-store", "Retry-After": String(limit.waitSeconds) } });
+    }
     const client = await createServerSupabase();
     const { data, error } = await client.auth.signInWithPassword({ email, password: parsed.data.password });
     if (error || !data.user || !data.session) {
-      await finish("denied");
-      return json({ error: "Giriş yapılamadı. Şifreyi kontrol edin." }, 401);
+      const failed = await recordLoginFailure(request, deviceId);
+      await finish("denied", { details: { reason: "invalid_credentials", failureCount: failed.failureCount, suspicious: failed.suspicious, waitSeconds: failed.waitSeconds } });
+      const response = json({ error: "Giriş yapılamadı. Şifreyi kontrol edin." }, 401);
+      if (failed.waitSeconds) response.headers.set("Retry-After", String(failed.waitSeconds));
+      return response;
     }
 
     const admin = createAdminSupabase();
@@ -39,7 +48,8 @@ export async function POST(request: NextRequest) {
       .limit(1).maybeSingle();
     if (membershipError || !isSharedAdminAuthorized(data.user.id, membership)) {
       await client.auth.signOut();
-      await finish("denied");
+      const failed = await recordLoginFailure(request, deviceId);
+      await finish("denied", { details: { reason: "not_admin", failureCount: failed.failureCount, suspicious: failed.suspicious, waitSeconds: failed.waitSeconds } });
       return json({ error: "Giriş yapılamadı. Şifreyi kontrol edin." }, 401);
     }
 
@@ -50,6 +60,7 @@ export async function POST(request: NextRequest) {
       await finish("denied");
       return json({ error: "Oturum açılamadı." }, 503);
     }
+    await resetLoginFailures(request, deviceId);
     if (!(await finish("succeeded", { actorId: data.user.id, eventId: membership.event_id, sessionId }))) {
       await client.auth.signOut();
       return json({ error: "Giriş kaydı oluşturulamadı." }, 503);

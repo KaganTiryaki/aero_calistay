@@ -8,6 +8,7 @@ const migration1 = readFileSync(new URL('../../supabase/migrations/202609260001_
 const migration2 = readFileSync(new URL('../../supabase/migrations/202609260002_mail_queue_and_badges.sql', import.meta.url), 'utf8');
 const migration3 = readFileSync(new URL('../../supabase/migrations/202609260003_retry_failed_approval.sql', import.meta.url), 'utf8');
 const migration4 = readFileSync(new URL('../../supabase/migrations/202609300001_admin_activity.sql', import.meta.url), 'utf8');
+const migration5 = readFileSync(new URL('../../supabase/migrations/202610010001_admin_login_rate_limit.sql', import.meta.url), 'utf8');
 
 async function database() {
   const pg = await PGlite.create({ extensions: { pgcrypto } });
@@ -20,8 +21,30 @@ async function database() {
   await pg.exec(migration2);
   await pg.exec(migration3);
   await pg.exec(migration4);
+  await pg.exec(migration5);
   return pg;
 }
+
+test('admin login rate limit backs off, blocks after five failures, and resets', async () => {
+  const pg = await database();
+  const ip = '203.0.113.10';
+  const device = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const first = (await pg.query('select * from private.record_admin_login_failure($1::inet,$2::uuid,$3::timestamptz)', [ip, device, '2026-10-01T10:00:00Z'])).rows[0];
+  assert.deepEqual(first, { allowed: true, wait_seconds: 1, failure_count: 1, suspicious: false });
+  for (let i = 0; i < 3; i++) await pg.query('select * from private.record_admin_login_failure($1::inet,$2::uuid,$3::timestamptz)', [ip, device, `2026-10-01T10:00:0${i + 1}Z`]);
+  const fifth = (await pg.query('select * from private.record_admin_login_failure($1::inet,$2::uuid,$3::timestamptz)', [ip, device, '2026-10-01T10:00:05Z'])).rows[0];
+  assert.equal(fifth.allowed, true);
+  assert.equal(fifth.failure_count, 5);
+  assert.equal(fifth.wait_seconds, 900);
+  assert.equal(fifth.suspicious, true);
+  const blocked = (await pg.query('select * from private.check_admin_login_rate_limit($1::inet,$2::uuid,$3::timestamptz)', [ip, device, '2026-10-01T10:01:00Z'])).rows[0];
+  assert.equal(blocked.allowed, false);
+  assert.equal(blocked.wait_seconds, 845);
+  await pg.query('select private.reset_admin_login_failures($1::inet,$2::uuid)', [ip, device]);
+  const reset = (await pg.query('select * from private.check_admin_login_rate_limit($1::inet,$2::uuid,$3::timestamptz)', [ip, device, '2026-10-01T10:01:00Z'])).rows[0];
+  assert.deepEqual(reset, { allowed: true, wait_seconds: 0, failure_count: 0, suspicious: false });
+  await pg.close();
+});
 
 function queue(pg, id, actor, jobs, hash = 'a'.repeat(64)) {
   return pg.query('select public.queue_approval_batch($1,$2,$3::jsonb,$4)', [id, actor, JSON.stringify(jobs), hash]);

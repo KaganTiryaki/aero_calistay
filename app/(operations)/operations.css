@@ -44,7 +44,7 @@
 .ops-table td small{display:block;color:#9dbbb8;font-size:12px;margin-top:3px}
 .ops-table select{min-width:180px}.ops-table button{min-height:34px;padding:6px 10px}
 .ops-pill{display:inline-flex;border-radius:100px;padding:5px 9px;font-weight:700;font-size:11px;background:#29454a;color:#cbdfdc;white-space:nowrap}
-.ops-pill[data-tone=good]{background:#164c43;color:#81ecd3}.ops-pill[data-tone=bad]{background:#593b3b;color:#ffd3ca}.ops-pill[data-tone=wait]{background:#52472b;color:#f7dc91}
+.ops-pill[data-tone=good]{background:#164c43;color:#81ecd3}.ops-pill[data-tone=bad]{background:#593b3b;color:#ffd3ca}.ops-pill[data-tone=wait]{background:#52472b;color:#f7dc91}.ops-pill--warning{background:#ffd166;color:#241a00;margin-top:6px}
 .ops-toolbar{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:18px}.ops-toolbar label{min-width:230px;flex:1}.ops-toolbar .ops-actions{padding-bottom:1px}
 .ops-pagination{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:#bdd2cf}
 .ops-login{max-width:440px;margin:10vh auto 0;padding:0 20px}.ops-login .ops-brand{margin-bottom:28px}.ops-login h1{font-size:38px}.ops-login p{color:#abc5c1}
