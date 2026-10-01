@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { operations } from "@/lib/content";
 import { renderApprovalMail } from "@/lib/mail/approval-template";
-import { readSelection, type SelectedApplication } from "./ApplicationsClient";
+import { persistSelection, readSelection, type SelectedApplication } from "./ApplicationsClient";
 
 type Committee = { id: string; name: string; active: boolean };
 export function ApprovalClient() {
@@ -17,8 +17,16 @@ export function ApprovalClient() {
   useEffect(() => {
     setPeople(readSelection());
     void fetch("/api/panel/committees", { cache: "no-store" }).then((response) => response.json())
-      .then((body: { items: Committee[] }) => setCommittees(body.items.filter((item) => item.active)));
+      .then((body: { items: Committee[] }) => setCommittees(body.items.filter((item) => item.active)))
+      .catch(() => setMessage("Komiteler yüklenemedi. Sayfayı yenileyin."));
   }, []);
+  function removePerson(id: string) {
+    const next = people.filter((person) => person.id !== id);
+    setPeople(next); persistSelection(next);
+    setAssigned((current) => { const updated = { ...current }; delete updated[id]; return updated; });
+    setMessage("");
+  }
+  function clearPeople() { setPeople([]); persistSelection([]); setAssigned({}); setMessage(""); }
   function assignEveryone() {
     if (!common) return;
     setAssigned(Object.fromEntries(people.map((person) => [person.id, common])));
@@ -59,7 +67,7 @@ export function ApprovalClient() {
     }
     if (queued) {
       const remaining = people.slice(queued);
-      sessionStorage.setItem("aero-selected-applications", JSON.stringify(remaining));
+      persistSelection(remaining);
       setPeople(remaining);
       if (!remaining.length) setMessage(`${queued} kişi kalıcı gönderim kuyruğuna alındı. İlerlemeyi Gönderimler bölümünden izleyin.`);
     }
@@ -68,13 +76,17 @@ export function ApprovalClient() {
   const first = people.find((person) => assigned[person.id]);
   const preview = first ? renderApprovalMail({ firstName: first.firstName, lastName: first.lastName,
     committeeName: committees.find((committee) => committee.id === assigned[first.id])?.name ?? "" }) : null;
-  return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.approval.title}</h1><p>{operations.approval.description}</p></div><span className="ops-pill" data-tone="good">{people.length} kişi</span></div>
+  return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.approval.title}</h1><p>Seçilen kişilerin komitesini belirleyin. Göndermeden önce listeyi kontrol edin.</p></div><span className="ops-pill" data-tone="good">{people.length} kişi</span></div>
     {people.length ? <>
-      <section className="ops-card"><div className="ops-actions"><label>{operations.approval.allCommittee}<select value={common} onChange={(event) => setCommon(event.target.value)}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></label><button onClick={assignEveryone}>Uygula</button></div></section>
-      <div className="ops-table-wrap"><table className="ops-table"><thead><tr><th>Ad soyad</th><th>E-posta</th><th>{operations.approval.committee}</th></tr></thead><tbody>{people.map((person) => <tr key={person.id}><td><strong>{person.firstName} {person.lastName}</strong></td><td>{person.email}</td><td><select aria-label={`${person.firstName} ${person.lastName} komitesi`} value={assigned[person.id] ?? ""} onChange={(event) => setAssigned({ ...assigned, [person.id]: event.target.value })}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></td></tr>)}</tbody></table></div>
+      <div className="ops-step" aria-label="İşlem sırası"><span>1. Kişileri seç</span><span>→</span><strong>2. Komiteyi belirle ve e-postayı gönder</strong></div>
+      <section className="ops-card"><div className="ops-page-head"><div><h2>Seçilen kişiler</h2><p>Yanlış kişiyi seçtiyseniz yanındaki Kaldır düğmesine basın.</p></div><div className="ops-actions"><Link className="ops-button" href="/panel/basvurular">Başvurulara dön</Link><button type="button" onClick={clearPeople}>Tüm seçimi kaldır</button></div></div>
+        {people.length > 1 && <div className="ops-toolbar"><label>Herkese aynı komiteyi ata<select value={common} onChange={(event) => setCommon(event.target.value)}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></label><button type="button" disabled={!common} onClick={assignEveryone}>Herkese uygula</button></div>}
+        {!committees.length && <p role="alert" className="ops-error">Aktif komite yok. Önce <Link href="/panel/ayarlar">Ayarlar bölümünden komite ekleyin</Link>.</p>}
+        <div className="ops-person-list">{people.map((person) => <div className="ops-person" key={person.id}><div className="ops-person-details"><strong>{person.firstName} {person.lastName}</strong><span>{person.email}</span></div><label className="ops-committee-choice">Komite<select aria-label={`${person.firstName} ${person.lastName} komitesi`} value={assigned[person.id] ?? ""} onChange={(event) => setAssigned({ ...assigned, [person.id]: event.target.value })}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></label><button type="button" onClick={() => removePerson(person.id)} aria-label={`${person.firstName} ${person.lastName} seçimini kaldır`}>Kaldır</button></div>)}</div>
+      </section>
       <section className="ops-card"><h2>{operations.approval.preview}</h2>{preview ? <><strong>{preview.subject}</strong><div className="ops-preview">{preview.text}</div></> : <p className="ops-note">Önizleme için bir komite seçin.</p>}</section>
       {message && <p role="status" className="ops-note">{message}</p>}
-      <div className="ops-actions ops-actions--end"><button className="ops-button--primary" disabled={busy || people.some((person) => !assigned[person.id])} onClick={queue}>{operations.approval.send}</button></div>
-    </> : <div className="ops-empty">{operations.approval.empty} <Link href="/panel/basvurular">Başvurulara dön</Link></div>}
+      <div className="ops-actions ops-actions--end"><button className="ops-button--primary" disabled={busy || !committees.length || people.some((person) => !assigned[person.id])} onClick={queue}>{busy ? "İşleniyor…" : `${people.length} kişinin onay e-postasını kuyruğa al`}</button></div>
+    </> : <div className="ops-empty"><p>Henüz kimse seçilmedi.</p><p>Başvurular bölümünde onaylamak istediğiniz kişinin yanındaki “Bu kişiyi seç” düğmesine basın.</p><Link className="ops-button ops-button--primary" href="/panel/basvurular">Başvurulara git</Link></div>}
   </div>;
 }

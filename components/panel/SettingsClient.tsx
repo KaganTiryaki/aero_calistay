@@ -37,7 +37,7 @@ export function SettingsClient() {
     setMessage(response.ok ? "Giriş durumu güncellendi." : "Giriş durumu değiştirilemedi.");
     if (response.ok) await load();
   }
-  return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.settings.title}</h1><p>Etkinlik komiteleri, görevli hesapları ve giriş durumu.</p></div></div>
+  return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.settings.title}</h1><p>Komiteler ve etkinlik günü giriş ayarları.</p></div></div>
     {message && <p role="status" className="ops-note">{message}</p>}
     <div className="ops-grid"><section className="ops-card"><h2>{operations.settings.committees}</h2><form className="ops-actions" onSubmit={createCommittee}><label>Komite adı<input required value={name} onChange={(event) => setName(event.target.value)} /></label><button className="ops-button--primary">{operations.settings.newCommittee}</button></form>
       <div className="ops-stack">{committees.map((committee) => <div key={committee.id} className="ops-actions"><strong>{committee.name}</strong><span className="ops-pill" data-tone={committee.active ? "good" : "wait"}>{committee.active ? "Aktif" : "Pasif"}</span><button onClick={() => toggleCommittee(committee)}>{committee.active ? "Pasifleştir" : "Etkinleştir"}</button></div>)}</div></section>
