@@ -67,4 +67,12 @@ Canlı tarayıcı incelemesi: oturumsuz `/panel/gonderimler` isteği `/giris` ek
 
 ## Yayın kaydı
 
-Panel yayın kimliği ve son canlı RPC doğrulaması, dağıtım tamamlandığında eklenir.
+Kod commit'i: `63eaa66`, branch: `codex/immediate-mail-review`.
+
+Vercel production dağıtımı: `dpl_A7dAFGExBmTkQyBVGN5TmYPTTiT1`, durum `READY`; alan adı `https://www.aerocalistay.org`. Vercel production build ve tip/lint kontrolleri de başarılı.
+
+Supabase Edge Function `process-mail-queue` son kodla yeniden yayınlandı. Yeni gerçek sağlık kontrolü HTTP 200 / `enabled=true` döndü. Bu kontrol e-posta göndermedi.
+
+`check_admin_login_rate_limit` gerçek PostgREST/Supabase istemcisi üzerinden `service_role` anahtarıyla salt okunur çağrıldı: `rpcReachable=true`, `allowed=true`. Deneme hesabı/başvurusu oluşturulmadı; sentetik kimlikle yalnızca kontrol fonksiyonu çalıştırıldı.
+
+Tek alıcılı gerçek gönderim için kullanıcıya ayrı soru yöneltildi. Bu kayıt güncellendiğinde henüz yeni e-posta gönderilmemişti.
