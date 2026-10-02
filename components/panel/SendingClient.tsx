@@ -23,8 +23,9 @@ export function SendingClient() {
     setSending(batchId); setMessage("");
     try {
       const response = await fetch("/api/panel/dispatch-mail", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ batchId }) });
-      const result = await response.json() as { accepted?: number; processed?: number; error?: string };
-      setMessage(response.ok ? `${result.accepted ?? 0} e-posta sağlayıcı tarafından kabul edildi; ${result.processed ?? 0} kayıt işlendi. Teslimat durumunu burada izleyin.` : result.error ?? "E-posta servisi hazır değil; yeniden deneyin.");
+      const result = await response.json() as { acceptedTotal?: number; pending?: number; failedTotal?: number;
+        uncertainTotal?: number; error?: string; issue?: string };
+      setMessage(response.ok ? `${result.acceptedTotal ?? 0} e-posta sağlayıcı tarafından kabul edildi; ${result.pending ?? 0} bekliyor, ${result.failedTotal ?? 0} başarısız, ${result.uncertainTotal ?? 0} belirsiz. ${result.error ?? result.issue ?? ""}` : result.error ?? "Gönderim sonucu doğrulanamadı; kayıtları kontrol edin.");
       const refreshed = await fetch(`/api/panel/batches?page=${page}`, { cache: "no-store" });
       if (refreshed.ok) {
         const body = await refreshed.json() as { batches: Batch[]; jobs: Job[]; hasMore: boolean };

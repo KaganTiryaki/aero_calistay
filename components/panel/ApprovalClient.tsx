@@ -36,6 +36,10 @@ export function ApprovalClient() {
     setBusy(true); setMessage("");
     let completed = 0;
     let accepted = 0;
+    let pending = 0;
+    let failed = 0;
+    let uncertain = 0;
+    let issue = "";
     for (let offset = 0; offset < people.length; offset += 3) {
       const chunk = people.slice(offset, offset + 3);
       const selections = chunk.map((person) => ({
@@ -63,20 +67,27 @@ export function ApprovalClient() {
         setMessage(`${completed} kişi işlendi. ${body.error || "Kalan kişiler eklenemedi."}`);
         break;
       }
-      const result = await response.json() as { ready?: boolean; accepted?: number };
+      const result = await response.json() as { ready?: boolean; acceptedTotal?: number; pending?: number;
+        failedTotal?: number; uncertainTotal?: number; error?: string; issue?: string };
       if (!result.ready || response.status === 202) {
-        setMessage("Gönderim sonucu doğrulanamadı. Gönderimler bölümünü kontrol edip bekleyen grubu oradan gönderin.");
+        setMessage(result.error ?? "Gönderim sonucu doğrulanamadı. Yeniden göndermeden önce Gönderimler bölümünü kontrol edin.");
         break;
       }
       sessionStorage.removeItem(attemptKey);
       completed += chunk.length;
-      accepted += result.accepted ?? 0;
+      accepted += result.acceptedTotal ?? 0;
+      pending += result.pending ?? 0;
+      failed += result.failedTotal ?? 0;
+      uncertain += result.uncertainTotal ?? 0;
+      issue = result.error ?? result.issue ?? "";
+      if (pending || uncertain || failed) break;
     }
     if (completed) {
       const remaining = people.slice(completed);
       persistSelection(remaining);
       setPeople(remaining);
-      if (!remaining.length) setMessage(`${accepted} e-posta sağlayıcı tarafından kabul edildi. Diğer durumları Gönderimler bölümünde kontrol edin.`);
+      if (!remaining.length || pending || uncertain || failed) setMessage(
+        `${accepted} e-posta sağlayıcı tarafından kabul edildi; ${pending} bekliyor, ${failed} başarısız, ${uncertain} belirsiz. ${issue} Durumları Gönderimler bölümünde kontrol edin.`);
     }
     setBusy(false);
   }
@@ -84,6 +95,7 @@ export function ApprovalClient() {
   const preview = first ? renderApprovalMail({ firstName: first.firstName, lastName: first.lastName,
     committeeName: committees.find((committee) => committee.id === assigned[first.id])?.name ?? "" }) : null;
   return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.approval.title}</h1><p>Seçilen kişilerin komitesini belirleyin. Göndermeden önce listeyi kontrol edin.</p></div><span className="ops-pill" data-tone="good">{people.length} kişi</span></div>
+    {message && <p role="status" className="ops-note">{message}</p>}
     {people.length ? <>
       <div className="ops-step" aria-label="İşlem sırası"><span>1. Kişileri seç</span><span>→</span><strong>2. Komiteyi belirle ve e-postayı gönder</strong></div>
       <section className="ops-card"><div className="ops-page-head"><div><h2>Seçilen kişiler</h2><p>Yanlış kişiyi seçtiyseniz yanındaki Kaldır düğmesine basın.</p></div><div className="ops-actions"><Link className="ops-button" href="/panel/basvurular">Başvurulara dön</Link><button type="button" onClick={clearPeople}>Tüm seçimi kaldır</button></div></div>
@@ -92,7 +104,6 @@ export function ApprovalClient() {
         <div className="ops-person-list">{people.map((person) => <div className="ops-person" key={person.id}><div className="ops-person-details"><strong>{person.firstName} {person.lastName}</strong><span>{person.email}</span></div><label className="ops-committee-choice">Komite<select aria-label={`${person.firstName} ${person.lastName} komitesi`} value={assigned[person.id] ?? ""} onChange={(event) => setAssigned({ ...assigned, [person.id]: event.target.value })}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></label><button type="button" onClick={() => removePerson(person.id)} aria-label={`${person.firstName} ${person.lastName} seçimini kaldır`}>Kaldır</button></div>)}</div>
       </section>
       <section className="ops-card"><h2>{operations.approval.preview}</h2>{preview ? <><strong>{preview.subject}</strong><div className="ops-preview">{preview.text}</div></> : <p className="ops-note">Önizleme için bir komite seçin.</p>}</section>
-      {message && <p role="status" className="ops-note">{message}</p>}
       <div className="ops-actions ops-actions--end"><button className="ops-button--primary" disabled={busy || !committees.length || people.some((person) => !assigned[person.id])} onClick={queue}>{busy ? "Gönderiliyor…" : `${people.length} kişinin onay e-postasını gönder`}</button></div>
     </> : <div className="ops-empty"><p>Henüz kimse seçilmedi.</p><p>Başvurular bölümünde onaylamak istediğiniz kişinin yanındaki “Bu kişiyi seç” düğmesine basın.</p><Link className="ops-button ops-button--primary" href="/panel/basvurular">Başvurulara git</Link></div>}
   </div>;

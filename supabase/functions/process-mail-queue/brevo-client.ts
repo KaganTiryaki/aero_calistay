@@ -44,9 +44,13 @@ export async function sendTransactionalEmail(
   } catch {
     return { kind: "uncertain", reason: "Sağlayıcı yanıtı alınamadı; olayları araştırın." };
   }
-  let body: { messageId?: string; code?: string } = {};
-  try { body = await response.json(); } catch { /* Absence of a parseable body is handled below. */ }
-  if (response.status === 201 && body.messageId) return { kind: "accepted", messageId: body.messageId };
+  let body: { messageId?: string; code?: string; message?: string } = {};
+  try {
+    const parsed = await response.json();
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed;
+  } catch { /* Absence of a parseable body is handled below. */ }
+  if (response.status === 201 && typeof body.messageId === "string" && body.messageId.trim())
+    return { kind: "accepted", messageId: body.messageId };
   if (response.status === 201 || response.status >= 500 || body.code === "duplicate_parameter")
     return { kind: "uncertain", reason: "Gönderim sonucu belirsiz; yeniden göndermeyin." };
   if (body.code === "not_enough_credits") return { kind: "quota", reason: "Günlük e-posta hakkı doldu." };
@@ -56,5 +60,11 @@ export async function sendTransactionalEmail(
   }
   if (body.code === "invalid_email")
     return { kind: "failed", reason: "Alıcı e-posta adresi geçersiz." };
+  if (response.status === 401 || response.status === 403) {
+    const ipBlocked = typeof body.message === "string" && /\bip\b.*(?:address|unauthor|recogn|allow|block|whitelist)/i.test(body.message);
+    return { kind: "config", reason: ipBlocked
+      ? "Brevo bu sunucunun IP adresine izin vermiyor. Brevo güvenlik ayarlarını kontrol edin."
+      : "Brevo gönderim erişimini reddetti. API anahtarını ve Brevo IP izinlerini kontrol edin; e-posta gönderilmedi." };
+  }
   return { kind: "config", reason: body.code ? `Brevo hesabı veya gönderim ayarı: ${body.code}` : `Brevo hesap/gönderim hatası: HTTP ${response.status}` };
 }

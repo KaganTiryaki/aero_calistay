@@ -10,6 +10,7 @@ const migration3 = readFileSync(new URL('../../supabase/migrations/202609260003_
 const migration4 = readFileSync(new URL('../../supabase/migrations/202609300001_admin_activity.sql', import.meta.url), 'utf8');
 const migration5 = readFileSync(new URL('../../supabase/migrations/202610010001_admin_login_rate_limit.sql', import.meta.url), 'utf8');
 const migration6 = readFileSync(new URL('../../supabase/migrations/202610020001_immediate_mail_dispatch.sql', import.meta.url), 'utf8');
+const migration7 = readFileSync(new URL('../../supabase/migrations/202610030001_admin_login_rpc.sql', import.meta.url), 'utf8');
 
 async function database() {
   const pg = await PGlite.create({ extensions: { pgcrypto } });
@@ -24,6 +25,7 @@ async function database() {
   await pg.exec(migration4);
   await pg.exec(migration5);
   await pg.exec(migration6);
+  await pg.exec(migration7);
   return pg;
 }
 
@@ -51,6 +53,152 @@ test('admin login rate limit backs off, blocks after five failures, and resets',
 function queue(pg, id, actor, jobs, hash = 'a'.repeat(64)) {
   return pg.query('select public.queue_approval_batch($1,$2,$3::jsonb,$4)', [id, actor, JSON.stringify(jobs), hash]);
 }
+
+async function dispatchFixture(pg, count = 4) {
+  const admin = '99990000-1111-4222-8333-444455556666';
+  const event = (await pg.query('select id from public.events limit 1')).rows[0].id;
+  await pg.query('insert into auth.users(id) values ($1)', [admin]);
+  await pg.query("insert into public.staff_members(user_id,event_id,role) values ($1,$2,'admin')", [admin, event]);
+  const committee = (await pg.query("insert into public.committees(event_id,name) values ($1,'Test Komitesi') returning id", [event])).rows[0].id;
+  const apps = (await pg.query("insert into public.applications(event_id,first_name,last_name,email) select $1,'Test','Kişi','dispatch'||n||'@example.com' from generate_series(1,$2::integer) n returning id,email,version", [event, count])).rows;
+  const jobs = apps.map((app) => ({ applicationId: app.id, version: app.version, committeeId: committee,
+    email: app.email, subject: 'Kabul', html: 'Kabul', text: 'Kabul' }));
+  return { admin, event, apps, jobs };
+}
+
+test('targeted dispatch skips older batches and leases each selected job once across workers', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs } = await dispatchFixture(pg);
+    const oldBatch = crypto.randomUUID(), target = crypto.randomUUID();
+    await queue(pg, oldBatch, admin, jobs.slice(0, 2));
+    await queue(pg, target, admin, jobs.slice(2));
+    const [a, b] = await Promise.all([
+      pg.query('select id,batch_id from public.claim_batch_mail_jobs($1,$2,1)', [crypto.randomUUID(), target]),
+      pg.query('select id,batch_id from public.claim_batch_mail_jobs($1,$2,1)', [crypto.randomUUID(), target]),
+    ]);
+    const claimed = [...a.rows, ...b.rows];
+    assert.equal(claimed.length, 2);
+    assert.equal(new Set(claimed.map((item) => item.id)).size, 2);
+    assert.ok(claimed.every((item) => item.batch_id === target));
+    assert.equal((await pg.query('select count(*)::int as n from public.claim_batch_mail_jobs($1,$2,3)', [crypto.randomUUID(), target])).rows[0].n, 0);
+    assert.equal((await pg.query("select count(*)::int as n from public.mail_jobs where batch_id=$1 and status='queued' and attempts=0", [oldBatch])).rows[0].n, 2);
+    assert.equal((await pg.query('select reserved_today from public.mail_provider_state')).rows[0].reserved_today, 2);
+  } finally { await pg.close(); }
+});
+
+test('the public login RPCs used by the server are callable only by service_role', async () => {
+  const pg = await database();
+  try {
+    const ip = '203.0.113.22', device = crypto.randomUUID();
+    await pg.exec('set role service_role');
+    const checked = (await pg.query('select * from public.check_admin_login_rate_limit($1::inet,$2::uuid)', [ip, device])).rows[0];
+    assert.equal(checked.allowed, true);
+    const failed = (await pg.query('select * from public.record_admin_login_failure($1::inet,$2::uuid)', [ip, device])).rows[0];
+    assert.equal(failed.failure_count, 1);
+    await pg.query('select public.reset_admin_login_failures($1::inet,$2::uuid)', [ip, device]);
+    assert.equal((await pg.query('select * from public.check_admin_login_rate_limit($1::inet,$2::uuid)', [ip, device])).rows[0].failure_count, 0);
+    await pg.exec('reset role');
+    for (const role of ['anon', 'authenticated']) {
+      await pg.exec(`set role ${role}`);
+      await assert.rejects(pg.query('select * from public.check_admin_login_rate_limit($1::inet,$2::uuid)', [ip, device]), /permission denied/);
+      await assert.rejects(pg.query('select * from public.record_admin_login_failure($1::inet,$2::uuid)', [ip, device]), /permission denied/);
+      await assert.rejects(pg.query('select public.reset_admin_login_failures($1::inet,$2::uuid)', [ip, device]), /permission denied/);
+      await pg.exec('reset role');
+    }
+  } finally { await pg.close(); }
+});
+
+test('targeted quota exhaustion changes only that batch and reserves no extra slot', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs } = await dispatchFixture(pg);
+    const oldBatch = crypto.randomUUID(), target = crypto.randomUUID();
+    await queue(pg, oldBatch, admin, jobs.slice(0, 2)); await queue(pg, target, admin, jobs.slice(2));
+    await pg.exec('update public.mail_provider_state set approval_budget=1');
+    assert.equal((await pg.query('select count(*)::int as n from public.claim_batch_mail_jobs($1,$2,20)', [crypto.randomUUID(), target])).rows[0].n, 1);
+    assert.equal((await pg.query('select count(*)::int as n from public.claim_batch_mail_jobs($1,$2,20)', [crypto.randomUUID(), target])).rows[0].n, 0);
+    assert.equal((await pg.query("select count(*)::int as n from public.mail_jobs where batch_id=$1 and status='quota_wait'", [target])).rows[0].n, 1);
+    assert.equal((await pg.query("select count(*)::int as n from public.mail_jobs where batch_id=$1 and status='queued'", [oldBatch])).rows[0].n, 2);
+    assert.equal((await pg.query('select reserved_today from public.mail_provider_state')).rows[0].reserved_today, 1);
+  } finally { await pg.close(); }
+});
+
+test('expired send lease becomes uncertain and cannot be blindly sent again', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs } = await dispatchFixture(pg, 1);
+    const batch = crypto.randomUUID(), worker = crypto.randomUUID();
+    await queue(pg, batch, admin, jobs);
+    const id = (await pg.query('select id from public.claim_batch_mail_jobs($1,$2,1)', [worker, batch])).rows[0].id;
+    await pg.query("update public.mail_jobs set lease_until=now()-interval '1 minute' where id=$1", [id]);
+    assert.equal((await pg.query('select count(*)::int as n from public.claim_batch_mail_jobs($1,$2,1)', [crypto.randomUUID(), batch])).rows[0].n, 0);
+    assert.equal((await pg.query('select status,attempts from public.mail_jobs where id=$1', [id])).rows[0].status, 'uncertain');
+    assert.equal((await pg.query("select public.mark_mail_job($1,$2,'provider_accepted','late-message') as saved", [id, worker])).rows[0].saved, false);
+    assert.equal((await pg.query('select reserved_today from public.mail_provider_state')).rows[0].reserved_today, 1);
+  } finally { await pg.close(); }
+});
+
+test('targeted claims reject null and invalid limits and are inaccessible to browser roles', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs } = await dispatchFixture(pg, 1); const batch = crypto.randomUUID();
+    await queue(pg, batch, admin, jobs);
+    for (const [worker, id, limit] of [[null, batch, 1], [crypto.randomUUID(), null, 1],
+      [crypto.randomUUID(), batch, null], [crypto.randomUUID(), batch, 0], [crypto.randomUUID(), batch, 21]])
+      await assert.rejects(pg.query('select * from public.claim_batch_mail_jobs($1,$2,$3)', [worker, id, limit]), /INVALID_CLAIM/);
+    for (const role of ['anon', 'authenticated']) {
+      await pg.exec(`set role ${role}`);
+      await assert.rejects(pg.query('select * from public.claim_batch_mail_jobs($1,$2,1)', [crypto.randomUUID(), batch]), /permission denied/);
+      await pg.exec('reset role');
+    }
+    assert.equal((await pg.query('select attempts from public.mail_jobs')).rows[0].attempts, 0);
+  } finally { await pg.close(); }
+});
+
+test('provider acceptance alone cannot approve an application or create a QR', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs, apps } = await dispatchFixture(pg, 1); const batch = crypto.randomUUID(), worker = crypto.randomUUID();
+    await queue(pg, batch, admin, jobs);
+    const id = (await pg.query('select id from public.claim_batch_mail_jobs($1,$2,1)', [worker, batch])).rows[0].id;
+    await pg.query("select public.mark_mail_job($1,$2,'provider_accepted','message')", [id, worker]);
+    assert.equal((await pg.query('select status from public.applications where id=$1', [apps[0].id])).rows[0].status, 'approval_queued');
+    assert.equal((await pg.query('select count(*)::int as n from public.qr_credentials')).rows[0].n, 0);
+    assert.equal((await pg.query('select count(*)::int as n from public.claim_batch_mail_jobs($1,$2,1)', [crypto.randomUUID(), batch])).rows[0].n, 0);
+  } finally { await pg.close(); }
+});
+
+test('wrong recipient and message events do not approve or produce a QR', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs } = await dispatchFixture(pg, 1); const batch = crypto.randomUUID(), worker = crypto.randomUUID();
+    await queue(pg, batch, admin, jobs);
+    const job = (await pg.query('select id,tag from public.claim_batch_mail_jobs($1,$2,1)', [worker, batch])).rows[0];
+    await pg.query("select public.mark_mail_job($1,$2,'provider_accepted','real-message')", [job.id, worker]);
+    for (const [email, message] of [['other@example.com', 'real-message'], [jobs[0].email, 'wrong-message']]) {
+      const recorded = await pg.query("select public.record_mail_event($1,$2,$3,$4,'delivered',now()) as accepted", [crypto.randomUUID(), job.tag, message, email]);
+      assert.equal(recorded.rows[0].accepted, false);
+    }
+    assert.equal((await pg.query('select count(*)::int as n from public.mail_events')).rows[0].n, 0);
+    assert.equal((await pg.query('select count(*)::int as n from public.qr_credentials')).rows[0].n, 0);
+  } finally { await pg.close(); }
+});
+
+test('cancelled jobs are skipped by targeted dispatch and late delivery cannot revive participation', async () => {
+  const pg = await database();
+  try {
+    const { admin, jobs, apps } = await dispatchFixture(pg, 1); const batch = crypto.randomUUID();
+    await queue(pg, batch, admin, jobs);
+    const job = (await pg.query('select tag from public.mail_jobs')).rows[0];
+    await pg.query("select set_config('request.jwt.claim.sub',$1,false)", [admin]);
+    await pg.query('select public.cancel_application($1)', [apps[0].id]);
+    assert.equal((await pg.query('select count(*)::int as n from public.claim_batch_mail_jobs($1,$2,1)', [crypto.randomUUID(), batch])).rows[0].n, 0);
+    await pg.query("select public.record_mail_event($1,$2,'late-message',$3,'delivered',now())", [crypto.randomUUID(), job.tag, jobs[0].email]);
+    assert.equal((await pg.query('select status from public.applications')).rows[0].status, 'cancelled');
+    assert.equal((await pg.query('select count(*)::int as n from public.qr_credentials')).rows[0].n, 0);
+  } finally { await pg.close(); }
+});
 
 test('migrations apply and keep anon away from participant data', async () => {
   const pg = await database();

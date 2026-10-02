@@ -7,6 +7,7 @@ import { renderApprovalMail } from "@/lib/mail/approval-template";
 import { failure, json, protectMutation } from "@/lib/http";
 import { startAdminActivity } from "@/lib/activity/server";
 import { callMailWorker } from "@/lib/mail/dispatch";
+import { summarizeMailJobs } from "@/lib/mail/status";
 
 export const maxDuration = 60;
 
@@ -53,9 +54,16 @@ export async function POST(request: NextRequest) {
     if (new Set(ids).size !== ids.length) return json({ error: "Aynı kişi iki kez seçildi." }, 400);
     const client = createAdminSupabase();
     const requestHash = createHash("sha256").update(JSON.stringify(submission.selections)).digest("hex");
-    async function dispatchBatch(batchId: string) {
+    async function dispatchBatch(batchId: string, preflightDone = false) {
+      if (!preflightDone) {
+        const health = await callMailWorker({ action: "health" });
+        if (!health.ready) return json({ batchId, ...health }, 503);
+      }
       const result = await callMailWorker({ batchId, limit: 3 });
-      return json({ batchId, ...result }, result.ready ? 200 : 202);
+      const { data: states, error } = await client.from("mail_jobs")
+        .select("status,delivery_status,last_error").eq("batch_id", batchId);
+      if (error) throw error;
+      return json({ batchId, ...result, ...summarizeMailJobs(states ?? []) }, result.ready ? 200 : 202);
     }
     async function existingBatch() {
       const { data, error } = await client.from("mail_batches")
@@ -68,8 +76,9 @@ export async function POST(request: NextRequest) {
     }
     const prior = await existingBatch();
     if (prior) return prior;
-    if (!(await callMailWorker({ action: "health" })).ready)
-      return json({ error: "E-posta servisi hazır değil; başvurular değiştirilmedi." }, 503);
+    const health = await callMailWorker({ action: "health" });
+    if (!health.ready)
+      return json({ error: health.error ?? "E-posta servisi hazır değil; başvurular değiştirilmedi.", code: health.code }, 503);
     const [{ data: apps, error: appError }, { data: committees, error: committeeError }] = await Promise.all([
       client.from("applications").select("id,first_name,last_name,email,status,version")
         .eq("event_id", staff.eventId).in("id", ids),
@@ -102,6 +111,6 @@ export async function POST(request: NextRequest) {
       throw error;
     }
     await finish("succeeded");
-    return dispatchBatch(data);
+    return dispatchBatch(data, true);
   } catch (error) { return failure(error); }
 }
