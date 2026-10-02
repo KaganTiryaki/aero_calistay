@@ -9,6 +9,7 @@ const migration2 = readFileSync(new URL('../../supabase/migrations/202609260002_
 const migration3 = readFileSync(new URL('../../supabase/migrations/202609260003_retry_failed_approval.sql', import.meta.url), 'utf8');
 const migration4 = readFileSync(new URL('../../supabase/migrations/202609300001_admin_activity.sql', import.meta.url), 'utf8');
 const migration5 = readFileSync(new URL('../../supabase/migrations/202610010001_admin_login_rate_limit.sql', import.meta.url), 'utf8');
+const migration6 = readFileSync(new URL('../../supabase/migrations/202610020001_immediate_mail_dispatch.sql', import.meta.url), 'utf8');
 
 async function database() {
   const pg = await PGlite.create({ extensions: { pgcrypto } });
@@ -22,6 +23,7 @@ async function database() {
   await pg.exec(migration3);
   await pg.exec(migration4);
   await pg.exec(migration5);
+  await pg.exec(migration6);
   return pg;
 }
 

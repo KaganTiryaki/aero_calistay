@@ -6,10 +6,13 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { renderApprovalMail } from "@/lib/mail/approval-template";
 import { failure, json, protectMutation } from "@/lib/http";
 import { startAdminActivity } from "@/lib/activity/server";
+import { callMailWorker } from "@/lib/mail/dispatch";
+
+export const maxDuration = 60;
 
 const bodySchema = z.object({
   batchId: z.string().uuid(),
-  selections: z.array(z.object({ applicationId: z.string().uuid(), version: z.number().int().positive(), committeeId: z.string().uuid() })).min(1).max(500),
+  selections: z.array(z.object({ applicationId: z.string().uuid(), version: z.number().int().positive(), committeeId: z.string().uuid() })).min(1).max(3),
 });
 
 export async function GET(request: NextRequest) {
@@ -50,6 +53,10 @@ export async function POST(request: NextRequest) {
     if (new Set(ids).size !== ids.length) return json({ error: "Aynı kişi iki kez seçildi." }, 400);
     const client = createAdminSupabase();
     const requestHash = createHash("sha256").update(JSON.stringify(submission.selections)).digest("hex");
+    async function dispatchBatch(batchId: string) {
+      const result = await callMailWorker({ batchId, limit: 3 });
+      return json({ batchId, ...result }, result.ready ? 200 : 202);
+    }
     async function existingBatch() {
       const { data, error } = await client.from("mail_batches")
         .select("event_id,created_by,request_hash").eq("id", submission.batchId).maybeSingle();
@@ -57,10 +64,12 @@ export async function POST(request: NextRequest) {
       if (!data) return null;
       if (data.event_id !== staff.eventId || data.created_by !== staff.userId || data.request_hash !== requestHash)
         return json({ error: "Grup kimliği başka bir seçim için kullanılmış." }, 409);
-      return json({ batchId: submission.batchId, alreadyQueued: true });
+      return dispatchBatch(submission.batchId);
     }
     const prior = await existingBatch();
     if (prior) return prior;
+    if (!(await callMailWorker({ action: "health" })).ready)
+      return json({ error: "E-posta servisi hazır değil; başvurular değiştirilmedi." }, 503);
     const [{ data: apps, error: appError }, { data: committees, error: committeeError }] = await Promise.all([
       client.from("applications").select("id,first_name,last_name,email,status,version")
         .eq("event_id", staff.eventId).in("id", ids),
@@ -93,6 +102,6 @@ export async function POST(request: NextRequest) {
       throw error;
     }
     await finish("succeeded");
-    return json({ batchId: data }, 201);
+    return dispatchBatch(data);
   } catch (error) { return failure(error); }
 }

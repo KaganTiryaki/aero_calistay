@@ -25,15 +25,24 @@ Deno.serve(async (request) => {
     return new Response("Configuration incomplete", { status: 503 });
   if (mailEnv === "test" && allowlist.size === 0)
     return new Response("Test recipient allowlist missing", { status: 503 });
+  let input: { action?: string; batchId?: string; limit?: number } = {};
+  try { input = await request.json(); } catch { /* Scheduled calls may have no body. */ }
+  if (input.action === "health") return Response.json({ enabled: true });
+  const targeted = typeof input.batchId === "string";
+  if (targeted && (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.batchId!)
+    || !Number.isInteger(input.limit) || input.limit! < 1 || input.limit! > 20))
+    return new Response("Invalid batch request", { status: 400 });
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
   const workerId = crypto.randomUUID();
   let reconciled = 0;
-  try { reconciled = await reconcileJobs(db, apiKey); }
+  try { if (!targeted) reconciled = await reconcileJobs(db, apiKey); }
   catch { /* A later invocation resumes reconciliation. Sending remains conservative. */ }
   let accepted = 0;
   let processed = 0;
-  for (let count = 0; count < 20; count++) {
-    const { data: jobs, error } = await db.rpc("claim_mail_jobs", { p_worker: workerId, p_limit: 1 });
+  for (let count = 0; count < (targeted ? input.limit! : 20); count++) {
+    const { data: jobs, error } = targeted
+      ? await db.rpc("claim_batch_mail_jobs", { p_worker: workerId, p_batch_id: input.batchId, p_limit: 1 })
+      : await db.rpc("claim_mail_jobs", { p_worker: workerId, p_limit: 1 });
     if (error) return new Response("Queue unavailable", { status: 503 });
     const job = (jobs as (MailJob & { id: string })[] | null)?.[0];
     if (!job) break;
@@ -58,5 +67,5 @@ Deno.serve(async (request) => {
     if (result.kind === "accepted") accepted++;
     if (result.kind === "rate" || result.kind === "quota" || result.kind === "config") break;
   }
-  return Response.json({ processed, accepted, reconciled });
+  return Response.json({ enabled: true, processed, accepted, reconciled });
 });

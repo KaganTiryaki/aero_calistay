@@ -18,6 +18,21 @@ export function SendingClient() {
   const [reopened, setReopened] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [sending, setSending] = useState<string | null>(null);
+  async function dispatch(batchId: string) {
+    setSending(batchId); setMessage("");
+    try {
+      const response = await fetch("/api/panel/dispatch-mail", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ batchId }) });
+      const result = await response.json() as { accepted?: number; processed?: number; error?: string };
+      setMessage(response.ok ? `${result.accepted ?? 0} e-posta sağlayıcı tarafından kabul edildi; ${result.processed ?? 0} kayıt işlendi. Teslimat durumunu burada izleyin.` : result.error ?? "E-posta servisi hazır değil; yeniden deneyin.");
+      const refreshed = await fetch(`/api/panel/batches?page=${page}`, { cache: "no-store" });
+      if (refreshed.ok) {
+        const body = await refreshed.json() as { batches: Batch[]; jobs: Job[]; hasMore: boolean };
+        setBatches(body.batches); setJobs(body.jobs); setHasMore(body.hasMore);
+      }
+    } catch { setMessage("Bağlantı kesildi. Yeniden göndermeden önce durumu kontrol edin."); }
+    finally { setSending(null); }
+  }
   async function reopen(jobId: string) {
     if (!window.confirm("Hatalı gönderim için başvuru yeniden açılsın mı? Kişiyi kontrol edip yeniden seçmeniz gerekecek.")) return;
     const response = await fetch("/api/panel/retry-failed", { method: "POST", headers: { "Content-Type": "application/json" },
@@ -44,7 +59,7 @@ export function SendingClient() {
     {!batches.length ? <div className="ops-empty">{operations.sending.empty}</div> : batches.map((batch) => {
       const rows = jobs.filter((job) => job.batch_id === batch.id);
       const counts = rows.reduce<Record<string, number>>((result, job) => ({ ...result, [job.status]: (result[job.status] ?? 0) + 1 }), {});
-      return <section key={batch.id} className="ops-card"><div className="ops-page-head"><div><h2>{new Date(batch.created_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}</h2><p>{batch.total} kişi</p></div><div className="ops-statline">{Object.entries(counts).map(([name, count]) => <span key={name}>{label("mailStatus", name)}: {count}</span>)}</div></div>
+      return <section key={batch.id} className="ops-card"><div className="ops-page-head"><div><h2>{new Date(batch.created_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}</h2><p>{batch.total} kişi</p></div><div className="ops-statline">{Object.entries(counts).map(([name, count]) => <span key={name}>{label("mailStatus", name)}: {count}</span>)}{rows.some((job) => job.status === "queued" || job.status === "quota_wait") && <button disabled={sending === batch.id} onClick={() => dispatch(batch.id)}>{sending === batch.id ? "Gönderiliyor…" : "Bekleyenleri şimdi gönder"}</button>}</div></div>
         <div className="ops-table-wrap"><table className="ops-table"><thead><tr><th>Kişi</th><th>Komite</th><th>Gönderim</th><th>Teslimat</th><th>Hata</th><th>İşlem</th></tr></thead><tbody>{rows.map((job) => <tr key={job.id}><td><strong>{job.recipient_name}</strong><small>{job.recipient_email}</small></td><td>{job.committee_name}</td><td><span className="ops-pill" data-tone={tone[job.status]}>{label("mailStatus", job.status)}</span></td><td>{label("deliveryStatus", job.delivery_status)}</td><td>{job.last_error ?? "—"}</td><td>{job.status === "failed" && !job.reopened_at && !reopened.includes(job.id) ? <button onClick={() => reopen(job.id)}>Başvuruyu yeniden aç</button> : job.reopened_at || reopened.includes(job.id) ? "Yeniden açıldı" : "—"}</td></tr>)}</tbody></table></div>
       </section>;
     })}

@@ -34,9 +34,10 @@ export function ApprovalClient() {
   async function queue() {
     if (people.some((person) => !assigned[person.id])) { setMessage("Her kişi için komite seçin."); return; }
     setBusy(true); setMessage("");
-    let queued = 0;
-    for (let offset = 0; offset < people.length; offset += 500) {
-      const chunk = people.slice(offset, offset + 500);
+    let completed = 0;
+    let accepted = 0;
+    for (let offset = 0; offset < people.length; offset += 3) {
+      const chunk = people.slice(offset, offset + 3);
       const selections = chunk.map((person) => ({
           applicationId: person.id, version: person.version, committeeId: assigned[person.id],
         }));
@@ -54,22 +55,28 @@ export function ApprovalClient() {
           body: JSON.stringify({ batchId: attempt.batchId, selections }),
         });
       } catch {
-        setMessage(`${queued} kişi kuyruğa alındığı doğrulandı. Bağlantıyı kontrol edip aynı seçimi tekrar deneyin.`);
+        setMessage(`${completed} kişi işlendi. Bağlantı kesildi; aynı seçimi yeniden deneyin veya Gönderimler bölümünü kontrol edin.`);
         break;
       }
       if (!response.ok) {
         const body = await response.json() as { error?: string };
-        setMessage(`${queued} kişi kuyruğa alındı. ${body.error || "Kalan kişiler eklenemedi."}`);
+        setMessage(`${completed} kişi işlendi. ${body.error || "Kalan kişiler eklenemedi."}`);
+        break;
+      }
+      const result = await response.json() as { ready?: boolean; accepted?: number };
+      if (!result.ready || response.status === 202) {
+        setMessage("Gönderim sonucu doğrulanamadı. Gönderimler bölümünü kontrol edip bekleyen grubu oradan gönderin.");
         break;
       }
       sessionStorage.removeItem(attemptKey);
-      queued += chunk.length;
+      completed += chunk.length;
+      accepted += result.accepted ?? 0;
     }
-    if (queued) {
-      const remaining = people.slice(queued);
+    if (completed) {
+      const remaining = people.slice(completed);
       persistSelection(remaining);
       setPeople(remaining);
-      if (!remaining.length) setMessage(`${queued} kişi kalıcı gönderim kuyruğuna alındı. İlerlemeyi Gönderimler bölümünden izleyin.`);
+      if (!remaining.length) setMessage(`${accepted} e-posta sağlayıcı tarafından kabul edildi. Diğer durumları Gönderimler bölümünde kontrol edin.`);
     }
     setBusy(false);
   }
@@ -86,7 +93,7 @@ export function ApprovalClient() {
       </section>
       <section className="ops-card"><h2>{operations.approval.preview}</h2>{preview ? <><strong>{preview.subject}</strong><div className="ops-preview">{preview.text}</div></> : <p className="ops-note">Önizleme için bir komite seçin.</p>}</section>
       {message && <p role="status" className="ops-note">{message}</p>}
-      <div className="ops-actions ops-actions--end"><button className="ops-button--primary" disabled={busy || !committees.length || people.some((person) => !assigned[person.id])} onClick={queue}>{busy ? "İşleniyor…" : `${people.length} kişinin onay e-postasını kuyruğa al`}</button></div>
+      <div className="ops-actions ops-actions--end"><button className="ops-button--primary" disabled={busy || !committees.length || people.some((person) => !assigned[person.id])} onClick={queue}>{busy ? "Gönderiliyor…" : `${people.length} kişinin onay e-postasını gönder`}</button></div>
     </> : <div className="ops-empty"><p>Henüz kimse seçilmedi.</p><p>Başvurular bölümünde onaylamak istediğiniz kişinin yanındaki “Bu kişiyi seç” düğmesine basın.</p><Link className="ops-button ops-button--primary" href="/panel/basvurular">Başvurulara git</Link></div>}
   </div>;
 }
