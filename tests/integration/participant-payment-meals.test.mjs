@@ -68,6 +68,11 @@ test('reinvite does not create jobs for pending or cancelled applications and re
   await s.pg.query("update mail_jobs set status='failed' where id=$1",[job]);await s.pg.exec('set role service_role');
   assert.equal((await s.pg.query('select * from read_participant_auth_mail($1)',[job])).rows.length,1);
   await s.pg.query('select cleanup_participant_auth_payloads()');assert.equal((await s.pg.query('select * from read_participant_auth_mail($1)',[job])).rows.length,0);
+  for(const state of ['provider_accepted','uncertain']){
+   await s.pg.exec('reset role');await s.pg.query("insert into participant_auth_mail_payloads(job_id,application_id,nonce,ciphertext,auth_tag,expires_at) values($1,$2,'AAAAAAAAAAAAAAAA','eA==','AAAAAAAAAAAAAAAAAAAAAA==',now()-interval '25 hours')",[job,s.app]);
+   await s.pg.query('update mail_jobs set status=$2 where id=$1',[job,state]);await s.pg.exec('set role service_role');await s.pg.query('select cleanup_participant_auth_payloads()');
+   assert.equal((await s.pg.query('select * from read_participant_auth_mail($1)',[job])).rows.length,state==='uncertain'?1:0);
+  }
   await s.pg.exec('reset role');assert.equal((await s.pg.query('select count(*)::integer n from mail_jobs where id=$1',[job])).rows[0].n,1);
   await s.pg.query("update applications set status='cancelled' where id=$1",[s.app]);await s.pg.exec('set role service_role');assert.equal((await s.pg.query("select request_participant_auth_mail('p@test.com','activate',$1) id",[crypto.randomUUID()])).rows[0].id,null);
  }finally{await s.pg.close();}
