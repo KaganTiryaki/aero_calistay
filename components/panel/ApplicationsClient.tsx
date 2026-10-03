@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { operations } from "@/lib/content";
 
@@ -30,6 +30,8 @@ export function ApplicationsClient() {
   const [selection, setSelection] = useState<SelectedApplication[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [draft,setDraft]=useState({firstName:"",lastName:"",email:""});
+  const [saving,setSaving]=useState(false);
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,9 +57,24 @@ export function ApplicationsClient() {
       : [...selection, selectedOf(item)]);
   }
   function searchNow() { setPage(1); setAppliedSearch(search); if (search === appliedSearch) void load(); }
+  async function createApplication(event:FormEvent){
+    event.preventDefault();setSaving(true);setMessage("");
+    try{
+      const response=await fetch("/api/panel/applications",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(draft)});
+      const body=await response.json();if(!response.ok)throw new Error(body.error || "Başvuru eklenemedi.");
+      setDraft({firstName:"",lastName:"",email:""});setStatus("pending");setPage(1);setSearch("");setAppliedSearch("");await load();
+    }catch(error){setMessage(error instanceof Error?error.message:"Başvuru eklenemedi.");}
+    finally{setSaving(false);}
+  }
   return <div className="ops-stack">
     <div className="ops-page-head"><div><h1>Başvurular</h1><p>Onaylamak istediğiniz kişinin yanındaki <strong>Seç</strong> düğmesine basın.</p></div></div>
     <div className="ops-step" aria-label="İşlem sırası"><strong>1. Kişileri seç</strong><span>→</span><span>2. Komiteyi belirle ve e-postayı gönder</span></div>
+    <details className="ops-card"><summary>Başvuru ekle</summary><p>Yönetici olarak manuel başvuru veya kendi test kaydınızı ekleyebilirsiniz. E-posta, onay ekranında gönderilir.</p><form className="ops-form" onSubmit={createApplication}>
+      <label>Ad<input required value={draft.firstName} onChange={event=>setDraft({...draft,firstName:event.target.value})}/></label>
+      <label>Soyad<input required value={draft.lastName} onChange={event=>setDraft({...draft,lastName:event.target.value})}/></label>
+      <label>E-posta<input type="email" required value={draft.email} onChange={event=>setDraft({...draft,email:event.target.value})}/></label>
+      <button disabled={saving} className="ops-button--primary">{saving?"Kaydediliyor…":"Başvuruyu kaydet"}</button>
+    </form></details>
     <section className="ops-card ops-card--soft"><div className="ops-toolbar"><label>İsim veya e-posta ara<input value={search} placeholder="Ad, soyad veya e-posta" onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") searchNow(); }} /></label><label>Göster<select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="pending">Onay bekleyenler</option><option value="accepted_pending_payment">İlk kabul — ödeme bekleniyor</option><option value="confirmed">Kesin kabul edilenler</option><option value="approval_queued">Eski e-posta kuyruğu</option><option value="approved">Eski onay — ödeme doğrulanmadı</option><option value="cancelled">İptal edilenler</option><option value="">Tüm başvurular</option></select></label><div className="ops-actions"><button onClick={searchNow}>Ara</button><button onClick={() => void load()} disabled={loading}>Yenile</button></div></div><p className="ops-note">Başvurular Google Form üzerinden otomatik gelir.</p></section>
     {message && <p role="alert" className="ops-error">{message}</p>}
     <section aria-label="Başvuru listesi">

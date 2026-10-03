@@ -59,3 +59,11 @@ test('a rejected uploaded file can be explicitly replaced instead of trapping th
  await c.nodes(c.render(),'button').find(x=>x.props.children==='Başka dosya seç').props.onClick();
  assert.equal(c.nodes(c.render(),'input').find(x=>x.props.type==='file').props.disabled,false);
 });
+test('administrator can create a pending test application without sending email',async()=>{
+ const writes=[];const c=component('../../components/panel/ApplicationsClient.tsx','ApplicationsClient',{fetch:async(url,init)=>{
+  if(init?.method==='POST'){writes.push({url,body:JSON.parse(init.body)});return response({id:'new-app'});}
+  return response({items:[],total:0});
+ }});
+ for(const [index,value] of [[0,'Test'],[1,'Katılımcı'],[2,'test@example.com']])c.nodes(c.render(),'input')[index].props.onChange({target:{value}});
+ await c.submit();assert.deepEqual(writes,[{url:'/api/panel/applications',body:{firstName:'Test',lastName:'Katılımcı',email:'test@example.com'}}]);
+});
