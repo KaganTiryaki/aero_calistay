@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendTransactionalEmail, type MailJob } from "./brevo-client.ts";
 import { reconcileJobs } from "./reconcile.ts";
 import { checkBrevoReadiness } from "./readiness.ts";
+import { prepareParticipantAuthMail } from "./participant-auth-mail.ts";
 
 const url = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -10,6 +11,7 @@ const secret = Deno.env.get("MAIL_QUEUE_SECRET") ?? "";
 const senderEmail = Deno.env.get("MAIL_SENDER_EMAIL") ?? "";
 const senderName = Deno.env.get("MAIL_SENDER_NAME") ?? "AERO";
 const replyToEmail = Deno.env.get("MAIL_REPLY_TO_EMAIL") ?? "";
+const authMailKey = Deno.env.get("AUTH_MAIL_PAYLOAD_KEY") ?? "";
 const allowlist = new Set((Deno.env.get("MAIL_TEST_ALLOWLIST") ?? "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean));
 
 Deno.serve(async (request) => {
@@ -73,7 +75,17 @@ Deno.serve(async (request) => {
       failed++;
       continue;
     }
-    const result = await sendTransactionalEmail(job, { apiKey, senderEmail, senderName, replyToEmail });
+    let outgoing = job;
+    if (job.kind === "participant_auth" || job.kind === "acceptance") {
+      try { outgoing = await prepareParticipantAuthMail(db, job, authMailKey); }
+      catch {
+        const marked = await db.rpc("mark_mail_job", { p_job_id: job.id, p_worker: workerId, p_status: "failed", p_error: "Hesap bağlantısı hazırlanamadı." });
+        if (marked.error || marked.data !== true) return Response.json({ enabled: false, processed, accepted, code: "MAIL_RESULT_UNCONFIRMED", error: "Gönderim sonucu kaydedilemedi." }, { status: 503 });
+        failed++;
+        continue;
+      }
+    }
+    const result = await sendTransactionalEmail(outgoing, { apiKey, senderEmail, senderName, replyToEmail });
     const status = result.kind === "accepted" ? "provider_accepted"
       : result.kind === "quota" ? "quota_wait"
       : result.kind === "rate" || result.kind === "config" ? "queued"

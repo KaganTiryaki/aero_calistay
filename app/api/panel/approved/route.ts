@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const client = createAdminSupabase();
     const { data: apps, error } = await client.from("applications")
       .select("id,first_name,last_name,email,committee_id,approved_at,status")
-      .eq("event_id", staff.eventId).eq("status", "approved")
+      .eq("event_id", staff.eventId).eq("status", "confirmed")
       .order("approved_at", { ascending: false }).order("id")
       .range((page - 1) * pageSize, page * pageSize - 1);
     if (error) throw error;

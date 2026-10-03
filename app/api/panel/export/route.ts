@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     for (let offset = 0; ; offset += 1000) {
       const { data, error } = await client.from("applications")
         .select("first_name,last_name,email,committee_id,approved_at")
-        .eq("event_id", staff.eventId).eq("status", "approved")
+        .eq("event_id", staff.eventId).eq("status", "confirmed")
         .order("created_at").range(offset, offset + 999);
       if (error) throw error;
       (data ?? []).forEach((item) => lines.push(csvRow([item.first_name, item.last_name, item.email,

@@ -5,20 +5,25 @@ import Link from "next/link";
 import { operations } from "@/lib/content";
 
 type Committee = { id: string; name: string; active: boolean };
+type Staff = { user_id: string; email: string | null; active: boolean; role: string };
 export function SettingsClient() {
   const [committees, setCommittees] = useState<Committee[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [staffEmail, setStaffEmail] = useState("");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   async function load() {
-    const [committeeResponse, settingsResponse] = await Promise.all([
+    const [committeeResponse, settingsResponse, staffResponse] = await Promise.all([
       fetch("/api/panel/committees", { cache: "no-store" }),
       fetch("/api/panel/settings", { cache: "no-store" }),
+      fetch("/api/panel/staff", { cache: "no-store" }),
     ]);
     if (!committeeResponse.ok || !settingsResponse.ok) { setMessage("Ayarlar yüklenemedi."); return; }
     const committeeData = await committeeResponse.json() as { items: Committee[] };
     const settingsData = await settingsResponse.json() as { event: { check_in_open: boolean } };
     setCommittees(committeeData.items); setCheckInOpen(settingsData.event.check_in_open);
+    if (staffResponse.ok) setStaff((await staffResponse.json() as { items: Staff[] }).items);
   }
   useEffect(() => { void load(); }, []);
   async function createCommittee(event: FormEvent) {
@@ -37,13 +42,29 @@ export function SettingsClient() {
     setMessage(response.ok ? "Giriş durumu güncellendi." : "Giriş durumu değiştirilemedi.");
     if (response.ok) await load();
   }
+  async function inviteStaff(event: FormEvent) {
+    event.preventDefault();
+    const response = await fetch("/api/panel/staff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: staffEmail }) });
+    if (response.ok) {
+      const result = await response.json() as { invited: boolean };
+      setMessage(result.invited ? "Personel daveti gönderildi." : "Mevcut hesap için personel erişimi açıldı. Kişi mevcut şifresiyle giriş yapabilir veya giriş ekranından yeni bağlantı isteyebilir.");
+    } else setMessage("Personel daveti oluşturulamadı.");
+    if (response.ok) { setStaffEmail(""); await load(); }
+  }
+  async function toggleStaff(item: Staff) {
+    const response = await fetch("/api/panel/staff", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: item.user_id, active: !item.active }) });
+    setMessage(response.ok ? "Personel erişimi güncellendi." : "Personel erişimi güncellenemedi.");
+    if (response.ok) await load();
+  }
   return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.settings.title}</h1><p>Komiteler ve etkinlik günü giriş ayarları.</p></div></div>
     {message && <p role="status" className="ops-note">{message}</p>}
     <div className="ops-grid"><section className="ops-card"><h2>{operations.settings.committees}</h2><form className="ops-actions" onSubmit={createCommittee}><label>Komite adı<input required value={name} onChange={(event) => setName(event.target.value)} /></label><button className="ops-button--primary">{operations.settings.newCommittee}</button></form>
       <div className="ops-stack">{committees.map((committee) => <div key={committee.id} className="ops-actions"><strong>{committee.name}</strong><span className="ops-pill" data-tone={committee.active ? "good" : "wait"}>{committee.active ? "Aktif" : "Pasif"}</span><button onClick={() => toggleCommittee(committee)}>{committee.active ? "Pasifleştir" : "Etkinleştir"}</button></div>)}</div></section>
       <section className="ops-card"><h2>Etkinlik girişi</h2><p className="ops-note">Giriş kapalıyken hiçbir QR veya manuel kod yeni giriş oluşturmaz.</p><p><span className="ops-pill" data-tone={checkInOpen ? "good" : "wait"}>{checkInOpen ? "Açık" : "Kapalı"}</span></p><button className={checkInOpen ? "ops-button--danger" : "ops-button--primary"} onClick={toggleCheckIn}>{checkInOpen ? operations.settings.checkInClosed : operations.settings.checkInOpen}</button></section></div>
-    <section className="ops-card"><h2>Yönetici erişimi</h2>
-      <p>Panel tek ortak yönetici şifresiyle açılır. Personel için giriş hesabı oluşturulmaz.</p>
+    <section className="ops-card"><h2>Personel erişimi</h2>
+      <p>Personeller kendi hesaplarıyla <Link href="/personel/giris">personel girişinden</Link> telefonlarında oturum açar.</p>
+      <form className="ops-actions" onSubmit={inviteStaff}><label>Personel e-postası<input type="email" required value={staffEmail} onChange={(event) => setStaffEmail(event.target.value)} /></label><button className="ops-button--primary">Personel daveti gönder</button></form>
+      {staff.map((item) => <div className="ops-actions" key={item.user_id}><strong>{item.email ?? item.user_id}</strong><span>{item.role === "admin" ? "Yönetici" : item.active ? "Aktif personel" : "Pasif personel"}</span>{item.role !== "admin" && <button onClick={() => toggleStaff(item)}>{item.active ? "Erişimi kapat" : "Erişimi aç"}</button>}</div>)}
       <p>Girişleri, IP ve cihaz izlerini <Link href="/panel/etkinlik">işlem geçmişinde</Link> görebilirsiniz.</p>
     </section>
   </div>;

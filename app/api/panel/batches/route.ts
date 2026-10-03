@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const jobs = [];
     if (ids.length) for (let offset = 0; ; offset += 500) {
       const { data, error: jobsError } = await client.from("mail_jobs")
-        .select("id,batch_id,recipient_name,recipient_email,committee_name,status,delivery_status,last_error,reopened_at,created_at")
+        .select("id,batch_id,kind,recipient_name,recipient_email,committee_name,status,delivery_status,last_error,reopened_at,created_at")
         .in("batch_id", ids).order("created_at", { ascending: false }).order("id")
         .range(offset, offset + 499);
       if (jobsError) throw jobsError;
@@ -54,16 +54,16 @@ export async function POST(request: NextRequest) {
     if (new Set(ids).size !== ids.length) return json({ error: "Aynı kişi iki kez seçildi." }, 400);
     const client = createAdminSupabase();
     const requestHash = createHash("sha256").update(JSON.stringify(submission.selections)).digest("hex");
-    async function dispatchBatch(batchId: string, preflightDone = false) {
-      if (!preflightDone) {
-        const health = await callMailWorker({ action: "health" });
-        if (!health.ready) return json({ batchId, ...health }, 503);
-      }
-      const result = await callMailWorker({ batchId, limit: 3 });
-      const { data: states, error } = await client.from("mail_jobs")
-        .select("status,delivery_status,last_error").eq("batch_id", batchId);
+    async function dispatchBatch() {
+      const readiness = await callMailWorker({ action: "health" });
+      if (!readiness.ready) return json({ error: readiness.error ?? "E-posta gönderimi şu anda hazır değil; gönderim ayarlarını kontrol edin.", code: readiness.code }, 503);
+      const dispatch = await callMailWorker({ batchId: submission.batchId, limit: submission.selections.length });
+      const { data: jobs, error } = await client.from("mail_jobs").select("status,delivery_status,last_error")
+        .eq("batch_id", submission.batchId);
       if (error) throw error;
-      return json({ batchId, ...result, ...summarizeMailJobs(states ?? []) }, result.ready ? 200 : 202);
+      return json({ batchId: submission.batchId, dispatchReady: dispatch.ready,
+        ...summarizeMailJobs(jobs ?? []), code: dispatch.code, error: dispatch.error,
+      }, dispatch.ready ? 200 : 202);
     }
     async function existingBatch() {
       const { data, error } = await client.from("mail_batches")
@@ -72,13 +72,12 @@ export async function POST(request: NextRequest) {
       if (!data) return null;
       if (data.event_id !== staff.eventId || data.created_by !== staff.userId || data.request_hash !== requestHash)
         return json({ error: "Grup kimliği başka bir seçim için kullanılmış." }, 409);
-      return dispatchBatch(submission.batchId);
+      return dispatchBatch();
     }
     const prior = await existingBatch();
     if (prior) return prior;
-    const health = await callMailWorker({ action: "health" });
-    if (!health.ready)
-      return json({ error: health.error ?? "E-posta servisi hazır değil; başvurular değiştirilmedi.", code: health.code }, 503);
+    const readiness = await callMailWorker({ action: "health" });
+    if (!readiness.ready) return json({ error: readiness.error ?? "E-posta gönderimi şu anda hazır değil; gönderim ayarlarını kontrol edin.", code: readiness.code }, 503);
     const [{ data: apps, error: appError }, { data: committees, error: committeeError }] = await Promise.all([
       client.from("applications").select("id,first_name,last_name,email,status,version")
         .eq("event_id", staff.eventId).in("id", ids),
@@ -102,7 +101,7 @@ export async function POST(request: NextRequest) {
     if (stale) return await existingBatch() ?? json({ error: "Seçim değişti; listeyi yenileyin." }, 409);
     const finish = await startAdminActivity(request, staff, "approval_batch_create", submission.batchId,
       { count: submission.selections.length });
-    const { data, error } = await client.rpc("queue_approval_batch", {
+    const { error } = await client.rpc("queue_approval_batch", {
       p_batch_id: submission.batchId, p_actor: staff.userId, p_jobs: jobs, p_request_hash: requestHash,
     });
     if (error) {
@@ -111,6 +110,6 @@ export async function POST(request: NextRequest) {
       throw error;
     }
     await finish("succeeded");
-    return dispatchBatch(data, true);
+    return dispatchBatch();
   } catch (error) { return failure(error); }
 }

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const client = createAdminSupabase();
     const { data: application } = await client.from("applications")
       .select("id,status").eq("id", id).eq("event_id", staff.eventId).maybeSingle();
-    if (application?.status !== "approved") return json({ error: "Kart bulunamadı." }, 404);
+    if (application?.status !== "confirmed") return json({ error: "Kart bulunamadı." }, 404);
     const { data, error } = await client.from("qr_credentials")
       .select("raw_value,active").eq("application_id", id).maybeSingle();
     if (error) throw error;

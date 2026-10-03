@@ -9,9 +9,11 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 
 export function loadPanelRoute(route, { db, staff, worker } = {}) {
   const stubs = {
+    'server-only': {},
     '@/lib/auth/permissions': { requireStaff: async () => { if (!staff || staff.role !== 'admin') throw Error('FORBIDDEN'); return staff; } },
     '@/lib/supabase/admin': { createAdminSupabase: () => db },
     '@/lib/mail/dispatch': { callMailWorker: worker },
+    '@/lib/participant/server': { participantFailure: (error) => new (nativeRequire('next/server').NextResponse)(JSON.stringify({ error: error?.message ?? 'UNKNOWN' }), { status: 500 }) },
     '@/lib/activity/server': { startAdminActivity: async () => async () => {} },
   };
   const cache = new Map(), context = vm.createContext({ Request, Response, URL, Error, process, console });

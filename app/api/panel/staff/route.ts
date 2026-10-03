@@ -21,6 +21,29 @@ export async function GET() {
   } catch (error) { return failure(error); }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    protectMutation(request);
+    const staff = await requireStaff("admin");
+    const parsed = z.object({ email: z.email().max(254) }).safeParse(await request.json());
+    if (!parsed.success) return json({ error: "Geçerli personel e-postası girin." }, 400);
+    const email = parsed.data.email.trim().toLowerCase();
+    const client = createAdminSupabase();
+    const { data: existingId, error: lookupError } = await client.rpc("find_auth_user_by_email", { p_email: email });
+    if (lookupError) throw lookupError;
+    let userId: string = existingId;
+    if (!userId) {
+      const origin = new URL(request.url).origin;
+      const { data, error } = await client.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/personel/aktivasyon` });
+      if (error || !data.user) throw error ?? new Error("INVITE_FAILED");
+      userId = data.user.id;
+    }
+    const { error } = await client.from("staff_members").upsert({ user_id: userId, event_id: staff.eventId, role: "staff", active: true }, { onConflict: "user_id,event_id" });
+    if (error) throw error;
+    return json({ ok: true, invited: !existingId });
+  } catch (error) { return failure(error); }
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     protectMutation(request);

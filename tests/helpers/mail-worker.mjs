@@ -34,14 +34,20 @@ export function loadWorker({ env = {}, db, fetchImpl } = {}) {
 }
 
 export function fakeDb(jobs = [], markResult = { data: true, error: null }) {
-  const claims = [], marks = [];
+  const claims = [], marks = [], rpcCalls = [];
   return { claims, marks, rpc: async (name, args) => {
+    rpcCalls.push({ name, args });
     if (name === 'claim_batch_mail_jobs' || name === 'claim_mail_jobs') {
       claims.push({ name, args }); return { data: jobs.length ? [jobs.shift()] : [], error: null };
     }
     if (name === 'mark_mail_job') { marks.push(args); return markResult; }
+    if (name === 'read_participant_auth_mail') return { data: [], error: null };
+    if (name === 'participant_auth_identity') return { data: null, error: null };
+    if (name === 'store_participant_auth_mail') return { data: true, error: null };
     throw Error(`unexpected RPC ${name}`);
-  } };
+  }, from(table) { return { select() { return this; }, eq() { return this; }, single: async () => table === 'applications'
+    ? { data: { id: 'app-id', event_id: 'event-id', status: 'accepted_pending_payment', email: 'recipient@example.com' }, error: null }
+    : { data: { participant_portal_url: 'https://aerocalistay.org/katilimci' }, error: null } }; } };
 }
 
 export const batchId = '11111111-1111-4111-8111-111111111111';

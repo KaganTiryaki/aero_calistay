@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const status = request.nextUrl.searchParams.get("status");
     let query = createAdminSupabase().from("applications").select("id,first_name,last_name,email,status,version,committee_id,created_at,approved_at", { count: "exact" })
       .eq("event_id", staff.eventId).order("created_at", { ascending: false }).range((page - 1) * 50, page * 50 - 1);
-    if (status && ["pending", "approval_queued", "approved", "cancelled"].includes(status)) query = query.eq("status", status);
+    if (status && ["pending", "approval_queued", "approved", "accepted_pending_payment", "confirmed", "cancelled"].includes(status)) query = query.eq("status", status);
     if (search) query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
     const { data, count, error } = await query;
     if (error) throw error;
