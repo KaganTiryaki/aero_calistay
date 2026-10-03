@@ -13,16 +13,15 @@ async function setup() {
  create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,owner_id text,metadata jsonb);
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;`);
  const dir=new URL('../../supabase/migrations/',import.meta.url);
- const files=readdirSync(dir).filter(x=>x.endsWith('.sql')&&!x.startsWith('202610010002_')&&!x.startsWith('202610030002_')).sort();
+ const files=readdirSync(dir).filter(x=>x.endsWith('.sql')).sort();
  for(const file of files) await pg.exec(readFileSync(new URL(file,dir),'utf8'));
- await pg.exec(readFileSync(new URL('202610030002_participant_payment_meals.sql',dir),'utf8'));
  const event=(await pg.query('select id from events limit 1')).rows[0].id;
  const admin=crypto.randomUUID(),participant=crypto.randomUUID(),staff=crypto.randomUUID();
  await pg.query("insert into auth.users values ($1,'admin@test.com',now()),($2,'p@test.com',now()),($3,'staff@test.com',now())",[admin,participant,staff]);
  await pg.query("insert into staff_members(user_id,event_id,role) values($1,$3,'admin'),($2,$3,'staff')",[admin,staff,event]);
  const committee=(await pg.query("insert into committees(event_id,name) values($1,'Hukuk') returning id",[event])).rows[0].id;
  const app=(await pg.query("insert into applications(event_id,first_name,last_name,email) values($1,'Ayşe','Şen','p@test.com') returning id",[event])).rows[0].id;
- await pg.query("update events set payment_iban='TR00000000000000000000000000',payment_amount_minor=100000,payment_deadline=now()+interval '7 days',participant_portal_url='https://example.com/katilimci' where id=$1",[event]);
+ await pg.query("update events set check_in_open=true,participant_rollout_enabled=true,participant_acceptance_enabled=true,participant_payment_mutations_enabled=true,payment_iban='TR00000000000000000000000000',payment_amount_minor=100000,payment_deadline=now()+interval '7 days',participant_portal_url='https://example.com/katilimci' where id=$1",[event]);
  async function as(user){await pg.exec('reset role');await pg.query("select set_config('request.jwt.claim.sub',$1,false)",[user]);await pg.exec('set role authenticated');}
  return {pg,event,admin,participant,staff,committee,app,as};
 }
@@ -42,12 +41,101 @@ async function upload(s,id) {
  await s.pg.query('select finalize_payment_submission($1,$2,$3)',[id,s.participant,'a'.repeat(64)]);
 }
 
+test('auth jobs have separate request identities and activation is bound to job, user, fingerprint and type',async()=>{
+ const s=await setup();try{
+  await s.as(s.admin);await s.pg.query('select accept_application($1,$2,1)',[s.app,s.committee]);await s.pg.exec('reset role');
+  await s.pg.query("update mail_jobs set status='failed' where application_id=$1",[s.app]);await s.pg.exec('set role service_role');
+  const first=(await s.pg.query("select request_participant_auth_mail('p@test.com','recovery',$1) id",[crypto.randomUUID()])).rows[0].id;assert.ok(first);
+  assert.equal((await s.pg.query("select request_participant_auth_mail('p@test.com','recovery',$1) id",[crypto.randomUUID()])).rows[0].id,first);
+  await s.pg.exec('reset role');await s.pg.query("update mail_jobs set status='sent',auth_prepare_state='prepared' where batch_id=$1",[first]);await s.pg.exec('set role service_role');
+  const second=(await s.pg.query("select request_participant_auth_mail('p@test.com','recovery',$1) id",[crypto.randomUUID()])).rows[0].id;assert.ok(second);assert.notEqual(second,first);
+  await s.pg.exec('reset role');const job=(await s.pg.query('select id from mail_jobs where batch_id=$1',[second])).rows[0].id;
+  await s.pg.query("update mail_jobs set status='sending' where id=$1",[job]);await s.pg.exec('set role service_role');
+  const context=(await s.pg.query('select * from begin_participant_auth_preparation($1)',[job])).rows[0];assert.equal(context.recipient_email,'p@test.com');
+  await s.pg.query("select store_bound_participant_auth_mail($1,$2,$3,'recovery',$4,'AAAAAAAAAAAAAAAA','eA==','AAAAAAAAAAAAAAAAAAAAAA==',now()+interval '1 hour')",[job,s.app,s.participant,'f'.repeat(64)]);
+  const valid=(user=s.participant,fingerprint='f'.repeat(64),type='recovery')=>s.pg.query('select validate_participant_activation($1,$2,$3,$4) ok',[user,job,fingerprint,type]);
+  assert.equal((await valid()).rows[0].ok,true);assert.equal((await valid(s.staff)).rows[0].ok,false);assert.equal((await valid(s.participant,'e'.repeat(64))).rows[0].ok,false);assert.equal((await valid(s.participant,'f'.repeat(64),'invite')).rows[0].ok,false);
+  await s.pg.exec('reset role');await s.pg.query("update participant_invites set status='revoked' where application_id=$1",[s.app]);await s.pg.exec('set role service_role');assert.equal((await valid()).rows[0].ok,false);
+ }finally{await s.pg.close();}
+});
+
+test('reinvite does not create jobs for pending or cancelled applications and retention leaves provider audit intact',async()=>{
+ const s=await setup();try{
+  await s.pg.exec('set role service_role');assert.equal((await s.pg.query("select request_participant_auth_mail('p@test.com','activate',$1) id",[crypto.randomUUID()])).rows[0].id,null);
+  await s.pg.exec('reset role');await s.as(s.admin);await s.pg.query('select accept_application($1,$2,1)',[s.app,s.committee]);await s.pg.exec('reset role');
+  const job=(await s.pg.query('select id from mail_jobs where application_id=$1',[s.app])).rows[0].id;
+  await s.pg.query("insert into participant_auth_mail_payloads(job_id,application_id,nonce,ciphertext,auth_tag,expires_at) values($1,$2,'AAAAAAAAAAAAAAAA','eA==','AAAAAAAAAAAAAAAAAAAAAA==',now()-interval '25 hours')",[job,s.app]);
+  await s.pg.query("update mail_jobs set status='failed' where id=$1",[job]);await s.pg.exec('set role service_role');
+  assert.equal((await s.pg.query('select * from read_participant_auth_mail($1)',[job])).rows.length,1);
+  await s.pg.query('select cleanup_participant_auth_payloads()');assert.equal((await s.pg.query('select * from read_participant_auth_mail($1)',[job])).rows.length,0);
+  await s.pg.exec('reset role');assert.equal((await s.pg.query('select count(*)::integer n from mail_jobs where id=$1',[job])).rows[0].n,1);
+  await s.pg.query("update applications set status='cancelled' where id=$1",[s.app]);await s.pg.exec('set role service_role');assert.equal((await s.pg.query("select request_participant_auth_mail('p@test.com','activate',$1) id",[crypto.randomUUID()])).rows[0].id,null);
+ }finally{await s.pg.close();}
+});
+
+test('participant login and activation have independent failure limits and success clears only its own counter',async()=>{
+ const s=await setup();try{await s.pg.exec('set role service_role');const ip='a'.repeat(64);
+  for(let n=0;n<10;n++)await s.pg.query("select record_participant_auth_attempt($1,'login',false)",[ip]);
+  assert.equal((await s.pg.query("select * from check_participant_auth_attempt($1,'login')",[ip])).rows[0].allowed,false);
+  assert.equal((await s.pg.query("select * from check_participant_auth_attempt($1,'activation')",[ip])).rows[0].allowed,true);
+  await s.pg.query("select record_participant_auth_attempt($1,'login',true)",[ip]);assert.equal((await s.pg.query("select * from check_participant_auth_attempt($1,'login')",[ip])).rows[0].allowed,true);
+ }finally{await s.pg.close();}
+});
+test('staff registration preserves administrator roles and only enables event-scoped staff accounts',async()=>{
+ const s=await setup();try{
+  await s.as(s.admin);await assert.rejects(s.pg.query('select register_event_staff($1,$2)',[s.admin,s.event]),/ADMIN_ROLE_PROTECTED/);
+  await s.pg.query('select register_event_staff($1,$2)',[s.staff,s.event]);
+  await s.pg.exec('reset role');await s.pg.query("update staff_members set role='admin' where user_id=$1 and event_id=$2",[s.staff,s.event]);
+  await s.as(s.admin);await assert.rejects(s.pg.query('select register_event_staff($1,$2)',[s.staff,s.event]),/ADMIN_ROLE_PROTECTED/);
+  await s.pg.exec('reset role');assert.equal((await s.pg.query('select role from staff_members where user_id=$1 and event_id=$2',[s.staff,s.event])).rows[0].role,'admin');
+ }finally{await s.pg.close();}
+});
+
+test('admin fixes a missing expected amount with version and audit; staff, stale and confirmed changes fail',async()=>{
+ const s=await setup();try{
+  await s.pg.query('update events set payment_amount_minor=null where id=$1',[s.event]);const id=await receipt(s);await upload(s,id);await s.as(s.admin);
+  await assert.rejects(s.pg.query('select approve_payment($1,$2,100000,now(),1,$3)',[id,'bank-null-amount',crypto.randomUUID()]),/PAYMENT_NOT_CONFIGURED/);
+  await s.as(s.staff);await assert.rejects(s.pg.query("select set_application_payment_amount($1,2,100000,'Beklenen tutar')",[s.app]),/FORBIDDEN/);
+  await s.as(s.admin);await s.pg.query("select set_application_payment_amount($1,2,100000,'Beklenen tutar')",[s.app]);
+  await assert.rejects(s.pg.query("select set_application_payment_amount($1,2,200000,'Eski sürüm')",[s.app]),/STALE_APPLICATION/);
+  await s.pg.query('select approve_payment($1,$2,100000,now(),1,$3)',[id,'bank-fixed-amount',crypto.randomUUID()]);
+  await assert.rejects(s.pg.query("select set_application_payment_amount($1,4,200000,'Geriye dönük')",[s.app]),/APPLICATION_INACTIVE/);
+  await s.pg.exec('reset role');assert.equal((await s.pg.query("select count(*)::integer n from audit_logs where action='payment_amount_set' and target_id=$1",[s.app])).rows[0].n,1);
+ }finally{await s.pg.close();}
+});
+
+test('closed rollout gates block direct database acceptance and payment mutations',async()=>{
+ const s=await setup();try{
+  await s.pg.query('update events set participant_acceptance_enabled=false where id=$1',[s.event]);await s.as(s.admin);
+  await assert.rejects(s.pg.query('select accept_application($1,$2,1)',[s.app,s.committee]),/FEATURE_DISABLED/);
+  await s.pg.exec('reset role');assert.equal((await s.pg.query('select status from applications where id=$1',[s.app])).rows[0].status,'pending');
+  await s.pg.query('update events set participant_acceptance_enabled=true where id=$1',[s.event]);const id=await receipt(s);
+  await s.pg.exec('reset role');await s.pg.query('update events set participant_payment_mutations_enabled=false where id=$1',[s.event]);
+  await assert.rejects(upload(s,id),/FEATURE_DISABLED/);
+ }finally{await s.pg.close();}
+});
+
+test('safe failed invite retry preserves encrypted payload and provider idempotency; expired retry creates a new job',async()=>{
+ const s=await setup();try{
+  await s.as(s.admin);await s.pg.query('select accept_application($1,$2,1)',[s.app,s.committee]);await s.pg.exec('reset role');
+  const job=(await s.pg.query('select id,idempotency_key from mail_jobs where application_id=$1',[s.app])).rows[0];
+  await s.pg.query("update mail_jobs set status='failed',auth_prepare_state='prepared' where id=$1",[job.id]);
+  await s.pg.query("insert into participant_auth_mail_payloads(job_id,application_id,nonce,ciphertext,auth_tag,expires_at) values($1,$2,'AAAAAAAAAAAAAAAA','eA==','AAAAAAAAAAAAAAAAAAAAAA==',now()+interval '1 hour')",[job.id,s.app]);
+  await s.as(s.admin);await s.pg.query("select retry_participant_invite($1,'p@test.com')",[job.id]);await s.pg.exec('reset role');
+  assert.equal((await s.pg.query('select idempotency_key from mail_jobs where id=$1',[job.id])).rows[0].idempotency_key,job.idempotency_key);
+  await s.pg.query("update mail_jobs set status='failed' where id=$1",[job.id]);await s.pg.query("update participant_auth_mail_payloads set expires_at=now()-interval '1 hour' where job_id=$1",[job.id]);
+  await s.as(s.admin);await s.pg.query("select retry_participant_invite($1,'p@test.com')",[job.id]);await s.pg.exec('reset role');
+  const rows=(await s.pg.query('select id,status from mail_jobs where application_id=$1',[s.app])).rows;assert.equal(rows.length,2);assert.equal(rows.find(r=>r.id===job.id).status,'cancelled');assert.equal(rows.find(r=>r.id!==job.id).status,'queued');
+ }finally{await s.pg.close();}
+});
+
 test('payment review pages reach receipts beyond 500 applications and stay event-scoped',async()=>{
  const s=await setup();
  try {
   await s.pg.query("insert into applications(event_id,first_name,last_name,email) select $1,'Test','Katılımcı','review-'||n||'@test.com' from generate_series(1,501) n",[s.event]);
   await s.pg.query("insert into payment_submissions(application_id,status,created_at) select id,'under_review','2026-10-01T09:00:00Z' from applications where email like 'review-%@test.com'");
   const otherEvent=(await s.pg.query("insert into events(name) values('Başka etkinlik') returning id")).rows[0].id;
+  await s.pg.query('update events set participant_rollout_enabled=true,participant_payment_mutations_enabled=true where id=$1',[otherEvent]);
   const otherApp=(await s.pg.query("insert into applications(event_id,first_name,last_name,email) values($1,'Başka','Kişi','other@test.com') returning id",[otherEvent])).rows[0].id;
   await s.pg.query("insert into payment_submissions(application_id,status) values($1,'under_review')",[otherApp]);
   await s.as(s.staff);
@@ -118,6 +206,7 @@ test('payment snapshot, request identity, QR rotation and event binding are enfo
  assert.equal((await s.pg.query('select rotate_qr($1) changed',[s.app])).rows[0].changed,true);
  await s.pg.exec('reset role');const code=(await s.pg.query('select raw_value from qr_credentials')).rows[0].raw_value;
  const other=(await s.pg.query("insert into events(name) values('Other') returning id")).rows[0].id;
+ await s.pg.query('update events set check_in_open=true where id=$1',[other]);
  await s.pg.query("insert into staff_members(user_id,event_id,role) values($1,$2,'staff')",[s.staff,other]);
  const meal=(await s.pg.query("insert into meal_sessions(event_id,name,opens_at,closes_at,active) values($1,'Other',now()-interval '1 hour',now()+interval '1 hour',true) returning id",[other])).rows[0].id;
  await s.as(s.staff);assert.equal((await s.pg.query('select redeem_meal($1,$2,$3) result',[code,meal,crypto.randomUUID()])).rows[0].result.result,'invalid');
@@ -148,7 +237,7 @@ test('immediate mail dispatch claims the selected batch before older work',async
  }finally{await s.pg.close();}
 });
 
-test('failed invitation can be corrected without creating QR or another batch',async()=>{
+test('corrected invitation preserves the original job and creates a fresh identity without QR',async()=>{
  const s=await setup();try{
   const batch=crypto.randomUUID();
   await s.pg.query('select queue_approval_batch($1,$2,$3::jsonb,$4)',[batch,s.admin,JSON.stringify([{applicationId:s.app,version:1,committeeId:s.committee,email:'p@test.com',subject:'Kabul',html:'Kabul',text:'Kabul'}]),'a'.repeat(64)]);
@@ -161,8 +250,11 @@ test('failed invitation can be corrected without creating QR or another batch',a
   const application=(await s.pg.query('select status,email from applications where id=$1',[s.app])).rows[0];
   assert.equal(application.status,'accepted_pending_payment');assert.equal(application.email,'corrected@test.com');
   assert.equal((await s.pg.query('select count(*)::int n from qr_credentials')).rows[0].n,0);
-  assert.equal((await s.pg.query('select count(*)::int n from mail_batches')).rows[0].n,1);
-  assert.equal((await s.pg.query("select recipient_email from mail_jobs where id=$1",[job.id])).rows[0].recipient_email,'corrected@test.com');
+  assert.equal((await s.pg.query('select count(*)::int n from mail_batches')).rows[0].n,2);
+  const original=(await s.pg.query('select status,recipient_email from mail_jobs where id=$1',[job.id])).rows[0];
+  assert.equal(original.status,'cancelled');assert.equal(original.recipient_email,'p@test.com');
+  const fresh=(await s.pg.query("select recipient_email,kind from mail_jobs where id<>$1",[job.id])).rows[0];
+  assert.equal(fresh.recipient_email,'corrected@test.com');assert.equal(fresh.kind,'participant_auth');
  }finally{await s.pg.close();}
 });
 
@@ -218,6 +310,10 @@ test('meal redemption is per participant and meal; staff cannot see receipts; ca
  const meal=(await pg.query("insert into meal_sessions(event_id,name,opens_at,closes_at,active) values($1,'Öğle',now()-interval '1 hour',now()+interval '1 hour',true) returning id",[event])).rows[0].id;
  await as(staff);assert.equal((await pg.query('select count(*)::int n from payment_submissions')).rows[0].n,0);
  const req=crypto.randomUUID();let r=(await pg.query('select redeem_meal($1,$2,$3) result',[code,meal,req])).rows[0].result;assert.equal(r.result,'recorded');
+ await pg.exec('reset role');await pg.query('update events set check_in_open=false where id=$1',[event]);await as(staff);
+ assert.equal((await pg.query('select redeem_meal($1,$2,$3) result',[code,meal,crypto.randomUUID()])).rows[0].result.result,'closed');
+ assert.equal((await pg.query('select redeem_meal($1,$2,$3) result',[code,meal,req])).rows[0].result.result,'recorded');
+ await pg.exec('reset role');await pg.query('update events set check_in_open=true where id=$1',[event]);await as(staff);
  await assert.rejects(pg.query('select redeem_meal($1,$2,$3)', ['FAKECODE000',meal,req]),/REQUEST_CONFLICT/);
  r=(await pg.query('select redeem_meal($1,$2,$3) result',[code,meal,req])).rows[0].result;assert.equal(r.result,'recorded');
  r=(await pg.query('select redeem_meal($1,$2,$3) result',[code,meal,crypto.randomUUID()])).rows[0].result;assert.equal(r.result,'already');assert.ok(r.checkedInAt);

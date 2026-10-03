@@ -5,7 +5,7 @@ export type DispatchResult = { ready: boolean; processed: number; accepted: numb
 const unavailable: DispatchResult = { ready: false, processed: 0, accepted: 0, failed: 0, uncertain: 0,
   blocked: true, error: "Gönderim sonucu doğrulanamadı. Yeniden göndermeden önce Gönderimler bölümünü kontrol edin." };
 
-export async function callMailWorker(input: { action: "health" } | { batchId: string; limit: number }): Promise<DispatchResult> {
+export async function callMailWorker(input: { action: "health" | "reconcile" } | { batchId: string; limit: number }): Promise<DispatchResult> {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.MAIL_QUEUE_SECRET;
   if (!base || !secret) return { ...unavailable, error: "E-posta servisi yapılandırılmamış." };

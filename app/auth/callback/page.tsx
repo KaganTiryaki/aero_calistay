@@ -22,7 +22,7 @@ export default function AuthCallbackPage() {
         authError = result.error;
       } else if (url.searchParams.has("token_hash")) {
         const type = url.searchParams.get("type");
-        if (!type || !["invite", "recovery", "email"].includes(type)) throw new Error("Invalid link type");
+        if (!type || !["invite", "recovery", "email", "magiclink"].includes(type)) throw new Error("Invalid link type");
         const result = await client.auth.verifyOtp({
           token_hash: url.searchParams.get("token_hash")!,
           type: type as EmailOtpType,

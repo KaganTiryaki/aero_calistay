@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth/permissions";
 import { createAdminSupabase } from "@/lib/supabase/admin";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { failure, json, protectMutation } from "@/lib/http";
 import { startAdminActivity } from "@/lib/activity/server";
 
@@ -32,13 +33,15 @@ export async function POST(request: NextRequest) {
     const { data: existingId, error: lookupError } = await client.rpc("find_auth_user_by_email", { p_email: email });
     if (lookupError) throw lookupError;
     let userId: string = existingId;
+    if(userId === staff.userId)return json({error:"Yönetici hesabı personel davetiyle değiştirilemez."},409);
     if (!userId) {
       const origin = new URL(request.url).origin;
       const { data, error } = await client.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/personel/aktivasyon` });
       if (error || !data.user) throw error ?? new Error("INVITE_FAILED");
       userId = data.user.id;
     }
-    const { error } = await client.from("staff_members").upsert({ user_id: userId, event_id: staff.eventId, role: "staff", active: true }, { onConflict: "user_id,event_id" });
+    const { error } = await (await createServerSupabase()).rpc("register_event_staff",{p_user_id:userId,p_event_id:staff.eventId});
+    if(error?.message?.includes("ADMIN_ROLE_PROTECTED"))return json({error:"Mevcut yönetici rolü personel davetiyle değiştirilemez."},409);
     if (error) throw error;
     return json({ ok: true, invited: !existingId });
   } catch (error) { return failure(error); }

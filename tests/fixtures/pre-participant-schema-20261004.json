@@ -1,0 +1,2138 @@
+{
+  "enums": [
+    {
+      "name": "staff_role",
+      "label": "admin",
+      "order": 1
+    },
+    {
+      "name": "staff_role",
+      "label": "staff",
+      "order": 2
+    },
+    {
+      "name": "application_status",
+      "label": "pending",
+      "order": 1
+    },
+    {
+      "name": "application_status",
+      "label": "approval_queued",
+      "order": 2
+    },
+    {
+      "name": "application_status",
+      "label": "approved",
+      "order": 3
+    },
+    {
+      "name": "application_status",
+      "label": "cancelled",
+      "order": 4
+    },
+    {
+      "name": "mail_job_status",
+      "label": "queued",
+      "order": 1
+    },
+    {
+      "name": "mail_job_status",
+      "label": "sending",
+      "order": 2
+    },
+    {
+      "name": "mail_job_status",
+      "label": "quota_wait",
+      "order": 3
+    },
+    {
+      "name": "mail_job_status",
+      "label": "provider_accepted",
+      "order": 4
+    },
+    {
+      "name": "mail_job_status",
+      "label": "sent",
+      "order": 5
+    },
+    {
+      "name": "mail_job_status",
+      "label": "failed",
+      "order": 6
+    },
+    {
+      "name": "mail_job_status",
+      "label": "uncertain",
+      "order": 7
+    },
+    {
+      "name": "mail_job_status",
+      "label": "cancelled",
+      "order": 8
+    }
+  ],
+  "columns": [
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "admin_activity",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "admin_activity",
+      "column_name": "actor_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "admin_activity",
+      "column_name": "event_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "admin_activity",
+      "column_name": "session_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "admin_activity",
+      "column_name": "device_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "admin_activity",
+      "column_name": "action",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "admin_activity",
+      "column_name": "target_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "admin_activity",
+      "column_name": "outcome",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'started'::text"
+    },
+    {
+      "udt_name": "inet",
+      "data_type": "inet",
+      "table_name": "admin_activity",
+      "column_name": "ip_address",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "admin_activity",
+      "column_name": "user_agent",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "admin_activity",
+      "column_name": "platform",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "admin_activity",
+      "column_name": "device_class",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "admin_activity",
+      "column_name": "details",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_activity",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_activity",
+      "column_name": "completed_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "inet",
+      "data_type": "inet",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "ip_address",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "device_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "failure_count",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "0"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "last_failure_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "blocked_until",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "suspicious",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "false"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_login_rate_limits",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "applications",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "applications",
+      "column_name": "event_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "applications",
+      "column_name": "first_name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "applications",
+      "column_name": "last_name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "applications",
+      "column_name": "email",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "applications",
+      "column_name": "committee_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "application_status",
+      "data_type": "USER-DEFINED",
+      "table_name": "applications",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'pending'::application_status"
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "applications",
+      "column_name": "version",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "1"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "applications",
+      "column_name": "approved_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "applications",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "applications",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "applications",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "audit_logs",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "audit_logs",
+      "column_name": "actor_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "audit_logs",
+      "column_name": "action",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "audit_logs",
+      "column_name": "target_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "audit_logs",
+      "column_name": "summary",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "audit_logs",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "check_in_attempts",
+      "column_name": "user_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "check_in_attempts",
+      "column_name": "minute",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "check_in_attempts",
+      "column_name": "attempts",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "1"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "check_ins",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "check_ins",
+      "column_name": "event_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "check_ins",
+      "column_name": "application_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "check_ins",
+      "column_name": "staff_user_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "check_ins",
+      "column_name": "request_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "check_ins",
+      "column_name": "checked_in_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "committees",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "committees",
+      "column_name": "event_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "committees",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "committees",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "true"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "committees",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "events",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "events",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "events",
+      "column_name": "check_in_open",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "false"
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "events",
+      "column_name": "timezone",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'Europe/Istanbul'::text"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "events",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_batches",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_batches",
+      "column_name": "event_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_batches",
+      "column_name": "created_by",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_batches",
+      "column_name": "request_hash",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_batches",
+      "column_name": "total",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_batches",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_events",
+      "column_name": "fingerprint",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_events",
+      "column_name": "job_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_events",
+      "column_name": "message_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_events",
+      "column_name": "recipient_email",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_events",
+      "column_name": "event_name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_events",
+      "column_name": "provider_time",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "mail_events",
+      "column_name": "processed",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "false"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_events",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_jobs",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_jobs",
+      "column_name": "batch_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_jobs",
+      "column_name": "application_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_jobs",
+      "column_name": "approval_version",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "recipient_email",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "recipient_name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "committee_name",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "subject",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "html_content",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "text_content",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "tag",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_jobs",
+      "column_name": "idempotency_key",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "udt_name": "mail_job_status",
+      "data_type": "USER-DEFINED",
+      "table_name": "mail_jobs",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'queued'::mail_job_status"
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "delivery_status",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'unknown'::text"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "last_delivery_event_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_jobs",
+      "column_name": "attempts",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "0"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "first_send_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "next_attempt_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "mail_jobs",
+      "column_name": "lease_owner",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "lease_until",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "provider_message_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mail_jobs",
+      "column_name": "last_error",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "mail_jobs",
+      "column_name": "reservation_day",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_jobs",
+      "column_name": "reopened_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_provider_state",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "1"
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_provider_state",
+      "column_name": "approval_budget",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "290"
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_provider_state",
+      "column_name": "auth_reserve",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "10"
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "mail_provider_state",
+      "column_name": "sent_day",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_provider_state",
+      "column_name": "reserved_today",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "0"
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "mail_provider_state",
+      "column_name": "provider_remaining",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_provider_state",
+      "column_name": "provider_checked_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_provider_state",
+      "column_name": "send_blocked_until",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_provider_state",
+      "column_name": "worker_heartbeat_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mail_provider_state",
+      "column_name": "reconciliation_heartbeat_at",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "qr_credentials",
+      "column_name": "application_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "qr_credentials",
+      "column_name": "raw_value",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "qr_credentials",
+      "column_name": "value_hash",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "qr_credentials",
+      "column_name": "manual_code",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "qr_credentials",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "true"
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "qr_credentials",
+      "column_name": "version",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "1"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "qr_credentials",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "staff_members",
+      "column_name": "user_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "staff_members",
+      "column_name": "event_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "staff_role",
+      "data_type": "USER-DEFINED",
+      "table_name": "staff_members",
+      "column_name": "role",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "staff_members",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "true"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "staff_members",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()"
+    }
+  ],
+  "indexes": [
+    {
+      "indexdef": "CREATE UNIQUE INDEX admin_activity_pkey ON public.admin_activity USING btree (id)",
+      "indexname": "admin_activity_pkey",
+      "tablename": "admin_activity",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX admin_activity_created_idx ON public.admin_activity USING btree (created_at DESC, id DESC)",
+      "indexname": "admin_activity_created_idx",
+      "tablename": "admin_activity",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX admin_activity_session_idx ON public.admin_activity USING btree (session_id, created_at DESC)",
+      "indexname": "admin_activity_session_idx",
+      "tablename": "admin_activity",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX admin_activity_device_idx ON public.admin_activity USING btree (device_id, created_at DESC)",
+      "indexname": "admin_activity_device_idx",
+      "tablename": "admin_activity",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX admin_login_rate_limits_pkey ON public.admin_login_rate_limits USING btree (id)",
+      "indexname": "admin_login_rate_limits_pkey",
+      "tablename": "admin_login_rate_limits",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX admin_login_rate_limits_ip_device_idx ON public.admin_login_rate_limits USING btree (COALESCE((ip_address)::text, ''::text), COALESCE((device_id)::text, ''::text))",
+      "indexname": "admin_login_rate_limits_ip_device_idx",
+      "tablename": "admin_login_rate_limits",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX staff_members_pkey ON public.staff_members USING btree (user_id, event_id)",
+      "indexname": "staff_members_pkey",
+      "tablename": "staff_members",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX qr_credentials_pkey ON public.qr_credentials USING btree (application_id)",
+      "indexname": "qr_credentials_pkey",
+      "tablename": "qr_credentials",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX qr_credentials_raw_value_key ON public.qr_credentials USING btree (raw_value)",
+      "indexname": "qr_credentials_raw_value_key",
+      "tablename": "qr_credentials",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX qr_credentials_value_hash_key ON public.qr_credentials USING btree (value_hash)",
+      "indexname": "qr_credentials_value_hash_key",
+      "tablename": "qr_credentials",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX qr_credentials_manual_code_key ON public.qr_credentials USING btree (manual_code)",
+      "indexname": "qr_credentials_manual_code_key",
+      "tablename": "qr_credentials",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX check_in_attempts_pkey ON public.check_in_attempts USING btree (user_id, minute)",
+      "indexname": "check_in_attempts_pkey",
+      "tablename": "check_in_attempts",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_events_pkey ON public.mail_events USING btree (fingerprint)",
+      "indexname": "mail_events_pkey",
+      "tablename": "mail_events",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)",
+      "indexname": "events_pkey",
+      "tablename": "events",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX committees_pkey ON public.committees USING btree (id)",
+      "indexname": "committees_pkey",
+      "tablename": "committees",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX committees_id_event_id_key ON public.committees USING btree (id, event_id)",
+      "indexname": "committees_id_event_id_key",
+      "tablename": "committees",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX committees_event_name_key ON public.committees USING btree (event_id, lower(btrim(name)))",
+      "indexname": "committees_event_name_key",
+      "tablename": "committees",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX applications_pkey ON public.applications USING btree (id)",
+      "indexname": "applications_pkey",
+      "tablename": "applications",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX applications_event_id_email_key ON public.applications USING btree (event_id, email)",
+      "indexname": "applications_event_id_email_key",
+      "tablename": "applications",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX applications_id_event_id_key ON public.applications USING btree (id, event_id)",
+      "indexname": "applications_id_event_id_key",
+      "tablename": "applications",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX applications_event_status_idx ON public.applications USING btree (event_id, status, created_at DESC)",
+      "indexname": "applications_event_status_idx",
+      "tablename": "applications",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_batches_pkey ON public.mail_batches USING btree (id)",
+      "indexname": "mail_batches_pkey",
+      "tablename": "mail_batches",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_provider_state_pkey ON public.mail_provider_state USING btree (id)",
+      "indexname": "mail_provider_state_pkey",
+      "tablename": "mail_provider_state",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX check_ins_pkey ON public.check_ins USING btree (id)",
+      "indexname": "check_ins_pkey",
+      "tablename": "check_ins",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX check_ins_request_id_key ON public.check_ins USING btree (request_id)",
+      "indexname": "check_ins_request_id_key",
+      "tablename": "check_ins",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX check_ins_event_id_application_id_key ON public.check_ins USING btree (event_id, application_id)",
+      "indexname": "check_ins_event_id_application_id_key",
+      "tablename": "check_ins",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX audit_logs_pkey ON public.audit_logs USING btree (id)",
+      "indexname": "audit_logs_pkey",
+      "tablename": "audit_logs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_jobs_pkey ON public.mail_jobs USING btree (id)",
+      "indexname": "mail_jobs_pkey",
+      "tablename": "mail_jobs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_jobs_tag_key ON public.mail_jobs USING btree (tag)",
+      "indexname": "mail_jobs_tag_key",
+      "tablename": "mail_jobs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_jobs_idempotency_key_key ON public.mail_jobs USING btree (idempotency_key)",
+      "indexname": "mail_jobs_idempotency_key_key",
+      "tablename": "mail_jobs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mail_jobs_application_id_approval_version_key ON public.mail_jobs USING btree (application_id, approval_version)",
+      "indexname": "mail_jobs_application_id_approval_version_key",
+      "tablename": "mail_jobs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX mail_jobs_queue_idx ON public.mail_jobs USING btree (status, next_attempt_at, created_at)",
+      "indexname": "mail_jobs_queue_idx",
+      "tablename": "mail_jobs",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX mail_jobs_message_idx ON public.mail_jobs USING btree (provider_message_id)",
+      "indexname": "mail_jobs_message_idx",
+      "tablename": "mail_jobs",
+      "schemaname": "public",
+      "tablespace": null
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "admin_activity",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_activity",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "staff_members",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_staff",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "events",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_write_events",
+      "schemaname": "public",
+      "with_check": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "events",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_events",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "committees",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_update_committees",
+      "schemaname": "public",
+      "with_check": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)"
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "committees",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_insert_committees",
+      "schemaname": "public",
+      "with_check": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "committees",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_committees",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "applications",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_update_applications",
+      "schemaname": "public",
+      "with_check": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)"
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "applications",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_insert_applications",
+      "schemaname": "public",
+      "with_check": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "applications",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_applications",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "mail_batches",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_batches",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "mail_provider_state",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_provider",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "check_ins",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_checkins",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "audit_logs",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_audit",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "( SELECT private.has_staff_role('admin'::staff_role) AS has_staff_role)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "mail_jobs",
+      "permissive": "PERMISSIVE",
+      "policyname": "admin_read_jobs",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "triggers": null,
+  "functions": [
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_ip inet, p_device_id uuid, p_now timestamp with time zone",
+      "name": "record_admin_login_failure",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.record_admin_login_failure(p_ip inet, p_device_id uuid, p_now timestamp with time zone DEFAULT now())\n RETURNS TABLE(allowed boolean, wait_seconds integer, failure_count integer, suspicious boolean)\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select * from private.record_admin_login_failure(p_ip,p_device_id,p_now)\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_ip inet, p_device_id uuid",
+      "name": "reset_admin_login_failures",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.reset_admin_login_failures(p_ip inet, p_device_id uuid)\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select private.reset_admin_login_failures(p_ip,p_device_id)\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres"
+      ],
+      "args": "p_role staff_role",
+      "name": "has_staff_role",
+      "schema": "private",
+      "definition": "CREATE OR REPLACE FUNCTION private.has_staff_role(p_role staff_role DEFAULT NULL::staff_role)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\n  select exists (\r\n    select 1 from public.staff_members s\r\n    where s.user_id = (select auth.uid()) and s.active\r\n      and (p_role is null or s.role = p_role)\r\n  );\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_batch_id uuid, p_actor uuid, p_jobs jsonb, p_request_hash text",
+      "name": "queue_approval_batch",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.queue_approval_batch(p_batch_id uuid, p_actor uuid, p_jobs jsonb, p_request_hash text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_event uuid;\r\n  v_job jsonb;\r\n  v_app public.applications%rowtype;\r\n  v_committee public.committees%rowtype;\r\n  v_new uuid;\r\n  v_job_id uuid;\r\n  v_existing public.mail_batches%rowtype;\r\nbegin\r\n  if jsonb_typeof(p_jobs) <> 'array' or jsonb_array_length(p_jobs) not between 1 and 500\r\n    or p_request_hash !~ '^[0-9a-f]{64}$' then\r\n    raise exception 'INVALID_BATCH';\r\n  end if;\r\n  select event_id into v_event from public.staff_members where user_id = p_actor and role = 'admin' and active;\r\n  if v_event is null then raise exception 'FORBIDDEN'; end if;\r\n  insert into public.mail_batches (id, event_id, created_by, request_hash, total)\r\n    values (p_batch_id, v_event, p_actor, p_request_hash, jsonb_array_length(p_jobs))\r\n    on conflict (id) do nothing returning id into v_new;\r\n  if v_new is null then\r\n    select * into v_existing from public.mail_batches where id = p_batch_id for update;\r\n    if v_existing.event_id <> v_event or v_existing.created_by <> p_actor\r\n      or v_existing.request_hash <> p_request_hash then raise exception 'BATCH_CONFLICT'; end if;\r\n    return p_batch_id;\r\n  end if;\r\n  for v_job in select value from jsonb_array_elements(p_jobs) loop\r\n    select * into v_app from public.applications\r\n      where id = (v_job->>'applicationId')::uuid and event_id = v_event for update;\r\n    if not found or v_app.status <> 'pending' or v_app.version <> (v_job->>'version')::integer\r\n      or v_app.email <> (v_job->>'email') then raise exception 'STALE_APPLICATION'; end if;\r\n    select * into v_committee from public.committees\r\n      where id = (v_job->>'committeeId')::uuid and event_id = v_event and active;\r\n    if not found then raise exception 'INVALID_COMMITTEE'; end if;\r\n    v_job_id := gen_random_uuid();\r\n    insert into public.mail_jobs (\r\n      id, batch_id, application_id, approval_version, recipient_email, recipient_name,\r\n      committee_name, subject, html_content, text_content, tag\r\n    ) values (\r\n      v_job_id, p_batch_id, v_app.id, v_app.version + 1, v_app.email,\r\n      v_app.first_name || ' ' || v_app.last_name, v_committee.name,\r\n      v_job->>'subject', v_job->>'html', v_job->>'text', 'aero-job-' || v_job_id::text\r\n    );\r\n    update public.applications set status = 'approval_queued', committee_id = v_committee.id,\r\n      version = version + 1, updated_at = now() where id = v_app.id;\r\n  end loop;\r\n  insert into public.audit_logs(actor_id, action, target_id, summary)\r\n    values (p_actor, 'batch_created', p_batch_id, jsonb_build_object('count', jsonb_array_length(p_jobs)));\r\n  return p_batch_id;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_fingerprint text, p_tag text, p_message_id text, p_email text, p_event text, p_provider_time timestamp with time zone",
+      "name": "record_mail_event",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.record_mail_event(p_fingerprint text, p_tag text, p_message_id text, p_email text, p_event text, p_provider_time timestamp with time zone)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_job public.mail_jobs%rowtype;\r\n  v_app public.applications%rowtype;\r\n  v_raw text;\r\n  v_code text;\r\nbegin\r\n  select * into v_job from public.mail_jobs where tag = p_tag for update;\r\n  if not found or v_job.recipient_email <> lower(btrim(p_email))\r\n    or (v_job.provider_message_id is not null and\r\n      lower(btrim(btrim(v_job.provider_message_id), '<>')) <>\r\n      lower(btrim(btrim(p_message_id), '<>'))) then\r\n    return false;\r\n  end if;\r\n  insert into public.mail_events(fingerprint, job_id, message_id, recipient_email, event_name, provider_time)\r\n    values (p_fingerprint, v_job.id, p_message_id, lower(btrim(p_email)), p_event, p_provider_time)\r\n    on conflict (fingerprint) do nothing;\r\n  if not found then return true; end if;\r\n  update public.mail_jobs set provider_message_id = coalesce(provider_message_id, p_message_id),\r\n    delivery_status = case when p_provider_time is not null and\r\n      (last_delivery_event_at is null or p_provider_time >= last_delivery_event_at) then case p_event\r\n      when 'delivered' then 'delivered' when 'deferred' then 'deferred'\r\n      when 'hard_bounce' then 'hard_bounced' when 'soft_bounce' then 'soft_bounced'\r\n      when 'blocked' then 'blocked' when 'invalid_email' then 'invalid'\r\n      when 'spam' then 'complained' when 'error' then 'error'\r\n      when 'unsubscribed' then 'unsubscribed' else delivery_status end else delivery_status end,\r\n    last_delivery_event_at = case when p_event in ('delivered', 'deferred', 'hard_bounce',\r\n      'soft_bounce', 'blocked', 'invalid_email', 'spam', 'error', 'unsubscribed') and\r\n      p_provider_time is not null and (last_delivery_event_at is null or p_provider_time >= last_delivery_event_at)\r\n      then p_provider_time else last_delivery_event_at end,\r\n    status = case when p_event in ('request', 'delivered') then 'sent'\r\n      when p_event = 'invalid_email' and status <> 'sent' then 'failed'\r\n      else status end,\r\n    updated_at = now() where id = v_job.id;\r\n  if p_event in ('request', 'delivered') then\r\n    select * into v_app from public.applications where id = v_job.application_id for update;\r\n    if v_app.status = 'approval_queued' and v_app.version = v_job.approval_version then\r\n      update public.applications set status = 'approved', approved_at = now(), updated_at = now()\r\n        where id = v_app.id;\r\n      v_raw := 'AERO1:' || rtrim(translate(encode(extensions.gen_random_bytes(32), 'base64'), '+/', '-_'), '=');\r\n      v_code := upper(substr(encode(extensions.gen_random_bytes(8), 'hex'), 1, 10));\r\n      insert into public.qr_credentials(application_id, raw_value, value_hash, manual_code)\r\n        values (v_app.id, v_raw, encode(extensions.digest(v_raw, 'sha256'), 'hex'), v_code)\r\n        on conflict (application_id) do nothing;\r\n    end if;\r\n  end if;\r\n  update public.mail_events set processed = true where fingerprint = p_fingerprint;\r\n  return true;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_code text, p_request_id uuid",
+      "name": "check_in_code",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.check_in_code(p_code text, p_request_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_actor uuid := auth.uid();\r\n  v_event public.events%rowtype;\r\n  v_app public.applications%rowtype;\r\n  v_existing public.check_ins%rowtype;\r\n  v_committee_name text;\r\n  v_qr_active boolean;\r\n  v_attempts integer;\r\n  v_inserted uuid;\r\nbegin\r\n  select e.* into v_event from public.events e join public.staff_members s on s.event_id = e.id\r\n    where s.user_id = v_actor and s.active limit 1;\r\n  if not found then raise exception 'FORBIDDEN'; end if;\r\n  insert into public.check_in_attempts(user_id, minute, attempts)\r\n    values (v_actor, date_trunc('minute', now()), 1)\r\n    on conflict (user_id, minute) do update set attempts = public.check_in_attempts.attempts + 1\r\n    returning attempts into v_attempts;\r\n  if v_attempts > 60 then raise exception 'RATE_LIMIT'; end if;\r\n  if not v_event.check_in_open then return jsonb_build_object('result', 'closed'); end if;\r\n  if length(p_code) > 80 then return jsonb_build_object('result', 'invalid'); end if;\r\n  select a.* into v_app from public.applications a\r\n    join public.qr_credentials q on q.application_id = a.id\r\n    where a.event_id = v_event.id and\r\n      (q.value_hash = encode(extensions.digest(p_code, 'sha256'), 'hex') or q.manual_code = upper(p_code))\r\n    for update of a;\r\n  if not found then return jsonb_build_object('result', 'invalid'); end if;\r\n  select active into v_qr_active from public.qr_credentials where application_id = v_app.id;\r\n  if v_app.status <> 'approved' or not v_qr_active then return jsonb_build_object('result', 'inactive'); end if;\r\n  select name into v_committee_name from public.committees where id = v_app.committee_id;\r\n  select * into v_existing from public.check_ins where event_id = v_event.id and application_id = v_app.id;\r\n  if found then\r\n    return jsonb_build_object('result', case when v_existing.request_id = p_request_id then 'recorded' else 'already' end,\r\n      'firstName', v_app.first_name, 'lastName', v_app.last_name,\r\n      'committee', v_committee_name, 'checkedInAt', v_existing.checked_in_at);\r\n  end if;\r\n  insert into public.check_ins(event_id, application_id, staff_user_id, request_id)\r\n    values (v_event.id, v_app.id, v_actor, p_request_id)\r\n    on conflict (event_id, application_id) do nothing returning id into v_inserted;\r\n  if v_inserted is null then\r\n    select * into v_existing from public.check_ins where event_id = v_event.id and application_id = v_app.id;\r\n    return jsonb_build_object('result', case when v_existing.request_id = p_request_id then 'recorded' else 'already' end,\r\n      'firstName', v_app.first_name, 'lastName', v_app.last_name,\r\n      'committee', v_committee_name, 'checkedInAt', v_existing.checked_in_at);\r\n  end if;\r\n  insert into public.audit_logs(actor_id, action, target_id) values (v_actor, 'check_in', v_app.id);\r\n  return jsonb_build_object('result', 'recorded', 'firstName', v_app.first_name,\r\n    'lastName', v_app.last_name, 'committee', v_committee_name, 'checkedInAt', now());\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_worker uuid, p_limit integer",
+      "name": "claim_mail_jobs",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.claim_mail_jobs(p_worker uuid, p_limit integer DEFAULT 20)\n RETURNS SETOF mail_jobs\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_state public.mail_provider_state%rowtype;\r\n  v_date date := (now() at time zone 'Europe/Istanbul')::date;\r\n  v_slots integer;\r\n  v_id uuid;\r\n  v_count integer := 0;\r\nbegin\r\n  update public.mail_jobs set status = 'uncertain', lease_owner = null, lease_until = null,\r\n    last_error = 'İşleyici yanıtı kayboldu; sağlayıcı olayı araştırılmalı.', updated_at = now()\r\n    where status = 'sending' and lease_until < now();\r\n  select * into v_state from public.mail_provider_state where id = 1 for update;\r\n  if v_state.sent_day is distinct from v_date then\r\n    update public.mail_provider_state set sent_day = v_date, reserved_today = 0 where id = 1;\r\n    v_state.reserved_today := 0;\r\n  end if;\r\n  v_slots := greatest(0, v_state.approval_budget - v_state.reserved_today);\r\n  if v_state.send_blocked_until is not null and v_state.send_blocked_until > now() then\r\n    v_slots := 0;\r\n  end if;\r\n  if v_state.provider_remaining is not null then\r\n    v_slots := least(v_slots, greatest(0, v_state.provider_remaining - v_state.auth_reserve));\r\n  end if;\r\n  v_slots := least(v_slots, greatest(0, least(p_limit, 20)));\r\n  for v_id in\r\n    select id from public.mail_jobs\r\n      where status in ('queued', 'quota_wait') and next_attempt_at <= now()\r\n      order by created_at for update skip locked limit v_slots\r\n  loop\r\n    update public.mail_jobs set status = 'sending', lease_owner = p_worker,\r\n      lease_until = now() + interval '2 minutes', first_send_at = coalesce(first_send_at, now()),\r\n      reservation_day = v_date, attempts = attempts + 1, updated_at = now() where id = v_id;\r\n    v_count := v_count + 1;\r\n    return query select * from public.mail_jobs where id = v_id;\r\n  end loop;\r\n  update public.mail_provider_state set reserved_today = reserved_today + v_count,\r\n    provider_remaining = case when provider_remaining is null then null else greatest(0, provider_remaining - v_count) end,\r\n    worker_heartbeat_at = now() where id = 1;\r\n  if v_slots = 0 then\r\n    update public.mail_jobs set status = 'quota_wait', updated_at = now()\r\n      where status = 'queued' and next_attempt_at <= now();\r\n  end if;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_job_id uuid, p_worker uuid, p_status mail_job_status, p_message_id text, p_error text, p_next_attempt timestamp with time zone",
+      "name": "mark_mail_job",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.mark_mail_job(p_job_id uuid, p_worker uuid, p_status mail_job_status, p_message_id text DEFAULT NULL::text, p_error text DEFAULT NULL::text, p_next_attempt timestamp with time zone DEFAULT NULL::timestamp with time zone)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_updated uuid;\r\n  v_reservation_day date;\r\nbegin\r\n  if p_status not in ('provider_accepted', 'uncertain', 'quota_wait', 'queued', 'failed') then\r\n    raise exception 'INVALID_STATUS';\r\n  end if;\r\n  update public.mail_jobs set status = p_status, provider_message_id = coalesce(p_message_id, provider_message_id),\r\n    last_error = left(p_error, 500), next_attempt_at = coalesce(p_next_attempt, next_attempt_at),\r\n    lease_owner = null, lease_until = null, updated_at = now()\r\n    where id = p_job_id and status = 'sending' and lease_owner = p_worker and lease_until > now()\r\n    returning id, reservation_day into v_updated, v_reservation_day;\r\n  if v_updated is not null and p_status in ('quota_wait', 'queued', 'failed') then\r\n    update public.mail_provider_state set\r\n      reserved_today = case when sent_day = v_reservation_day then greatest(0, reserved_today - 1)\r\n        else reserved_today end,\r\n      send_blocked_until = case when p_status in ('quota_wait', 'queued') and p_next_attempt is not null\r\n        then greatest(coalesce(send_blocked_until, p_next_attempt), p_next_attempt)\r\n        else send_blocked_until end where id = 1;\r\n  end if;\r\n  return v_updated is not null;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_application_id uuid",
+      "name": "cancel_application",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.cancel_application(p_application_id uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_actor uuid := auth.uid();\r\n  v_event uuid;\r\n  v_application public.applications%rowtype;\r\nbegin\r\n  select event_id into v_event from public.staff_members where user_id = v_actor and role = 'admin' and active;\r\n  if v_event is null then raise exception 'FORBIDDEN'; end if;\r\n  select * into v_application from public.applications\r\n    where id = p_application_id and event_id = v_event for update;\r\n  if not found then return false; end if;\r\n  update public.applications set status = 'cancelled', version = version + 1,\r\n    updated_at = now() where id = v_application.id;\r\n  update public.qr_credentials set active = false where application_id = v_application.id;\r\n  update public.mail_jobs set status = 'cancelled', updated_at = now()\r\n    where application_id = v_application.id and status in ('queued', 'quota_wait', 'failed');\r\n  insert into public.audit_logs(actor_id, action, target_id) values (v_actor, 'application_cancelled', p_application_id);\r\n  return true;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_application_id uuid",
+      "name": "rotate_qr",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.rotate_qr(p_application_id uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_actor uuid := auth.uid();\r\n  v_event uuid;\r\n  v_application public.applications%rowtype;\r\n  v_raw text;\r\n  v_code text;\r\nbegin\r\n  select event_id into v_event from public.staff_members where user_id = v_actor and role = 'admin' and active;\r\n  if v_event is null then raise exception 'FORBIDDEN'; end if;\r\n  select * into v_application from public.applications\r\n    where id = p_application_id and event_id = v_event for update;\r\n  if not found or v_application.status <> 'approved' then return false; end if;\r\n  v_raw := 'AERO1:' || rtrim(translate(encode(extensions.gen_random_bytes(32), 'base64'), '+/', '-_'), '=');\r\n  v_code := upper(substr(encode(extensions.gen_random_bytes(8), 'hex'), 1, 10));\r\n  update public.qr_credentials set raw_value = v_raw,\r\n    value_hash = encode(extensions.digest(v_raw, 'sha256'), 'hex'), manual_code = v_code,\r\n    active = true, version = version + 1, created_at = now()\r\n    where application_id = v_application.id;\r\n  if not found then return false; end if;\r\n  insert into public.audit_logs(actor_id, action, target_id) values (v_actor, 'qr_rotated', p_application_id);\r\n  return true;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_job_id uuid",
+      "name": "reopen_failed_approval",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.reopen_failed_approval(p_job_id uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\ndeclare\r\n  v_actor uuid := auth.uid();\r\n  v_job public.mail_jobs%rowtype;\r\n  v_app public.applications%rowtype;\r\nbegin\r\n  select * into v_job from public.mail_jobs where id = p_job_id for update;\r\n  if not found or v_job.status <> 'failed' or v_job.reopened_at is not null then return false; end if;\r\n  select * into v_app from public.applications where id = v_job.application_id for update;\r\n  if not found or v_app.status <> 'approval_queued'\r\n    or v_app.version <> v_job.approval_version then return false; end if;\r\n  if not exists (\r\n    select 1 from public.staff_members\r\n    where user_id = v_actor and event_id = v_app.event_id and role = 'admin' and active\r\n  ) then raise exception 'FORBIDDEN'; end if;\r\n  update public.applications set status = 'pending', committee_id = null,\r\n    version = version + 1, updated_at = now() where id = v_app.id;\r\n  update public.mail_jobs set reopened_at = now(), updated_at = now() where id = p_job_id;\r\n  insert into public.audit_logs(actor_id, action, target_id, summary)\r\n    values (v_actor, 'failed_approval_reopened', v_app.id, jsonb_build_object('job_id', p_job_id));\r\n  return true;\r\nend;\r\n$function$\n"
+    },
+    {
+      "acl": null,
+      "args": "p_ip inet, p_device_id uuid",
+      "name": "login_rate_limit_key",
+      "schema": "private",
+      "definition": "CREATE OR REPLACE FUNCTION private.login_rate_limit_key(p_ip inet, p_device_id uuid)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\nAS $function$\r\n  select coalesce(p_ip::text, '') || '|' || coalesce(p_device_id::text, '')\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres"
+      ],
+      "args": "p_ip inet, p_device_id uuid, p_now timestamp with time zone",
+      "name": "check_admin_login_rate_limit",
+      "schema": "private",
+      "definition": "CREATE OR REPLACE FUNCTION private.check_admin_login_rate_limit(p_ip inet, p_device_id uuid, p_now timestamp with time zone DEFAULT now())\n RETURNS TABLE(allowed boolean, wait_seconds integer, failure_count integer, suspicious boolean)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'private'\nAS $function$\r\ndeclare r public.admin_login_rate_limits%rowtype;\r\nbegin\r\n  select * into r from public.admin_login_rate_limits\r\n  where coalesce(ip_address::text, '') = coalesce(p_ip::text, '') and coalesce(device_id::text, '') = coalesce(p_device_id::text, '')\r\n  for update;\r\n  if not found then return query select true, 0, 0, false; return; end if;\r\n  if r.blocked_until is not null and r.blocked_until > p_now then\r\n    return query select false, greatest(1, ceil(extract(epoch from (r.blocked_until - p_now)))::integer), r.failure_count, true;\r\n  end if;\r\n  return query select true, 0, r.failure_count, r.suspicious;\r\nend $function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres"
+      ],
+      "args": "p_ip inet, p_device_id uuid, p_now timestamp with time zone",
+      "name": "record_admin_login_failure",
+      "schema": "private",
+      "definition": "CREATE OR REPLACE FUNCTION private.record_admin_login_failure(p_ip inet, p_device_id uuid, p_now timestamp with time zone DEFAULT now())\n RETURNS TABLE(allowed boolean, wait_seconds integer, failure_count integer, suspicious boolean)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'private'\nAS $function$\r\ndeclare r public.admin_login_rate_limits%rowtype; n integer; delay_seconds integer;\r\nbegin\r\n  perform pg_advisory_xact_lock(hashtextextended(private.login_rate_limit_key(p_ip, p_device_id), 0));\r\n  select * into r from public.admin_login_rate_limits\r\n  where coalesce(ip_address::text, '') = coalesce(p_ip::text, '') and coalesce(device_id::text, '') = coalesce(p_device_id::text, '')\r\n  for update;\r\n  if found and r.blocked_until is not null and r.blocked_until > p_now then\r\n    return query select false, greatest(1, ceil(extract(epoch from (r.blocked_until - p_now)))::integer), r.failure_count, true; return;\r\n  end if;\r\n  n := coalesce(r.failure_count, 0) + 1;\r\n  delay_seconds := case when n >= 5 then 900 else power(2, n - 1)::integer end;\r\n  insert into public.admin_login_rate_limits(ip_address, device_id, failure_count, last_failure_at, blocked_until, suspicious, updated_at)\r\n  values (p_ip, p_device_id, n, p_now, case when n >= 5 then p_now + make_interval(secs => delay_seconds) else null end, n >= 4, p_now)\r\n  on conflict ((coalesce(ip_address::text, '')), (coalesce(device_id::text, ''))) do update set\r\n    failure_count = excluded.failure_count, last_failure_at = excluded.last_failure_at, blocked_until = excluded.blocked_until,\r\n    suspicious = excluded.suspicious, updated_at = excluded.updated_at\r\n  returning * into r;\r\n  return query select true, delay_seconds, r.failure_count, r.suspicious;\r\nend $function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres"
+      ],
+      "args": "p_ip inet, p_device_id uuid",
+      "name": "reset_admin_login_failures",
+      "schema": "private",
+      "definition": "CREATE OR REPLACE FUNCTION private.reset_admin_login_failures(p_ip inet, p_device_id uuid)\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO 'public', 'private'\nAS $function$\r\n  delete from public.admin_login_rate_limits\r\n  where coalesce(ip_address::text, '') = coalesce(p_ip::text, '') and coalesce(device_id::text, '') = coalesce(p_device_id::text, '')\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_worker uuid, p_batch_id uuid, p_limit integer",
+      "name": "claim_batch_mail_jobs",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.claim_batch_mail_jobs(p_worker uuid, p_batch_id uuid, p_limit integer)\n RETURNS SETOF mail_jobs\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_state public.mail_provider_state%rowtype; v_date date:=(now() at time zone 'Europe/Istanbul')::date;\n v_slots integer; v_id uuid; v_count integer:=0;\nbegin\n if p_batch_id is null or p_worker is null or p_limit is null or p_limit not between 1 and 20\n then raise exception 'INVALID_CLAIM'; end if;\n update public.mail_jobs set status='uncertain',lease_owner=null,lease_until=null,\n last_error='İşleyici yanıtı kayboldu; sağlayıcı olayı araştırılmalı.',updated_at=now()\n where status='sending' and lease_until<now();\n select * into v_state from public.mail_provider_state where id=1 for update;\n if v_state.sent_day is distinct from v_date then\n  update public.mail_provider_state set sent_day=v_date,reserved_today=0 where id=1;\n  v_state.reserved_today:=0;\n end if;\n v_slots:=greatest(0,v_state.approval_budget-v_state.reserved_today);\n if v_state.send_blocked_until is not null and v_state.send_blocked_until>now() then v_slots:=0; end if;\n if v_state.provider_remaining is not null then\n  v_slots:=least(v_slots,greatest(0,v_state.provider_remaining-v_state.auth_reserve));\n end if;\n v_slots:=least(v_slots,p_limit);\n for v_id in select id from public.mail_jobs where batch_id=p_batch_id\n  and status in('queued','quota_wait') and next_attempt_at<=now()\n  order by created_at,id for update skip locked limit v_slots\n loop\n  update public.mail_jobs set status='sending',lease_owner=p_worker,lease_until=now()+interval '2 minutes',\n   first_send_at=coalesce(first_send_at,now()),reservation_day=v_date,attempts=attempts+1,updated_at=now() where id=v_id;\n  v_count:=v_count+1;\n  return query select * from public.mail_jobs where id=v_id;\n end loop;\n update public.mail_provider_state set reserved_today=reserved_today+v_count,\n  provider_remaining=case when provider_remaining is null then null else greatest(0,provider_remaining-v_count) end,\n  worker_heartbeat_at=now() where id=1;\n if v_slots=0 then\n  update public.mail_jobs set status='quota_wait',updated_at=now()\n   where batch_id=p_batch_id and status='queued' and next_attempt_at<=now();\n end if;\nend; $function$\n"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "args": "p_ip inet, p_device_id uuid, p_now timestamp with time zone",
+      "name": "check_admin_login_rate_limit",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.check_admin_login_rate_limit(p_ip inet, p_device_id uuid, p_now timestamp with time zone DEFAULT now())\n RETURNS TABLE(allowed boolean, wait_seconds integer, failure_count integer, suspicious boolean)\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select * from private.check_admin_login_rate_limit(p_ip,p_device_id,p_now)\n$function$\n"
+    }
+  ],
+  "extensions": [
+    "plpgsql",
+    "pg_stat_statements",
+    "uuid-ossp",
+    "pgcrypto",
+    "supabase_vault"
+  ],
+  "constraints": [
+    {
+      "name": "events_pkey",
+      "table": "events",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "staff_members_pkey",
+      "table": "staff_members",
+      "schema": "public",
+      "definition": "PRIMARY KEY (user_id, event_id)"
+    },
+    {
+      "name": "staff_members_user_id_fkey",
+      "table": "staff_members",
+      "schema": "public",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "staff_members_event_id_fkey",
+      "table": "staff_members",
+      "schema": "public",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "committees_name_check",
+      "table": "committees",
+      "schema": "public",
+      "definition": "CHECK (((length(btrim(name)) >= 1) AND (length(btrim(name)) <= 120)))"
+    },
+    {
+      "name": "committees_pkey",
+      "table": "committees",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "committees_id_event_id_key",
+      "table": "committees",
+      "schema": "public",
+      "definition": "UNIQUE (id, event_id)"
+    },
+    {
+      "name": "committees_event_id_fkey",
+      "table": "committees",
+      "schema": "public",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "applications_first_name_check",
+      "table": "applications",
+      "schema": "public",
+      "definition": "CHECK (((length(btrim(first_name)) >= 1) AND (length(btrim(first_name)) <= 120)))"
+    },
+    {
+      "name": "applications_last_name_check",
+      "table": "applications",
+      "schema": "public",
+      "definition": "CHECK (((length(btrim(last_name)) >= 1) AND (length(btrim(last_name)) <= 120)))"
+    },
+    {
+      "name": "admin_activity_user_agent_check",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "CHECK ((length(user_agent) <= 512))"
+    },
+    {
+      "name": "applications_email_check",
+      "table": "applications",
+      "schema": "public",
+      "definition": "CHECK (((email = lower(btrim(email))) AND (length(email) <= 254)))"
+    },
+    {
+      "name": "applications_version_check",
+      "table": "applications",
+      "schema": "public",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "name": "applications_pkey",
+      "table": "applications",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "applications_event_id_email_key",
+      "table": "applications",
+      "schema": "public",
+      "definition": "UNIQUE (event_id, email)"
+    },
+    {
+      "name": "applications_id_event_id_key",
+      "table": "applications",
+      "schema": "public",
+      "definition": "UNIQUE (id, event_id)"
+    },
+    {
+      "name": "applications_event_id_fkey",
+      "table": "applications",
+      "schema": "public",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "applications_created_by_fkey",
+      "table": "applications",
+      "schema": "public",
+      "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "applications_committee_id_event_id_fkey",
+      "table": "applications",
+      "schema": "public",
+      "definition": "FOREIGN KEY (committee_id, event_id) REFERENCES committees(id, event_id)"
+    },
+    {
+      "name": "mail_batches_request_hash_check",
+      "table": "mail_batches",
+      "schema": "public",
+      "definition": "CHECK ((request_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "mail_batches_total_check",
+      "table": "mail_batches",
+      "schema": "public",
+      "definition": "CHECK (((total >= 1) AND (total <= 500)))"
+    },
+    {
+      "name": "mail_batches_pkey",
+      "table": "mail_batches",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "mail_batches_event_id_fkey",
+      "table": "mail_batches",
+      "schema": "public",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "mail_batches_created_by_fkey",
+      "table": "mail_batches",
+      "schema": "public",
+      "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "mail_jobs_pkey",
+      "table": "mail_jobs",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "mail_jobs_tag_key",
+      "table": "mail_jobs",
+      "schema": "public",
+      "definition": "UNIQUE (tag)"
+    },
+    {
+      "name": "mail_jobs_idempotency_key_key",
+      "table": "mail_jobs",
+      "schema": "public",
+      "definition": "UNIQUE (idempotency_key)"
+    },
+    {
+      "name": "mail_jobs_application_id_approval_version_key",
+      "table": "mail_jobs",
+      "schema": "public",
+      "definition": "UNIQUE (application_id, approval_version)"
+    },
+    {
+      "name": "mail_jobs_batch_id_fkey",
+      "table": "mail_jobs",
+      "schema": "public",
+      "definition": "FOREIGN KEY (batch_id) REFERENCES mail_batches(id)"
+    },
+    {
+      "name": "mail_jobs_application_id_fkey",
+      "table": "mail_jobs",
+      "schema": "public",
+      "definition": "FOREIGN KEY (application_id) REFERENCES applications(id)"
+    },
+    {
+      "name": "mail_provider_state_id_check",
+      "table": "mail_provider_state",
+      "schema": "public",
+      "definition": "CHECK ((id = 1))"
+    },
+    {
+      "name": "admin_activity_platform_check",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "CHECK ((length(platform) <= 80))"
+    },
+    {
+      "name": "mail_provider_state_approval_budget_check",
+      "table": "mail_provider_state",
+      "schema": "public",
+      "definition": "CHECK (((approval_budget >= 0) AND (approval_budget <= 300)))"
+    },
+    {
+      "name": "mail_provider_state_auth_reserve_check",
+      "table": "mail_provider_state",
+      "schema": "public",
+      "definition": "CHECK (((auth_reserve >= 0) AND (auth_reserve <= 300)))"
+    },
+    {
+      "name": "mail_provider_state_pkey",
+      "table": "mail_provider_state",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "qr_credentials_pkey",
+      "table": "qr_credentials",
+      "schema": "public",
+      "definition": "PRIMARY KEY (application_id)"
+    },
+    {
+      "name": "qr_credentials_raw_value_key",
+      "table": "qr_credentials",
+      "schema": "public",
+      "definition": "UNIQUE (raw_value)"
+    },
+    {
+      "name": "qr_credentials_value_hash_key",
+      "table": "qr_credentials",
+      "schema": "public",
+      "definition": "UNIQUE (value_hash)"
+    },
+    {
+      "name": "qr_credentials_manual_code_key",
+      "table": "qr_credentials",
+      "schema": "public",
+      "definition": "UNIQUE (manual_code)"
+    },
+    {
+      "name": "qr_credentials_application_id_fkey",
+      "table": "qr_credentials",
+      "schema": "public",
+      "definition": "FOREIGN KEY (application_id) REFERENCES applications(id)"
+    },
+    {
+      "name": "check_ins_pkey",
+      "table": "check_ins",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "check_ins_request_id_key",
+      "table": "check_ins",
+      "schema": "public",
+      "definition": "UNIQUE (request_id)"
+    },
+    {
+      "name": "check_ins_event_id_application_id_key",
+      "table": "check_ins",
+      "schema": "public",
+      "definition": "UNIQUE (event_id, application_id)"
+    },
+    {
+      "name": "check_ins_event_id_fkey",
+      "table": "check_ins",
+      "schema": "public",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "check_ins_application_id_fkey",
+      "table": "check_ins",
+      "schema": "public",
+      "definition": "FOREIGN KEY (application_id) REFERENCES applications(id)"
+    },
+    {
+      "name": "check_ins_staff_user_id_fkey",
+      "table": "check_ins",
+      "schema": "public",
+      "definition": "FOREIGN KEY (staff_user_id) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "check_in_attempts_pkey",
+      "table": "check_in_attempts",
+      "schema": "public",
+      "definition": "PRIMARY KEY (user_id, minute)"
+    },
+    {
+      "name": "check_in_attempts_user_id_fkey",
+      "table": "check_in_attempts",
+      "schema": "public",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "mail_events_pkey",
+      "table": "mail_events",
+      "schema": "public",
+      "definition": "PRIMARY KEY (fingerprint)"
+    },
+    {
+      "name": "mail_events_job_id_fkey",
+      "table": "mail_events",
+      "schema": "public",
+      "definition": "FOREIGN KEY (job_id) REFERENCES mail_jobs(id)"
+    },
+    {
+      "name": "audit_logs_pkey",
+      "table": "audit_logs",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "admin_activity_action_check",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "CHECK (((length(action) >= 1) AND (length(action) <= 80)))"
+    },
+    {
+      "name": "admin_activity_outcome_check",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "CHECK ((outcome = ANY (ARRAY['started'::text, 'succeeded'::text, 'denied'::text])))"
+    },
+    {
+      "name": "admin_activity_device_class_check",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "CHECK ((device_class = ANY (ARRAY['mobile'::text, 'desktop'::text, 'unknown'::text])))"
+    },
+    {
+      "name": "admin_activity_pkey",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "admin_activity_actor_id_fkey",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "FOREIGN KEY (actor_id) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "admin_activity_event_id_fkey",
+      "table": "admin_activity",
+      "schema": "public",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "admin_login_rate_limits_failure_count_check",
+      "table": "admin_login_rate_limits",
+      "schema": "public",
+      "definition": "CHECK ((failure_count >= 0))"
+    },
+    {
+      "name": "admin_login_rate_limits_check",
+      "table": "admin_login_rate_limits",
+      "schema": "public",
+      "definition": "CHECK (((ip_address IS NOT NULL) OR (device_id IS NOT NULL)))"
+    },
+    {
+      "name": "admin_login_rate_limits_pkey",
+      "table": "admin_login_rate_limits",
+      "schema": "public",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ]
+}

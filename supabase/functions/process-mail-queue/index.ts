@@ -42,7 +42,13 @@ Deno.serve(async (request) => {
     const result = await checkBrevoReadiness(apiKey, senderEmail);
     return result.ready ? Response.json({ enabled: true }) : Response.json({ enabled: false, ...result }, { status: 503 });
   }
-  if (input.action !== undefined) return new Response("Invalid action", { status: 400 });
+  if (input.action !== undefined && input.action !== "reconcile") return new Response("Invalid action", { status: 400 });
+  if(input.action === "reconcile") {
+    if(input.batchId !== undefined || input.limit !== undefined)return new Response("Invalid request",{status:400});
+    const db=createClient(url,serviceKey,{auth:{persistSession:false}});
+    try { const reconciled=await reconcileJobs(db,apiKey);return Response.json({enabled:true,reconciled,processed:0,accepted:0,failed:0,uncertain:0}); }
+    catch { return Response.json({enabled:false,error:"Reconciliation unavailable"},{status:503}); }
+  }
   const targeted = Object.hasOwn(input, "batchId");
   if (targeted && (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.batchId!)
     || !Number.isInteger(input.limit) || input.limit! < 1 || input.limit! > 20))
@@ -75,7 +81,7 @@ Deno.serve(async (request) => {
       failed++;
       continue;
     }
-    let outgoing = job;
+    let outgoing: MailJob = job;
     if (job.kind === "participant_auth" || job.kind === "acceptance") {
       try { outgoing = await prepareParticipantAuthMail(db, job, authMailKey); }
       catch {

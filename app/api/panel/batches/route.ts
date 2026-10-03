@@ -1,3 +1,4 @@
+import { participantGate } from "@/lib/participant/gates";
 import { NextRequest } from "next/server";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    protectMutation(request);
+    protectMutation(request); const disabled=participantGate("acceptance");if(disabled)return disabled;
     const staff = await requireStaff("admin");
     const parsed = bodySchema.safeParse(await request.json());
     if (!parsed.success) return json({ error: "Seçim geçersiz." }, 400);

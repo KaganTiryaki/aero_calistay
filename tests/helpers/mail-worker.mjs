@@ -10,7 +10,7 @@ export function loadWorker({ env = {}, db, fetchImpl } = {}) {
     MAIL_QUEUE_SECRET: 'test-secret', BREVO_API_KEY: 'test-api', MAIL_SENDER_EMAIL: 'sender@example.com',
     MAIL_SENDER_NAME: 'AERO', MAIL_REPLY_TO_EMAIL: 'reply@example.com', MAIL_QUEUE_ENABLED: 'true',
     MAIL_ENV: 'production', BREVO_CONTRACT_VERIFIED: 'true', ...env };
-  const context = vm.createContext({ Request, Response, URL, URLSearchParams, TextEncoder, AbortSignal,
+  const context = vm.createContext({ Request, Response, URL, URLSearchParams, TextEncoder, TextDecoder, atob, btoa, AbortSignal,
     crypto: globalThis.crypto, fetch: fetchImpl ?? (async () => { throw Error('unexpected HTTP'); }),
     Deno: { env: { get: (name) => config[name] }, serve: (fn) => { handler = fn; } } });
   const cache = new Map();

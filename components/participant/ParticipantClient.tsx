@@ -7,6 +7,7 @@ type View = { application: { id: string; first_name: string; last_name: string; 
 export function ParticipantClient() {
   const copy = operations.participant; const [view, setView] = useState<View | null>(null); const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
+  const [pendingFinalize, setPendingFinalize] = useState<{id:string;path:string}|null>(null);
   async function load() {
     try {
       const response = await fetch("/api/participant/me", { cache: "no-store" });
@@ -17,16 +18,21 @@ export function ParticipantClient() {
   }
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   async function upload(event: FormEvent) {
-    event.preventDefault(); if (!file) { setMessage(copy.chooseFile); return; }
+    event.preventDefault(); if (!file && !pendingFinalize) { setMessage(copy.chooseFile); return; }
     setBusy(true); setMessage("");
     try {
+      let uploaded = pendingFinalize;
+      if (!uploaded && file) {
       const begin = await fetch("/api/participant/receipts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "begin", mime: file.type, size: file.size }) });
       const body = await begin.json(); if (!begin.ok) throw new Error(body.error || copy.error);
       const result = await createBrowserSupabase().storage.from("participant-receipts").uploadToSignedUrl(body.path, body.token, file, { contentType: file.type });
       if (result.error) throw new Error(copy.error);
-      const finalize = await fetch("/api/participant/receipts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "finalize", id: body.id }) });
+      uploaded = {id:body.id,path:body.path}; setPendingFinalize(uploaded);
+      }
+      if (!uploaded) throw new Error(copy.error);
+      const finalize = await fetch("/api/participant/receipts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "finalize", id: uploaded.id }) });
       const finalBody = await finalize.json(); if (!finalize.ok) throw new Error(finalBody.error || copy.error);
-      setMessage(copy.uploaded); setFile(null); await load();
+      setPendingFinalize(null); setMessage(copy.uploaded); setFile(null); await load();
     } catch (error) { setMessage(error instanceof Error ? error.message : copy.error); }
     setBusy(false);
   }
@@ -38,7 +44,7 @@ export function ParticipantClient() {
       {view.application.status === "accepted_pending_payment" && <section className="ops-card"><h2>{copy.payment}</h2>{view.application.payment_amount_minor != null && view.application.payment_currency && <p>{copy.amount}: {new Intl.NumberFormat("tr-TR", { style: "currency", currency: view.application.payment_currency }).format(view.application.payment_amount_minor / 100)}</p>}
         {view.application.payment_iban && <p>{copy.iban}: <code>{view.application.payment_iban}</code></p>}{view.application.payment_reference && <p>{copy.reference}: <code>{view.application.payment_reference}</code></p>}{view.application.payment_deadline && <p>{copy.deadline}: {new Date(view.application.payment_deadline).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}</p>}
         {view.payment?.review_reason && <p>{view.payment.review_reason}</p>}
-        {canUpload && <form className="ops-form" onSubmit={upload}><label>{copy.receipt}<input type="file" accept="application/pdf,image/jpeg,image/png" required onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label><p>{copy.receiptHelp}</p><button disabled={busy}>{busy ? copy.busy : copy.upload}</button></form>}
+        {canUpload && <form className="ops-form" onSubmit={upload}><label>{copy.receipt}<input key={pendingFinalize?.id ?? "new-receipt"} type="file" accept="application/pdf,image/jpeg,image/png" required={!pendingFinalize} disabled={busy || Boolean(pendingFinalize)} onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label><p>{copy.receiptHelp}</p>{pendingFinalize && <><p>Dosyanız yüklendi. İncelemeye gönderimini tekrar deneyebilirsiniz.</p><button type="button" disabled={busy} onClick={() => { setPendingFinalize(null);setFile(null);setMessage(""); }}>Başka dosya seç</button></>}<button disabled={busy}>{busy ? copy.busy : pendingFinalize ? "İncelemeye göndermeyi tekrar dene" : copy.upload}</button></form>}
       </section>}
       <section className="ops-card">{view.qrReady ? <><h2>{copy.qr}</h2><Image src="/api/participant/qr" alt={copy.qr} width={320} height={320} unoptimized style={{ maxWidth: "100%", height: "auto" }} /><p><code>{view.manualCode}</code></p><a className="ops-button" href="/api/participant/qr?download=1">{copy.download}</a></> : <p>{copy.qrWaiting}</p>}</section>
     </>}

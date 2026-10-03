@@ -1,3 +1,4 @@
+import { participantGate } from "@/lib/participant/gates";
 import { NextRequest } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -6,7 +7,7 @@ import { participantFailure } from "@/lib/participant/server";
 
 export async function POST(request: NextRequest) {
   try {
-    protectMutation(request);
+    protectMutation(request); const disabled=participantGate("rollout");if(disabled)return disabled;
     const { data, error } = await (await createServerSupabase()).auth.getUser();
     if (error || !data.user?.email_confirmed_at) throw new Error("FORBIDDEN");
     const result = await createAdminSupabase().rpc("claim_participant_account", { p_user_id: data.user.id });

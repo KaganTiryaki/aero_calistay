@@ -1,3 +1,4 @@
+import { participantGate } from "@/lib/participant/gates";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth/permissions";
@@ -34,7 +35,7 @@ const schema = z.discriminatedUnion("action", [
 ]);
 export async function POST(request: NextRequest) {
   try {
-    protectMutation(request); await requireStaff("admin");
+    protectMutation(request); const disabled=participantGate("payment");if(disabled)return disabled; await requireStaff("admin");
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return json({ error: "Ödeme bilgilerini eksiksiz girin." }, 400);
     const input = parsed.data; const client = await createServerSupabase();
@@ -43,4 +44,14 @@ export async function POST(request: NextRequest) {
       : await client.rpc("request_payment_correction", { p_submission_id: input.id, p_expected_version: input.version, p_reason: input.reason });
     if (result.error) throw result.error; return json({ ok: result.data });
   } catch (error) { return participantFailure(error); }
+}
+export async function PATCH(request: NextRequest) {
+  try {
+    protectMutation(request); const disabled=participantGate("payment");if(disabled)return disabled; await requireStaff("admin");
+    const parsed=z.object({applicationId:z.string().uuid(),applicationVersion:z.number().int().positive(),expectedAmountMinor:z.number().int().positive().max(2147483647),reason:z.string().trim().min(1).max(500)}).safeParse(await request.json());
+    if(!parsed.success)return json({error:"Başvuru sürümü, pozitif tutar ve gerekçe zorunludur."},400);
+    const input=parsed.data;
+    const result=await (await createServerSupabase()).rpc("set_application_payment_amount",{p_application_id:input.applicationId,p_expected_version:input.applicationVersion,p_amount_minor:input.expectedAmountMinor,p_reason:input.reason});
+    if(result.error)throw result.error;return json({ok:result.data});
+  }catch(error){return participantFailure(error);}
 }

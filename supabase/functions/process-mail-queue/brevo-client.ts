@@ -1,5 +1,7 @@
 export type MailJob = {
   id?: string;
+  application_id?: string;
+  kind?: string;
   recipient_email: string;
   subject: string;
   html_content: string;

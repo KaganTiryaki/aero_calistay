@@ -2,8 +2,10 @@ import "server-only";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { json } from "@/lib/http";
+import { participantGate } from "@/lib/participant/gates";
 
 export async function requireParticipant() {
+  if(participantGate())throw new Error("FEATURE_DISABLED");
   const { data, error } = await (await createServerSupabase()).auth.getUser();
   if (error || !data.user?.email_confirmed_at) throw new Error("FORBIDDEN");
   const client = createAdminSupabase();
@@ -16,6 +18,7 @@ export async function requireParticipant() {
 
 export function participantFailure(error: unknown) {
   const message = error && typeof error === "object" && "message" in error ? String(error.message) : "";
+  if(message.includes("FEATURE_DISABLED"))return json({error:"Katılımcı işlemleri henüz açılmadı."},503);
   const known: Record<string, string> = {
     FORBIDDEN: "Bu işlem için erişiminiz yok. Hesabınıza yeniden giriş yapın.",
     NOT_REVIEWABLE: "Dekont henüz incelemeye hazır değil.", STALE_PAYMENT: "Dekont değişti. Listeyi yenileyin.",

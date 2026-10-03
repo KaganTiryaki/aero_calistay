@@ -1,3 +1,4 @@
+import { participantGate } from "@/lib/participant/gates";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth/permissions";
@@ -8,7 +9,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   try {
-    protectMutation(request);
+    protectMutation(request); const disabled=participantGate("acceptance");if(disabled)return disabled;
     const staff = await requireStaff("admin");
     const parsed = z.object({ jobId: z.string().uuid(), email: z.email().optional() }).safeParse(await request.json());
     if (!parsed.success) return json({ error: "Geçersiz gönderim." }, 400);
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (!job) return json({ error: "Gönderim bulunamadı." }, 404);
     const { data: app } = await createAdminSupabase().from("applications").select("id").eq("id", job.application_id).eq("event_id", staff.eventId).maybeSingle();
     if (!app) return json({ error: "Gönderim bulunamadı." }, 404);
-    const { data, error } = job.kind === "acceptance"
+    const { data, error } = job.kind === "acceptance" || job.kind === "participant_auth"
       ? await (await createServerSupabase()).rpc("retry_participant_invite", { p_job_id: parsed.data.jobId, p_email: parsed.data.email ?? job.recipient_email })
       : await (await createServerSupabase()).rpc("reopen_failed_approval", { p_job_id: parsed.data.jobId });
     if (error) throw error;

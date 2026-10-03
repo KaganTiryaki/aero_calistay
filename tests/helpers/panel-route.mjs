@@ -7,11 +7,12 @@ import ts from 'typescript';
 const nativeRequire = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('../../', import.meta.url));
 
-export function loadPanelRoute(route, { db, staff, worker } = {}) {
+export function loadPanelRoute(route, { db, staff, worker, server = db } = {}) {
   const stubs = {
     'server-only': {},
     '@/lib/auth/permissions': { requireStaff: async () => { if (!staff || staff.role !== 'admin') throw Error('FORBIDDEN'); return staff; } },
     '@/lib/supabase/admin': { createAdminSupabase: () => db },
+    '@/lib/supabase/server': { createServerSupabase: async () => server },
     '@/lib/mail/dispatch': { callMailWorker: worker },
     '@/lib/participant/server': { participantFailure: (error) => new (nativeRequire('next/server').NextResponse)(JSON.stringify({ error: error?.message ?? 'UNKNOWN' }), { status: 500 }) },
     '@/lib/activity/server': { startAdminActivity: async () => async () => {} },
