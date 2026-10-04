@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     protectMutation(request);
     const parsed = schema.safeParse(await request.json());
-    if (!parsed.success) return json({ error: "Geçerli bir PDF, JPEG veya PNG seçin; en fazla 5 MiB." }, 400);
+    if (!parsed.success) return json({ error: "Dosya yüklenemedi. Geçerli bir dekont seçin." }, 400);
     const { applicationId, userId, client } = await requireParticipant();
     const input = parsed.data;
     if (input.action === "begin") {

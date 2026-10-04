@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { operations } from "@/lib/content";
@@ -11,6 +11,19 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
   const [sessionConflict, setSessionConflict] = useState(false);
   const [staffSessionType,setStaffSessionType]=useState<"invite"|"magiclink"|"recovery"|null>(null);
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (mode !== "activate" && mode !== "staff-activate") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("token_hash") || url.searchParams.has("code") || url.hash) return;
+    let active = true;
+    setBusy(true);
+    void fetch("/api/participant/activate", { cache: "no-store" }).then(async response => {
+      if (!response.ok) return;
+      const result = await response.json();
+      if (active && result.setPassword === true && result.audience === (mode === "activate" ? "participant" : "staff")) setRequiresNewPassword(true);
+    }).catch(() => {}).finally(() => { if (active) setBusy(false); });
+    return () => { active = false; };
+  }, [mode]);
   async function login(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("");
     try {
@@ -97,7 +110,7 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
     {mode === "activate" && <p>{requiresNewPassword ? copy.activationPasswordHelp : copy.activateHelp}</p>}
     <form className="ops-form" onSubmit={login}>
       {mode !== "activate" && mode !== "staff-activate" && <label>{copy.email}<input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
-      {((mode === "activate" || mode === "staff-activate") ? requiresNewPassword : true) && <label>{mode === "activate" || mode === "staff-activate" ? copy.newPassword : copy.password}<input type="password" required minLength={mode === "activate" || mode === "staff-activate" ? 12 : 1} maxLength={256} autoComplete={mode === "activate" || mode === "staff-activate" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>}
+      {((mode === "activate" || mode === "staff-activate") ? requiresNewPassword : true) && <label>{mode === "activate" || mode === "staff-activate" ? copy.newPassword : copy.password}<input type="password" required minLength={mode === "activate" || mode === "staff-activate" ? 6 : 1} maxLength={256} autoComplete={mode === "activate" || mode === "staff-activate" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>}
       <button disabled={busy || sessionConflict} className="ops-button--primary">{busy ? copy.busy : mode === "activate" || mode === "staff-activate" ? requiresNewPassword ? copy.saveActivationPassword : copy.activate : copy.login}</button>
       {sessionConflict && <button type="button" disabled={busy} onClick={logoutForActivation}>{copy.logoutForActivation}</button>}
       {(mode === "login" || mode === "staff") && <button type="button" disabled={busy} onClick={() => requestLink("recovery")}>{copy.newLink}</button>}

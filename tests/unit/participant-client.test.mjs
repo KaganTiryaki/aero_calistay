@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import { component } from '../helpers/client-component.mjs';
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status });
 const auth = '../../components/participant/AuthClient.tsx';
+test('refresh resumes the verified password form with the current minimum',async()=>{
+ const calls=[];const c=component(auth,'ParticipantAuthClient',{props:{mode:'activate'},href:'https://example.com/katilimci/aktivasyon',fetch:async(url,init)=>{calls.push({url,method:init?.method??'GET'});return response({setPassword:true,audience:'participant'});}});
+ c.render();c.effects[0]();await new Promise(setImmediate);
+ assert.equal(c.nodes(c.render(),'input').find(x=>x.props.type==='password').props.minLength,6);assert.deepEqual(calls,[{url:'/api/participant/activate',method:'GET'}]);
+});
 test('activation session conflict offers explicit local logout and preserves the unused invite', async () => {
   let signedOut = 0; const calls = [];
   const c = component(auth, 'ParticipantAuthClient', { props: { mode: 'activate' }, client: { auth: { signOut: async (options) => { assert.equal(options.scope, 'local'); signedOut++; return { error: null }; } } }, fetch: async (url, init) => {
@@ -33,6 +38,7 @@ test('invite renders a separate password step; failed save retries without consu
   } });
   await c.submit(); assert.deepEqual(c.redirects, []);
   const password = c.nodes(c.render(), 'input').find(x => x.props.type === 'password'); assert.ok(password);
+  assert.equal(password.props.minLength,6);
   password.props.onChange({ target: { value: 'a-strong-password' } });
   await c.submit(); assert.deepEqual(c.redirects, []);
   await c.submit(); assert.deepEqual(c.redirects, ['/katilimci']);

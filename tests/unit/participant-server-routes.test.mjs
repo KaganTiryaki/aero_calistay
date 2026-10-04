@@ -16,6 +16,15 @@ test('password cannot change for another session, a revoked invitation, or a sho
   assert.ok((await f.POST(f.request({password:options.password}))).status>=400);assert.equal(writes,0);
  }
 });
+test('six-character activation password is accepted at the provider minimum',async()=>{
+ let saved;const f=loadServerRoute('participant/activate',{proof:{userId:user.id,jobId:'job',fingerprint:'fingerprint',type:'invite',audience:'participant'},db:{rpc:async()=>({data:true,error:null})},server:{auth:{getUser:async()=>({data:{user},error:null}),updateUser:async input=>{saved=input.password;return {error:null};}}}});
+ assert.equal((await f.POST(f.request({password:'abcdef'}))).status,200);assert.equal(saved,'abcdef');
+});
+test('verified password step can resume after refresh without consuming an invite or changing the account',async()=>{
+ let writes=0;const options={proof:{userId:user.id,jobId:'job',fingerprint:'fingerprint',type:'invite',audience:'participant'},db:{rpc:async()=>({data:true,error:null})},server:{auth:{getUser:async()=>({data:{user},error:null}),updateUser:async()=>{writes++;return {error:null};}}}};
+ const f=loadServerRoute('participant/activate',options);const r=await f.GET(f.request({}));assert.equal(r.status,200);assert.deepEqual(await r.json(),{setPassword:true,audience:'participant'});assert.equal(writes,0);assert.deepEqual(f.calls,[]);
+ const invalid=loadServerRoute('participant/activate',{...options,db:{rpc:async()=>({data:false,error:null})}});assert.equal((await invalid.GET(invalid.request({}))).status,403);
+});
 test('closed production server gate stops auth before external dependencies',async()=>{const f=loadServerRoute('participant/login',{env:{NODE_ENV:'production'}});assert.equal((await f.POST(f.request({email:'p@example.com',password:'long-safe-password'}))).status,503);});
 test('staff can save an activation password while participant rollout is closed',async()=>{
  const f=loadServerRoute('participant/activate',{env:{NODE_ENV:'production'},proof:{userId:user.id,audience:'staff'},db:{rpc:async()=>({data:true,error:null})},server:{auth:{getUser:async()=>({data:{user},error:null}),updateUser:async()=>({error:null})}}});
