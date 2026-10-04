@@ -11,6 +11,8 @@
 .ops-nav{display:flex;gap:4px;align-items:center;overflow-x:auto;scrollbar-width:thin}
 .ops-nav a{white-space:nowrap;padding:9px 12px;border-radius:8px;color:#aec7c4;font-size:13px}
 .ops-nav a:hover,.ops-nav a:focus-visible{background:#18343b;color:#fff}
+.ops-nav a[aria-current=page]{background:#16473f;color:#b2ffed;box-shadow:inset 0 -2px #71ead0}
+.ops fieldset{min-width:0;padding:0;margin:0;border:0}.ops fieldset:disabled{opacity:.65}
 .ops-tool-link{text-decoration:none;color:inherit;display:block}
 .ops-tool-link:hover,.ops-tool-link:focus-visible{border-color:#4d8e91;background:#17323a}
 .ops-receipt-preview{margin:16px 0;min-height:300px;background:#fff;border-radius:10px;overflow:hidden}
@@ -41,6 +43,12 @@
 .ops .ops-button--danger{border-color:#ad7474;background:#583337;color:#fff0ed}
 .ops-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.ops-actions--end{justify-content:flex-end}
 .ops-note{color:#a7c1be;font-size:13px}.ops-error{color:#ffb6ad;font-size:13px}.ops-success{color:#71ead0;font-size:13px}
+.ops-feedback{padding:24px;border:1px solid #3e7d78;border-left:5px solid #71ead0;border-radius:15px;background:#123630;scroll-margin-top:110px}
+.ops-feedback[data-kind=error]{background:#351e24;border-color:#ffb6ad}.ops-feedback[data-kind=info],.ops-feedback[data-kind=uncertain]{background:#18333f;border-color:#88cadc}
+.ops-feedback h2{margin:0 0 12px;font-size:23px}.ops-feedback p{margin:8px 0 16px}.ops-feedback-subject{display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere}
+.ops-feedback .ops-actions:empty{display:none}.ops-feedback button,.ops-feedback .ops-button{min-height:44px}
+.ops-refreshing{color:#b7d6d1;font-size:13px}.ops-muted-list{opacity:.65;pointer-events:none}
+.ops-auth-links{display:grid;gap:10px}.ops-auth-links p{margin:0;font-size:13px;color:#aec7c4}.ops-password-row{display:flex;gap:8px;align-items:center}.ops-password-row input{min-width:0}.ops-password-row button{flex-shrink:0}
 .ops-table-wrap{overflow-x:auto;border:1px solid #24444b;border-radius:15px;background:#10272e}
 .ops-table{width:100%;border-collapse:collapse;min-width:650px;text-align:left}
 .ops-table th,.ops-table td{padding:13px 14px;border-bottom:1px solid #254047;vertical-align:middle;font-size:13px}
@@ -83,3 +91,5 @@
 @media(max-width:900px){.ops-header-inner{display:block}.ops-brand{margin-bottom:12px}.ops-grid{grid-template-columns:1fr}.ops-form-row{grid-template-columns:1fr}.ops-card-sheet{grid-template-columns:90mm}}
 @media(max-width:600px){.ops-main{padding:28px 16px 80px}.ops-header-inner{padding:13px 16px}.ops-card{padding:18px}.ops-page-head{display:block}.ops-page-head .ops-actions{margin-top:15px}.ops-toolbar label{min-width:100%}.ops-nav{margin:0 -16px;padding:0 16px 3px}.ops-person{align-items:stretch;flex-direction:column}.ops-person-details{align-items:flex-start;flex-direction:column;gap:5px}.ops-person-details strong{min-width:0}.ops-person>button,.ops-person .ops-committee-choice{width:100%}.ops-selection-summary{align-items:stretch;flex-direction:column}.ops-selection-summary .ops-actions,.ops-selection-summary .ops-actions>*{width:100%}}
 @media print{.ops{background:#fff;color:#091f24}.ops-header,.ops-page-head,.ops-print-hide{display:none!important}.ops-main{max-width:none;padding:0;margin:0}.ops-card-sheet{margin:0;gap:0;grid-template-columns:repeat(2,90mm)}.ops-badge{border:1px dashed #999;page-break-inside:avoid} @page{size:A4;margin:8mm}}
+@media(max-width:600px){.ops-feedback{padding:18px}.ops-nav{flex-wrap:wrap;overflow:visible}.ops-nav a{min-height:44px;display:inline-flex;align-items:center}.ops-mobile-cards{border:0;background:transparent;overflow:visible}.ops-mobile-cards table,.ops-mobile-cards tbody{display:block;min-width:0}.ops-mobile-cards thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.ops-mobile-cards tr{display:block;border:1px solid #3b6267;border-radius:14px;background:#10272e;margin-bottom:16px;padding:12px}.ops-mobile-cards td{display:block;border:0;padding:8px 4px;overflow-wrap:anywhere}.ops-mobile-cards td:before{content:attr(data-label);display:block;font-size:12px;color:#aec7c4;margin-bottom:5px}.ops-mobile-cards td button,.ops-mobile-cards td .ops-button{min-height:44px}.ops-mobile-cards .ops-actions{flex-wrap:wrap}.ops-feedback .ops-actions{flex-direction:column;align-items:stretch}}
+@media(prefers-reduced-motion:reduce){.ops-feedback{scroll-behavior:auto;animation:none}}

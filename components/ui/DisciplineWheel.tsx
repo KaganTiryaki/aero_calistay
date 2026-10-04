@@ -49,6 +49,7 @@ export function DisciplineWheel() {
   const [fine, setFine] = useState(true); // desktop-first for SSR
   const wheelRef = useRef<HTMLDivElement>(null);
   const scrubRef = useRef<HTMLDivElement>(null);
+  const directSelection=useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -65,6 +66,7 @@ export function DisciplineWheel() {
     const el = scrubRef.current;
     if (!el) return;
     const onScroll = () => {
+      if(directSelection.current)return;
       const total = el.offsetHeight - window.innerHeight;
       if (total <= 0) return;
       const scrolled = Math.min(Math.max(-el.getBoundingClientRect().top, 0), total);
@@ -72,8 +74,11 @@ export function DisciplineWheel() {
       setSel(Math.min(N - 1, Math.max(0, Math.floor(p * N * 0.999))));
     };
     onScroll();
+    const resume=()=>{directSelection.current=false;};
+    window.addEventListener("touchmove",resume,{passive:true});
+    window.addEventListener("wheel",resume,{passive:true});
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {window.removeEventListener("scroll", onScroll);window.removeEventListener("touchmove",resume);window.removeEventListener("wheel",resume);};
   }, [mounted, fine]);
 
   // pointer devices → nearest wedge by angle from centre
@@ -99,6 +104,7 @@ export function DisciplineWheel() {
 
   const active = disciplines[sel];
   const touch = mounted && !fine;
+  const choices=<div role="group" aria-label="Disiplin seçimi" className="flex flex-wrap justify-center gap-2">{disciplines.map((discipline,index)=><button key={discipline.name} type="button" aria-pressed={sel===index} onClick={()=>{directSelection.current=true;setSel(index);}} className={"min-h-11 rounded-lg border px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-turq "+(sel===index?"border-brand-turq bg-brand-turq/15 text-ink":"border-hairline text-muted")}>{discipline.name}</button>)}</div>;
 
   const wheel = (
     <div
@@ -168,6 +174,7 @@ export function DisciplineWheel() {
       <div ref={scrubRef} style={{ height: `${N * STEP_VH}vh` }} className="relative">
         <div className="sticky top-0 flex min-h-screen flex-col items-center justify-center gap-8 py-16">
           {wheel}
+          {choices}
 
           <p className="max-w-sm text-center text-[15px] leading-relaxed text-ink/90">
             {active.note}
@@ -197,7 +204,7 @@ export function DisciplineWheel() {
   // ---- pointer: wheel + live notepad ----
   return (
     <div className="grid items-center gap-10 md:grid-cols-[1fr_0.82fr] md:gap-14">
-      {wheel}
+      <div className="space-y-5">{wheel}{choices}</div>
       <div className="panel panel-accent relative min-h-[220px] p-7 md:p-8">
         <div className="mb-4 flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-brand-turq shadow-[0_0_8px_2px_rgba(84,227,229,0.7)]" />

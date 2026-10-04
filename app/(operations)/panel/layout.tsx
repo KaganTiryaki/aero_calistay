@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getStaffContext } from "@/lib/auth/permissions";
 import { operations } from "@/lib/content";
+import { PanelNav } from "@/components/operations/PanelNav";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const staff = await getStaffContext();
@@ -10,9 +11,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   return <>
     <header className="ops-header"><div className="ops-header-inner">
       <Link className="ops-brand" href="/panel/basvurular"><span className="ops-mark">A</span><span>{operations.title}</span></Link>
-      <nav className="ops-nav" aria-label="Panel bölümleri">
-        {operations.nav.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
-      </nav>
+      <PanelNav/>
     </div></header>
     <main className="ops-main">{children}</main>
   </>;

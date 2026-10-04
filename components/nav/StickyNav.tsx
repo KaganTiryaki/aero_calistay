@@ -58,17 +58,18 @@ export function StickyNav() {
   };
 
   const go = (e: React.MouseEvent, href: string) => {
+    if(!href.startsWith("#")){setOpen(false);return;}
     e.preventDefault();
     setOpen(false);
     // let the menu begin closing before scrolling
     setTimeout(() => scrollToId(href), 10);
   };
 
-  // Telefon menüsü: en üste "Katılım" eklenir; landing'in tepesine (#anasayfa)
-  // götürür. Numaralandırma 1 Katılım … 7 Aero FRC olur.
+  // Telefon menüsü ana sayfaya ve katılımcı girişine doğrudan erişim sağlar.
   // Masaüstü nav'ı etkilemez; o hâlâ nav.links'i kullanır.
   const mobileLinks = [
-    { label: "Katılım", href: "#anasayfa", external: false },
+    { label: "Katılımcı girişi", href: "/katilimci/giris", external: false },
+    { label: "Ekip başvurusu", href: "#anasayfa", external: false },
     ...nav.links.map((l) => ({ label: l.label, href: l.href, external: false })),
   ];
 
@@ -91,7 +92,7 @@ export function StickyNav() {
           <span>{site.navMark}</span>
         </a>
 
-        <div className="hidden items-center gap-9 md:flex">
+        <div className="hidden items-center gap-5 lg:flex">
           {nav.links.map((l) => (
             <a
               key={l.href}
@@ -105,7 +106,8 @@ export function StickyNav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
+          <a href="/katilimci/giris" className="hidden rounded-lg border border-brand-turq/50 px-4 py-2 text-sm text-ink lg:block">Katılımcı girişi</a>
+          <div className="hidden xl:block">
             <MagneticButton strength={0.2} radius={120}>
               <Cta label={nav.cta.label} size="sm" />
             </MagneticButton>
@@ -119,7 +121,7 @@ export function StickyNav() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((o) => !o)}
-            className="relative z-[112] flex h-10 w-10 items-center justify-center text-ink md:hidden"
+            className="relative z-[112] flex h-11 w-11 items-center justify-center text-ink lg:hidden"
           >
             <span className="flex flex-col items-center justify-center gap-[5px]">
               <span
@@ -154,7 +156,7 @@ export function StickyNav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[110] flex flex-col md:hidden"
+            className="fixed inset-0 z-[110] flex flex-col lg:hidden"
           >
             <div
               className="overlay-backdrop"
@@ -165,7 +167,7 @@ export function StickyNav() {
               id="mobile-menu"
               ref={menuRef}
               onKeyDown={trapTab}
-              className="relative z-[111] mt-16 flex flex-1 flex-col justify-between px-8 py-10"
+              className="relative z-[111] mt-16 flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto px-8 py-6"
             >
               <nav className="flex flex-col gap-1">
                 {mobileLinks.map((l, i) => (
@@ -178,7 +180,7 @@ export function StickyNav() {
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.06 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex items-baseline gap-4 border-b border-hairline/40 py-4 font-display text-3xl text-ink/90 transition-colors hover:text-brand-turq"
+                    className="flex min-h-11 items-baseline gap-4 border-b border-hairline/40 py-3 font-display text-2xl text-ink/90 transition-colors hover:text-brand-turq"
                   >
                     <span className="font-mono text-[11px] text-brand-turq/60">
                       {i + 1}

@@ -12,6 +12,8 @@ import {
 } from "@/lib/panel/approval-selection";
 import type { MailDispatchOutcome } from "@/lib/mail/status";
 import { dispatchDecision } from "@/lib/panel/approval-dispatch";
+import { ActionFeedback } from "@/components/operations/ActionFeedback";
+import type { ActionFeedbackState } from "@/lib/operations/action-feedback";
 
 type Committee = {id:string;name:string;active:boolean};
 type CandidateRow = {id:string;first_name:string;last_name:string;email:string;version:number;status:string};
@@ -37,12 +39,15 @@ export function ApprovalClient() {
   const [attempt,setAttempt]=useState<Attempt|null>(null);
   const [committees,setCommittees]=useState<Committee[]>([]);
   const [committeeError,setCommitteeError]=useState(false);
+  const [committeesLoading,setCommitteesLoading]=useState(true);
+  const [feedback,setFeedback]=useState<ActionFeedbackState|null>(null);
   const [candidates,setCandidates]=useState<ApprovalPerson[]>([]);
   const [total,setTotal]=useState(0);
   const [page,setPage]=useState(1);
   const [search,setSearch]=useState("");
   const [appliedSearch,setAppliedSearch]=useState("");
   const [loading,setLoading]=useState(false);
+  const [candidateError,setCandidateError]=useState("");const [candidatesLoaded,setCandidatesLoaded]=useState(false);const [candidateRefresh,setCandidateRefresh]=useState(0);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
   const [legacySelection,setLegacySelection]=useState(false);
@@ -55,11 +60,11 @@ export function ApprovalClient() {
       if(!response.ok)throw new Error();
       const body=await response.json() as {items:Committee[]};
       setCommittees(body.items.filter((item)=>item.active));setCommitteeError(false);
-    }).catch(()=>setCommitteeError(true));
+    }).catch(()=>setCommitteeError(true)).finally(()=>setCommitteesLoading(false));
   },[]);
 
   useEffect(()=>{
-    if(!draft.committeeId){setCandidates([]);setTotal(0);return;}
+    if(!draft.committeeId){setCandidates([]);setTotal(0);setCandidatesLoaded(false);setCandidateError("");return;}
     let active=true;setLoading(true);
     const params=new URLSearchParams({page:String(page),q:appliedSearch,status:"pending"});
     void fetch(`/api/panel/applications?${params}`,{cache:"no-store"}).then(async(response)=>{
@@ -67,10 +72,10 @@ export function ApprovalClient() {
       const body=await response.json() as {items:CandidateRow[];total:number};
       if(!active)return;
       setCandidates(body.items.filter((item)=>item.status==="pending").map((item)=>({id:item.id,firstName:item.first_name,lastName:item.last_name,email:item.email,version:item.version})));
-      setTotal(body.total);setMessage("");
-    }).catch(()=>{if(active)setMessage("Adaylar yüklenemedi. Sayfayı veya aramayı yenileyin.");}).finally(()=>{if(active)setLoading(false);});
+      setTotal(body.total);setCandidateError("");setCandidatesLoaded(true);
+    }).catch(()=>{if(active)setCandidateError("Adaylar yüklenemedi. Sayfayı veya aramayı yenileyin.");}).finally(()=>{if(active)setLoading(false);});
     return()=>{active=false;};
-  },[draft.committeeId,page,appliedSearch]);
+  },[draft.committeeId,page,appliedSearch,candidateRefresh]);
 
   function updateDraft(next:ApprovalDraft){setDraft(next);persistApprovalDraft(next);}
   function onCommittee(id:string){
@@ -102,10 +107,12 @@ export function ApprovalClient() {
     return `E-posta hizmetinin kabul ettiği: ${outcome.acceptedTotal}. Teslim edildiği doğrulanan: ${outcome.deliveredTotal}. Sırada/beklemede: ${outcome.pending}. Gönderilemeyen: ${outcome.failedTotal}. Sonucu kontrol edilen: ${outcome.uncertainTotal}.`;
   }
   function finish(outcome:MailDispatchOutcome){
+    const complete=outcome.pending===0&&outcome.failedTotal===0&&outcome.uncertainTotal===0&&outcome.acceptedTotal===draft.people.length;
+    setFeedback({kind:complete?"success":"info",title:complete?"Kabul e-postaları hizmete iletildi":"Gönderimin bir bölümü tamamlandı",description:`${describe(outcome)} ${outcome.issue??"Teslimat durumunu E-postalar bölümünden izleyin."}`,subject:{name:`${committees.find(c=>c.id===draft.committeeId)?.name??"Seçilen komite"} · ${draft.people.length} aday`},links:[{label:"E-postalarda durumu izle",href:"/panel/gonderimler"}]});
     if(outcome.pending===0&&outcome.failedTotal===0&&outcome.uncertainTotal===0&&outcome.acceptedTotal===draft.people.length){
       sessionStorage.removeItem(approvalAttemptKey);setAttempt(null);updateDraft(emptyApprovalDraft);
-      setMessage(`${describe(outcome)} Teslimat durumunu E-postalar bölümünden izleyin.`);
-    }else setMessage(`${describe(outcome)} ${outcome.issue??"Kalan işleri E-postalar bölümünden kontrol edin."}`);
+      setMessage("");
+    }else setMessage("");
   }
   async function continueBatch(batchId:string,first:MailDispatchOutcome){
     let outcome=first;
@@ -122,7 +129,7 @@ export function ApprovalClient() {
   }
   async function run(action:"send"|"check"|"resume"){
     if(sendingRef.current)return;
-    sendingRef.current=true;setBusy(true);setMessage("");
+    sendingRef.current=true;setBusy(true);setMessage("");setFeedback(null);
     let createdAttempt:Attempt|null=null;
     try{
       const selections=toSelections(draft);
@@ -165,12 +172,15 @@ export function ApprovalClient() {
     <div className="ops-step"><strong>1. Komite</strong><span>→</span><strong>2. Adaylar</strong><span>→</span><strong>3. Toplu gönderim</strong></div>
     {legacySelection&&<p className="ops-note">Başvurular ekranındaki eski seçim bu gönderime eklenmedi. <button type="button" onClick={()=>{sessionStorage.removeItem("aero-selected-applications");setLegacySelection(false);}}>Eski seçimi temizle</button></p>}
     {message&&<p role="status" className="ops-note">{message}</p>}
+    {feedback&&<ActionFeedback id="approval-result" feedback={feedback} focus onDismiss={()=>setFeedback(null)}/>}
     <section className="ops-card"><h2>1. Komiteyi seçin</h2>
-      {committeeError?<p role="alert" className="ops-error">Komiteler yüklenemedi. Sayfayı yenileyin.</p>:!committees.length?<p>Aktif komite yok. <Link href="/panel/ayarlar">Ayarlar bölümünden komite ekleyin.</Link></p>:<label>Komite<select value={draft.committeeId} disabled={busy||Boolean(attempt)} onChange={(event)=>onCommittee(event.target.value)}><option value="">Komite seçin</option>{committees.map((item)=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+      {committeesLoading?<p role="status">Komiteler yükleniyor…</p>:committeeError?<p role="alert" className="ops-error">Komiteler yüklenemedi. Sayfayı yenileyin.</p>:!committees.length?<p>Aktif komite yok. <Link href="/panel/ayarlar">Ayarlar bölümünden komite ekleyin.</Link></p>:<label>Komite<select value={draft.committeeId} disabled={busy||Boolean(attempt)} onChange={(event)=>onCommittee(event.target.value)}><option value="">Komite seçin</option>{committees.map((item)=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
     </section>
     {draft.committeeId&&<section className="ops-card"><h2>2. Adayları seçin</h2>
       <form className="ops-toolbar" onSubmit={searchNow}><label>İsim veya e-posta ara<input value={search} onChange={(event)=>setSearch(event.target.value)} disabled={busy||Boolean(attempt)}/></label><button disabled={busy||Boolean(attempt)}>Ara</button><button type="button" disabled={busy||Boolean(attempt)||!candidates.length} onClick={selectPage}>Bu sayfayı seç</button></form>
-      {loading?<p>Adaylar yükleniyor…</p>:candidates.length?<ApprovalCandidates items={candidates} selectedIds={selectedIds} disabled={busy||Boolean(attempt)} onToggle={onToggle}/>:<p>Bu aramada onay bekleyen aday yok.</p>}
+      {candidateError&&<><p role="alert" className="ops-error">{candidateError}</p><button type="button" disabled={loading} onClick={()=>setCandidateRefresh(value=>value+1)}>Adayları yenile</button></>}
+      {loading&&<p role="status">{candidatesLoaded?"Adaylar güncelleniyor; mevcut sonuçlar gösteriliyor.":"Adaylar yükleniyor…"}</p>}
+      {candidates.length?<ApprovalCandidates items={candidates} selectedIds={selectedIds} disabled={busy||Boolean(attempt)||loading} onToggle={onToggle}/>:!loading&&!candidateError&&<p>Bu aramada onay bekleyen aday yok.</p>}
       <div className="ops-pagination"><span>{total} aday · sayfa {page}</span><div className="ops-actions"><button type="button" disabled={page===1||loading} onClick={()=>setPage(page-1)}>Önceki</button><button type="button" disabled={page*50>=total||loading} onClick={()=>setPage(page+1)}>Sonraki</button></div></div>
       <div className="ops-selection-summary"><strong>{draft.people.length} aday seçildi</strong><div className="ops-actions"><button type="button" disabled={busy||Boolean(attempt)||!draft.people.length} onClick={()=>updateDraft({...draft,people:[]})}>Seçimi temizle</button></div></div>
       {draft.people.length>0&&<details><summary>Seçilenleri göster</summary><div className="ops-person-list">{draft.people.map((person)=><div className="ops-person" key={person.id}><span>{person.firstName} {person.lastName} · {person.email}</span><button type="button" disabled={busy||Boolean(attempt)} onClick={()=>onToggle(person)}>Kaldır</button></div>)}</div></details>}

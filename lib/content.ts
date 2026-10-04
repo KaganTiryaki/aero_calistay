@@ -47,8 +47,8 @@ export const hero = {
  */
 export const apply = {
   open: false,
-  closedLabel: "Başvurular kapanmıştır",
-  closedStatus: "Başvurular kapanmıştır",
+  closedLabel: "Ekip başvuruları kapalı",
+  closedStatus: "Ekip başvuruları kapalı",
   closedNote: "Yeni duyurular Instagram'da · @aero_cal",
   closedTitle: "Başvurular kapanmıştır.",
   closedLine:
@@ -192,13 +192,12 @@ export const teams = {
   cta: "Akademi Ekibi Başvuruları Açık",
 } as const;
 
-// "Ekibimiz" — ekibin yüzleri. Fotoğraflar henüz yok; her komite için boş
-// (branded) foto slotu gösteriyoruz, görseller geldikçe doldurulacak.
+// Mevcut koordinatörleri ve ekipleri metin olarak gösterir.
 export const teamGallery = {
-  eyebrow: "Yüzler",
+  eyebrow: "Koordinasyon",
   title: "Ekibimiz",
   intro:
-    "Çalıştayı hazırlayan ekibin yüzleri. Fotoğraflar çekildikçe bu bölümü güncelleyeceğiz — her komite için bir kare ayırdık.",
+    "Çalıştayı birlikte hazırlayan koordinatörlerimiz ve ekiplerimiz.",
   groupCaption: "Çalıştay Ekibi · 2026",
   coordinators: [
     { name: "Asya Yeşil", role: "Genel Koordinatör" },

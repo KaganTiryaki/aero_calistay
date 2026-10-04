@@ -57,7 +57,7 @@ test('staff default invite session is consumed only on explicit submit and then 
 test('recovery request exposes an unavailable service instead of claiming a sent email', async () => {
   const c=component(auth,'ParticipantAuthClient',{fetch:async()=>response({error:'Hizmet kullanılamıyor'},503)});
   c.nodes(c.render(),'input').find(x=>x.props.type==='email').props.onChange({target:{value:'p@example.com'}});
-  await c.nodes(c.render(),'button').find(x=>x.props.type==='button').props.onClick();
+  await c.nodes(c.render(),'button').find(x=>x.props.children==='Şifremi unuttum').props.onClick();
   assert.ok(c.nodes(c.render(),'p').some(x=>x.props.children==='Hizmet kullanılamıyor'));
 });
 
@@ -92,4 +92,29 @@ test('administrator can create a pending test application without sending email'
  }});
  for(const [index,value] of [[0,'Test'],[1,'Katılımcı'],[2,'test@example.com']])c.nodes(c.render(),'input')[index].props.onChange({target:{value}});
  await c.submit();assert.deepEqual(writes,[{url:'/api/panel/applications',body:{firstName:'Test',lastName:'Katılımcı',email:'test@example.com'}}]);
+});
+
+test('participant load failure is recoverable rather than an endless loading screen',async()=>{
+ const c=component('../../components/participant/ParticipantClient.tsx','ParticipantClient',{fetch:async()=>response({},503)});c.render();c.runEffects();await new Promise(setImmediate);
+ assert.ok(!c.nodes(c.render(),'p').some(n=>n.props.children==='loading'));assert.ok(c.nodes(c.render(),'button').some(n=>n.props.children==='Tekrar dene'));
+});
+test('participant logout failure does not redirect',async()=>{
+ const c=component('../../components/participant/ParticipantClient.tsx','ParticipantClient',{fetch:async()=>response({},503),client:{auth:{signOut:async()=>({error:new Error('Çıkış başarısız')})}}});
+ await c.nodes(c.render(),'button').find(n=>n.props.children==='logout').props.onClick();assert.deepEqual(c.redirects,[]);
+});
+test('tokenless activation does not offer a verification button when no resumable session exists',async()=>{
+ const c=component(auth,'ParticipantAuthClient',{props:{mode:'activate'},href:'https://example.com/katilimci/aktivasyon',fetch:async()=>response({},403)});c.render();c.runEffects();await new Promise(setImmediate);
+ assert.ok(!c.nodes(c.render(),'button').some(n=>n.props.children==='activate'));assert.ok(c.nodes(c.render(),'p').some(n=>String(n.props.children).includes('Geçerli bir aktivasyon')));
+});
+test('activation resume network failure is presented separately from invalid link',async()=>{
+ const c=component(auth,'ParticipantAuthClient',{props:{mode:'activate'},href:'https://example.com/katilimci/aktivasyon',fetch:async()=>{throw new Error('offline');}});c.render();c.runEffects();await new Promise(setImmediate);
+ assert.ok(c.nodes(c.render(),'p').some(n=>String(n.props.children).includes('kontrol edilemedi')));
+});
+
+
+test('missing recovery email is always an error even after a successful link request',async()=>{
+ const c=component(auth,'ParticipantAuthClient',{fetch:async()=>response({ok:true})});
+ const email=()=>c.nodes(c.render(),'input').find(n=>n.props.type==='email');email().props.onChange({target:{value:'t@example.com'}});
+ await c.nodes(c.render(),'button').find(n=>n.props.children==='Şifremi unuttum').props.onClick();email().props.onChange({target:{value:''}});
+ await c.nodes(c.render(),'button').find(n=>n.props.children==='Şifremi unuttum').props.onClick();assert.equal(c.nodes(c.render(),'p').find(n=>n.props.children==='email').props.role,'alert');
 });

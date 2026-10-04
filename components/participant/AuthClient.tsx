@@ -11,21 +11,25 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
   const [sessionConflict, setSessionConflict] = useState(false);
   const [staffSessionType,setStaffSessionType]=useState<"invite"|"magiclink"|"recovery"|null>(null);
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
+  const [messageKind,setMessageKind]=useState<"error"|"success">("error");
+  const [showPassword,setShowPassword]=useState(false);
+  const [activationCheck,setActivationCheck]=useState<"checking"|"ready"|"invalid"|"error">("checking");
   useEffect(() => {
     if (mode !== "activate" && mode !== "staff-activate") return;
     const url = new URL(window.location.href);
-    if (url.searchParams.has("token_hash") || url.searchParams.has("code") || url.hash) return;
+    if (url.searchParams.has("token_hash") || url.searchParams.has("code") || url.hash) {setActivationCheck("ready");return;}
     let active = true;
     setBusy(true);
     void fetch("/api/participant/activate", { cache: "no-store" }).then(async response => {
-      if (!response.ok) return;
+      if(!active)return;
+      if (!response.ok){setActivationCheck(response.status===401||response.status===403?"invalid":"error");return;}
       const result = await response.json();
-      if (active && result.setPassword === true && result.audience === (mode === "activate" ? "participant" : "staff")) setRequiresNewPassword(true);
-    }).catch(() => {}).finally(() => { if (active) setBusy(false); });
+      if (active && result.setPassword === true && result.audience === (mode === "activate" ? "participant" : "staff")){setRequiresNewPassword(true);setActivationCheck("ready");}else setActivationCheck("invalid");
+    }).catch(() => {if(active)setActivationCheck("error");}).finally(() => { if (active) setBusy(false); });
     return () => { active = false; };
   }, [mode]);
   async function login(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage("");
+    event.preventDefault(); setBusy(true); setMessage("");setMessageKind("error");
     try {
       const client = createBrowserSupabase();
       if (mode === "activate" || mode === "staff-activate") {
@@ -85,37 +89,41 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
     try {
       const result = await createBrowserSupabase().auth.signOut({ scope: "local" });
       if (result.error) throw result.error;
-      setSessionConflict(false); setMessage(copy.activationReady);
+      setSessionConflict(false);setMessageKind("success"); setMessage(copy.activationReady);
     } catch (error) { setMessage(error instanceof Error ? error.message : copy.error); }
     setBusy(false);
   }
   async function requestLink(purpose: "activate" | "recovery" = "recovery") {
-    if (!email.trim()) { setMessage(copy.email); return; }
-    setBusy(true);
+    if (!email.trim()) { setMessageKind("error");setMessage(copy.email); return; }
+    setBusy(true);setMessage("");setMessageKind("error");
     try {
       if (mode === "staff") {
         const result = await createBrowserSupabase().auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: false,
           emailRedirectTo: `${window.location.origin}/personel/aktivasyon` } });
         if (result.error) throw new Error(copy.error);
-        setMessage(copy.linkSent); setBusy(false); return;
+        setMessageKind("success");setMessage(copy.linkSent); setBusy(false); return;
       }
       const response = await fetch("/api/participant/auth-link", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim(), purpose }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || copy.error);
-      setMessage(copy.linkSent);
+      setMessageKind("success");setMessage(copy.linkSent);
     } catch (error) { setMessage(error instanceof Error ? error.message : copy.error); }
     setBusy(false);
   }
   return <main className="ops-login"><section className="ops-card"><h1>{mode === "activate" ? copy.activateTitle : mode === "staff" || mode === "staff-activate" ? copy.staffTitle : copy.loginTitle}</h1>
-    {mode === "activate" && <p>{requiresNewPassword ? copy.activationPasswordHelp : copy.activateHelp}</p>}
+    {mode === "activate" && (requiresNewPassword||activationCheck==="ready") && <p>{requiresNewPassword ? copy.activationPasswordHelp : copy.activateHelp}</p>}
+    {(mode==="activate"||mode==="staff-activate")&&activationCheck==="checking"&&<p role="status">Bağlantı kontrol ediliyor…</p>}
+    {(mode==="activate"||mode==="staff-activate")&&activationCheck==="invalid"&&<p role="alert" className="ops-error">Geçerli bir aktivasyon bağlantısı gerekli. E-postanızdaki bağlantıyı açın veya giriş ekranından yeni davet bağlantısı isteyin.</p>}
+    {(mode==="activate"||mode==="staff-activate")&&activationCheck==="error"&&<p role="alert" className="ops-error">Oturum kontrol edilemedi. Bağlantınızı kontrol edip sayfayı yenileyin.</p>}
     <form className="ops-form" onSubmit={login}>
       {mode !== "activate" && mode !== "staff-activate" && <label>{copy.email}<input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
-      {((mode === "activate" || mode === "staff-activate") ? requiresNewPassword : true) && <label>{mode === "activate" || mode === "staff-activate" ? copy.newPassword : copy.password}<input type="password" required minLength={mode === "activate" || mode === "staff-activate" ? 6 : 1} maxLength={256} autoComplete={mode === "activate" || mode === "staff-activate" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>}
-      <button disabled={busy || sessionConflict} className="ops-button--primary">{busy ? copy.busy : mode === "activate" || mode === "staff-activate" ? requiresNewPassword ? copy.saveActivationPassword : copy.activate : copy.login}</button>
+      {((mode === "activate" || mode === "staff-activate") ? requiresNewPassword : true) && <label>{mode === "activate" || mode === "staff-activate" ? copy.newPassword : copy.password}<span className="ops-password-row"><input aria-label={mode === "activate" || mode === "staff-activate" ? copy.newPassword : copy.password} type={showPassword?"text":"password"} required minLength={mode === "activate" || mode === "staff-activate" ? 6 : 1} maxLength={256} autoComplete={mode === "activate" || mode === "staff-activate" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Gizle":"Göster"}</button></span></label>}
+      {(mode==="login"||mode==="staff"||activationCheck==="ready"||requiresNewPassword)&&<button disabled={busy || sessionConflict} className="ops-button--primary">{busy ? copy.busy : mode === "activate" || mode === "staff-activate" ? requiresNewPassword ? copy.saveActivationPassword : copy.activate : copy.login}</button>}
       {sessionConflict && <button type="button" disabled={busy} onClick={logoutForActivation}>{copy.logoutForActivation}</button>}
-      {(mode === "login" || mode === "staff") && <button type="button" disabled={busy} onClick={() => requestLink("recovery")}>{copy.newLink}</button>}
-      {mode === "login" && <button type="button" disabled={busy} onClick={() => requestLink("activate")}>Davet bağlantısını yeniden gönder</button>}
-    </form>{message && <p role="status" className="ops-note">{message}</p>}
-    {mode === "activate" && <Link href="/katilimci/giris">{copy.login}</Link>}
+      {(mode === "login" || mode === "staff") && <div className="ops-auth-links"><button type="button" disabled={busy} onClick={() => requestLink("recovery")}>Şifremi unuttum</button><p>Yukarıdaki e-posta adresi için yeni giriş bağlantısı isteyin.</p></div>}
+      {mode === "login" && <div className="ops-auth-links"><button type="button" disabled={busy} onClick={() => requestLink("activate")}>Yeni davet bağlantısı iste</button><p>Davet bağlantınız yoksa veya süresi dolduysa kullanın.</p></div>}
+    </form>{message && <p role={messageKind==="error"?"alert":"status"} className={messageKind==="error"?"ops-error":"ops-success"}>{message}</p>}
+    {(mode === "activate"||mode==="staff-activate") && <Link href={mode==="activate"?"/katilimci/giris":"/personel/giris"}>{copy.login}</Link>}
+    <p><Link href="/">Ana sayfaya dön</Link></p>
   </section></main>;
 }
