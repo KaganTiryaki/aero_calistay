@@ -153,7 +153,12 @@ test('payment review pages reach receipts beyond 500 applications and stay event
    const rows=(await s.pg.query('select * from list_payment_reviews($1,$2,50)',[s.event,page])).rows;
    assert.equal(rows.length,page===10?1:51);
    assert.deepEqual(rows.slice(0,50).map(row=>row.id),expected.slice(page*50,page*50+50));
-   for(const row of rows.slice(0,50)) {assert.equal(row.application.email.startsWith('review-'),true);seen.add(row.id);}
+   for(const row of rows.slice(0,50)) {
+    assert.equal(row.application.email.startsWith('review-'),true);
+    assert.equal(typeof row.application.version,'number');
+    assert.equal(row.application.committee_name,null);
+    seen.add(row.id);
+   }
    if(page===10) assert.equal(rows.length,1);
   }
   assert.equal(seen.size,501);

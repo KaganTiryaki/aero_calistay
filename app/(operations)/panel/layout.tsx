@@ -11,8 +11,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     <header className="ops-header"><div className="ops-header-inner">
       <Link className="ops-brand" href="/panel/basvurular"><span className="ops-mark">A</span><span>{operations.title}</span></Link>
       <nav className="ops-nav" aria-label="Panel bölümleri">
-        {operations.nav.slice(0, 4).map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
-        <details className="ops-more"><summary>Diğer işlemler</summary><div>{operations.nav.slice(4).map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}</div></details>
+        {operations.nav.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
       </nav>
     </div></header>
     <main className="ops-main">{children}</main>

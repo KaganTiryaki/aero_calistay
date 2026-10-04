@@ -10,14 +10,20 @@ export async function GET(request: NextRequest) {
   try {
     const staff = await requireStaff("admin"); const client = createAdminSupabase();
     const id = request.nextUrl.searchParams.get("receipt");
+    const download = request.nextUrl.searchParams.get("download");
+    if (download !== null && (download !== "1" || !id)) return json({ error: "Geçersiz indirme seçeneği." }, 400);
     if (id) {
       if (!z.string().uuid().safeParse(id).success) return json({ error: "Geçersiz dekont." }, 400);
-      const { data: row, error } = await client.from("payment_submissions").select("storage_object_id,application_id").eq("id", id).single();
+      const { data: row, error } = await client.from("payment_submissions").select("storage_object_id,application_id,expected_mime,status").eq("id", id).single();
       if (error) throw error;
+      if (!row.storage_object_id || !["under_review", "approved", "correction_required"].includes(row.status)) return json({ error: "Dekont incelemeye hazır değil." }, 404);
       const { data: app } = await client.from("applications").select("id").eq("id", row.application_id).eq("event_id", staff.eventId).maybeSingle();
       if (!app) throw new Error("FORBIDDEN");
-      const { data, error: urlError } = await client.storage.from("participant-receipts").createSignedUrl(row.storage_object_id, 60, { download: "dekont" });
-      if (urlError) throw urlError; return json({ url: data.signedUrl });
+      const extension = row.expected_mime === "application/pdf" ? "pdf" : row.expected_mime === "image/jpeg" ? "jpg" : row.expected_mime === "image/png" ? "png" : null;
+      if (!extension) return json({ error: "Dosya türü desteklenmiyor." }, 415);
+      const fileName = `dekont.${extension}`;
+      const { data, error: urlError } = await client.storage.from("participant-receipts").createSignedUrl(row.storage_object_id, 60, download === "1" ? { download: fileName } : undefined);
+      if (urlError) throw urlError; return json({ url: data.signedUrl, mime: row.expected_mime, fileName, expiresAt: new Date(Date.now() + 60_000).toISOString() });
     }
     const rawPage = request.nextUrl.searchParams.get("page") ?? "0";
     if (!/^(0|[1-9]\d{0,4})$/.test(rawPage) || Number(rawPage) > 10000) return json({ error: "Geçersiz sayfa." }, 400);
