@@ -3,6 +3,26 @@ import assert from 'node:assert/strict';
 import { component } from '../helpers/client-component.mjs';
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status });
 const auth = '../../components/participant/AuthClient.tsx';
+test('activation session conflict offers explicit local logout and preserves the unused invite', async () => {
+  let signedOut = 0; const calls = [];
+  const c = component(auth, 'ParticipantAuthClient', { props: { mode: 'activate' }, client: { auth: { signOut: async (options) => { assert.equal(options.scope, 'local'); signedOut++; return { error: null }; } } }, fetch: async (url, init) => {
+    calls.push(JSON.parse(init.body)); return signedOut ? response({ ok: true, setPassword: true }) : response({ error: 'Mevcut hesabınızdan çıkış yapın.' }, 409);
+  } });
+  await c.submit(); assert.equal(signedOut, 0); assert.equal(c.history.length, 0);
+  const logout = c.nodes(c.render(), 'button').find(x => x.props.children === 'logoutForActivation'); assert.ok(logout);
+  await logout.props.onClick(); assert.equal(signedOut, 1); assert.equal(c.history.length, 0); assert.equal(calls.length, 1);
+  await c.submit(); assert.equal(calls[0].tokenHash, calls[1].tokenHash);
+  assert.ok(c.nodes(c.render(), 'input').some(x => x.props.type === 'password'));
+  assert.ok(c.nodes(c.render(), 'button').some(x => x.props.children === 'saveActivationPassword'));
+});
+test('failed activation logout keeps the conflict actionable without verifying the invite', async () => {
+  let calls = 0;
+  const c = component(auth, 'ParticipantAuthClient', { props: { mode: 'activate' }, client: { auth: { signOut: async () => ({ error: new Error('Çıkış başarısız') }) } }, fetch: async () => { calls++; return response({ error: 'Çıkış yapın' }, 409); } });
+  await c.submit(); const logout = c.nodes(c.render(), 'button').find(x => x.props.children === 'logoutForActivation'); assert.ok(logout);
+  await logout.props.onClick(); assert.equal(calls, 1); assert.equal(c.history.length, 0);
+  assert.ok(c.nodes(c.render(), 'button').some(x => x.props.children === 'logoutForActivation'));
+  assert.ok(c.nodes(c.render(), 'p').some(x => x.props.children === 'Çıkış başarısız'));
+});
 test('invite renders a separate password step; failed save retries without consuming the token twice', async () => {
   const calls = []; let save = 0;
   const c = component(auth, 'ParticipantAuthClient', { props: { mode: 'activate' }, client: { auth: { signOut: async () => {}, updateUser: async () => ({ error: null }) } }, fetch: async (url) => {

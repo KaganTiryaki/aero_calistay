@@ -8,6 +8,7 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
   const copy = operations.participant;
   const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
   const [requiresNewPassword, setRequiresNewPassword] = useState(false);
+  const [sessionConflict, setSessionConflict] = useState(false);
   const [staffSessionType,setStaffSessionType]=useState<"invite"|"magiclink"|"recovery"|null>(null);
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
   async function login(event: FormEvent) {
@@ -42,7 +43,7 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
         }
         const response = await fetch(mode === "staff-activate" ? "/api/auth/staff-activate" : "/api/participant/auth-link/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(staffSession ? {session:true,type:staffSession} : { tokenHash, type, jobId: url.searchParams.get("job") }) });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || copy.invalidLink);
+        if (!response.ok) { if (response.status === 409) setSessionConflict(true); throw new Error(result.error || copy.invalidLink); }
         setRequiresNewPassword(result.setPassword === true);
         window.history.replaceState(null, "", mode === "staff-activate" ? "/personel/aktivasyon" : "/katilimci/aktivasyon");
         if (result.setPassword === true) { setBusy(false); return; }
@@ -66,6 +67,15 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
       window.location.assign(staffMode ? "/tara" : "/katilimci");
     } catch (error) { setMessage(error instanceof Error ? error.message : copy.error); setBusy(false); }
   }
+  async function logoutForActivation() {
+    setBusy(true); setMessage("");
+    try {
+      const result = await createBrowserSupabase().auth.signOut({ scope: "local" });
+      if (result.error) throw result.error;
+      setSessionConflict(false); setMessage(copy.activationReady);
+    } catch (error) { setMessage(error instanceof Error ? error.message : copy.error); }
+    setBusy(false);
+  }
   async function requestLink(purpose: "activate" | "recovery" = "recovery") {
     if (!email.trim()) { setMessage(copy.email); return; }
     setBusy(true);
@@ -84,11 +94,12 @@ export function ParticipantAuthClient({ mode = "login" }: { mode?: "login" | "ac
     setBusy(false);
   }
   return <main className="ops-login"><section className="ops-card"><h1>{mode === "activate" ? copy.activateTitle : mode === "staff" || mode === "staff-activate" ? copy.staffTitle : copy.loginTitle}</h1>
-    {mode === "activate" && <p>{copy.activateHelp}</p>}
+    {mode === "activate" && <p>{requiresNewPassword ? copy.activationPasswordHelp : copy.activateHelp}</p>}
     <form className="ops-form" onSubmit={login}>
       {mode !== "activate" && mode !== "staff-activate" && <label>{copy.email}<input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
       {((mode === "activate" || mode === "staff-activate") ? requiresNewPassword : true) && <label>{mode === "activate" || mode === "staff-activate" ? copy.newPassword : copy.password}<input type="password" required minLength={mode === "activate" || mode === "staff-activate" ? 12 : 1} maxLength={256} autoComplete={mode === "activate" || mode === "staff-activate" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>}
-      <button disabled={busy} className="ops-button--primary">{busy ? copy.busy : mode === "activate" || mode === "staff-activate" ? copy.activate : copy.login}</button>
+      <button disabled={busy || sessionConflict} className="ops-button--primary">{busy ? copy.busy : mode === "activate" || mode === "staff-activate" ? requiresNewPassword ? copy.saveActivationPassword : copy.activate : copy.login}</button>
+      {sessionConflict && <button type="button" disabled={busy} onClick={logoutForActivation}>{copy.logoutForActivation}</button>}
       {(mode === "login" || mode === "staff") && <button type="button" disabled={busy} onClick={() => requestLink("recovery")}>{copy.newLink}</button>}
       {mode === "login" && <button type="button" disabled={busy} onClick={() => requestLink("activate")}>Davet bağlantısını yeniden gönder</button>}
     </form>{message && <p role="status" className="ops-note">{message}</p>}
