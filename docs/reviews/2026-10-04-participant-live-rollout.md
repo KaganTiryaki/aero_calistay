@@ -50,3 +50,12 @@ Gerçek mailbox/delivery, oturum açık admin paneli boyunca uçtan uca test, A/
 Sorunda Next env ve DB rollout/acceptance/payment kapılarını kapat; veri/audit kalsın. Eski mail-driven QR üreticisini geri açma. Tek başına eski Next rollback yeni DB/worker için yeterli değildir; uyumlu ileri düzeltme gerekir.
 
 Private yedek, secret giriş dosyaları ve yürütme logları ignored `.superpowers/sdd/2026-10-04-katilimci-canli-yayin-devir-plani/` içinde korunur. Bunlar commit edilmedi. Geçici ASCII PostgreSQL runtime/test cluster klasörlerinin recursive temizliği otomatik onay incelemesinde politika nedeniyle engellendi; test sunucuları kapatıldı, klasörler korunur. Ana makinedeki Docker/başka servisler değiştirilmedi.
+
+## Activation follow-up — 2026-10-04
+
+- Reproduced the user's invite failure in the explicitly requested in-app browser: `/api/participant/auth-link/complete` returned 409 because a verified session cookie for a different account remained, despite the participant login page being visible. Cookie/token values were not recorded in the report.
+- A cookie-free request with a deliberately invalid token returned 400 rather than the session-conflict 409; no real token was consumed by that diagnostic.
+- Added an explicit local-session logout action after conflict, preserving the unused invite URL and requiring a separate verification click. Failed logout remains retryable. Password-stage copy now identifies verification completion and password saving; initial copy explains that a second email is not sent.
+- Product commit: `ee6877e`. Production deployment: `https://aero-calistay-rlfxmmpql-kagantiryakis-projects.vercel.app`, verified through the www alias with the new UI.
+- Validation: 140/140 tests, lint, TypeScript, build passed. In-app browser test used the user's explicitly authorized mail link, closed the old local session with the new UI, then verified the invite. The new password form opened and the token disappeared from the address bar. Database confirmed email verification at `2026-10-04T00:34:15Z` and current activation binding validity.
+- Password entry and submission were left to the user. No second email was sent; no new accounts, membership, payment or QR claims were made by this follow-up.
