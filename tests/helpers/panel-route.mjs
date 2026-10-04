@@ -45,7 +45,7 @@ export const batchId = '33333333-3333-4333-8333-333333333333';
 export const selection = { applicationId: '44444444-4444-4444-8444-444444444444', version: 1, committeeId: '55555555-5555-4555-8555-555555555555' };
 export const ready = { ready: true, processed: 0, accepted: 0, failed: 0, uncertain: 0, blocked: false };
 
-export function panelDb({ batch = null, jobs = [] } = {}) {
+export function panelDb({ batch = null, jobs = [], apps = null, committees = null } = {}) {
   const queries = [], mutations = [];
   return { queries, mutations, from(table) {
     const filters = [];
@@ -54,8 +54,8 @@ export function panelDb({ batch = null, jobs = [] } = {}) {
       maybeSingle() { return query; }, then(resolve, reject) {
         queries.push({ table, filters });
         const data = table === 'mail_batches' ? batch : table === 'mail_jobs' ? jobs
-          : table === 'applications' ? [{ id: selection.applicationId, first_name: 'Test', last_name: 'Kişi', email: 'test@example.com', status: 'pending', version: 1 }]
-          : table === 'committees' ? [{ id: selection.committeeId, name: 'Komite', active: true }] : [];
+          : table === 'applications' ? apps ?? [{ id: selection.applicationId, first_name: 'Test', last_name: 'Kişi', email: 'test@example.com', status: 'pending', version: 1 }]
+          : table === 'committees' ? committees ?? [{ id: selection.committeeId, name: 'Komite', active: true }] : [];
         return Promise.resolve({ data, error: null }).then(resolve, reject);
       } };
     return query;

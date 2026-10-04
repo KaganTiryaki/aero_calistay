@@ -1,103 +1,174 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { operations } from "@/lib/content";
 import { renderApprovalMail } from "@/lib/mail/approval-template";
-import { persistSelection, readSelection, type SelectedApplication } from "./ApplicationsClient";
+import { ApprovalCandidates } from "./ApprovalCandidates";
+import {
+  approvalAttemptKey, changeCommittee, emptyApprovalDraft, persistApprovalDraft,
+  readApprovalDraft, toSelections, toggleCandidate,
+  type ApprovalDraft, type ApprovalPerson,
+} from "@/lib/panel/approval-selection";
+import type { MailDispatchOutcome } from "@/lib/mail/status";
+import { dispatchDecision } from "@/lib/panel/approval-dispatch";
 
-type Committee = { id: string; name: string; active: boolean };
+type Committee = {id:string;name:string;active:boolean};
+type CandidateRow = {id:string;first_name:string;last_name:string;email:string;version:number;status:string};
+type Attempt = {signature:string;batchId:string};
+
+function readAttempt():Attempt|null {
+  try {
+    const value:unknown=JSON.parse(sessionStorage.getItem(approvalAttemptKey)??"null");
+    if(value&&typeof value==="object"&&"signature" in value&&"batchId" in value&&typeof value.signature==="string"&&typeof value.batchId==="string")return value as Attempt;
+  }catch{/* The old attempt remains recoverable from E-postalar. */}
+  return null;
+}
+
+function validOutcome(value:unknown):value is MailDispatchOutcome {
+  if(!value||typeof value!=="object")return false;
+  const body=value as Partial<MailDispatchOutcome>;
+  return typeof body.batchId==="string"&&typeof body.dispatchReady==="boolean"&&typeof body.canContinue==="boolean"
+    &&[body.acceptedTotal,body.deliveredTotal,body.pending,body.failedTotal,body.uncertainTotal].every((number)=>Number.isSafeInteger(number)&&Number(number)>=0);
+}
+
 export function ApprovalClient() {
-  const [people, setPeople] = useState<SelectedApplication[]>([]);
-  const [committees, setCommittees] = useState<Committee[]>([]);
-  const [assigned, setAssigned] = useState<Record<string, string>>({});
-  const [common, setCommon] = useState("");
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    setPeople(readSelection());
-    void fetch("/api/panel/committees", { cache: "no-store" }).then((response) => response.json())
-      .then((body: { items: Committee[] }) => setCommittees(body.items.filter((item) => item.active)))
-      .catch(() => setMessage("Komiteler yüklenemedi. Sayfayı yenileyin."));
-  }, []);
-  function removePerson(id: string) {
-    const next = people.filter((person) => person.id !== id);
-    setPeople(next); persistSelection(next);
-    setAssigned((current) => { const updated = { ...current }; delete updated[id]; return updated; });
-    setMessage("");
+  const [draft,setDraft]=useState<ApprovalDraft>(emptyApprovalDraft);
+  const [attempt,setAttempt]=useState<Attempt|null>(null);
+  const [committees,setCommittees]=useState<Committee[]>([]);
+  const [committeeError,setCommitteeError]=useState(false);
+  const [candidates,setCandidates]=useState<ApprovalPerson[]>([]);
+  const [total,setTotal]=useState(0);
+  const [page,setPage]=useState(1);
+  const [search,setSearch]=useState("");
+  const [appliedSearch,setAppliedSearch]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [message,setMessage]=useState("");
+  const [legacySelection,setLegacySelection]=useState(false);
+  const sendingRef=useRef(false);
+
+  useEffect(()=>{
+    setDraft(readApprovalDraft());setAttempt(readAttempt());
+    setLegacySelection(Boolean(sessionStorage.getItem("aero-selected-applications")));
+    void fetch("/api/panel/committees",{cache:"no-store"}).then(async(response)=>{
+      if(!response.ok)throw new Error();
+      const body=await response.json() as {items:Committee[]};
+      setCommittees(body.items.filter((item)=>item.active));setCommitteeError(false);
+    }).catch(()=>setCommitteeError(true));
+  },[]);
+
+  useEffect(()=>{
+    if(!draft.committeeId){setCandidates([]);setTotal(0);return;}
+    let active=true;setLoading(true);
+    const params=new URLSearchParams({page:String(page),q:appliedSearch,status:"pending"});
+    void fetch(`/api/panel/applications?${params}`,{cache:"no-store"}).then(async(response)=>{
+      if(!response.ok)throw new Error();
+      const body=await response.json() as {items:CandidateRow[];total:number};
+      if(!active)return;
+      setCandidates(body.items.filter((item)=>item.status==="pending").map((item)=>({id:item.id,firstName:item.first_name,lastName:item.last_name,email:item.email,version:item.version})));
+      setTotal(body.total);setMessage("");
+    }).catch(()=>{if(active)setMessage("Adaylar yüklenemedi. Sayfayı veya aramayı yenileyin.");}).finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
+  },[draft.committeeId,page,appliedSearch]);
+
+  function updateDraft(next:ApprovalDraft){setDraft(next);persistApprovalDraft(next);}
+  function onCommittee(id:string){
+    if(attempt)return;
+    const changed=draft.committeeId!==id;
+    updateDraft(changeCommittee(draft,id));setPage(1);setSearch("");setAppliedSearch("");
+    if(changed&&draft.people.length)setMessage("Komite değişti; önceki aday seçimi temizlendi.");
+    else setMessage("");
   }
-  function clearPeople() { setPeople([]); persistSelection([]); setAssigned({}); setMessage(""); }
-  function assignEveryone() {
-    if (!common) return;
-    setAssigned(Object.fromEntries(people.map((person) => [person.id, common])));
+  function onToggle(person:ApprovalPerson){
+    if(attempt||!draft.committeeId)return;
+    try{updateDraft(toggleCandidate(draft,person));setMessage("");}
+    catch(error){setMessage(error instanceof Error?error.message:"Aday seçilemedi.");}
   }
-  async function send() {
-    if (people.some((person) => !assigned[person.id])) { setMessage("Her kişi için komite seçin."); return; }
-    setBusy(true); setMessage("");
-    let handled = 0; let providerAccepted = 0; let interrupted = false;
-    for (let offset = 0; offset < people.length; offset += 3) {
-      const chunk = people.slice(offset, offset + 3);
-      const selections = chunk.map((person) => ({
-          applicationId: person.id, version: person.version, committeeId: assigned[person.id],
-        }));
-      const attemptKey = `aero-approval-attempt:${chunk[0].id}`;
-      const signature = JSON.stringify(selections);
-      let attempt: { signature: string; batchId: string } | null = null;
-      try { attempt = JSON.parse(sessionStorage.getItem(attemptKey) ?? "null"); } catch { /* New attempt below. */ }
-      if (!attempt || attempt.signature !== signature) {
-        attempt = { signature, batchId: crypto.randomUUID() };
-        sessionStorage.setItem(attemptKey, JSON.stringify(attempt));
-      }
-      let response: Response;
-      try {
-        response = await fetch("/api/panel/batches", { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ batchId: attempt.batchId, selections }),
-        });
-      } catch {
-        setMessage(`${handled} kişinin işlemi doğrulandı. Son grubun sonucu belirsiz; bağlantıyı kontrol edip aynı seçimi tekrar deneyin.`);
-        interrupted = true;
-        break;
-      }
-      if (!response.ok) {
-        const body = await response.json() as { error?: string };
-        setMessage(`${handled} kişinin işlemi doğrulandı. ${body.error || "Kalan kişilerin e-postası gönderilemedi."}`);
-        interrupted = true;
-        break;
-      }
-      let outcome: { acceptedTotal: number; failedTotal: number; uncertainTotal: number; dispatchReady: boolean; issue: string | null };
-      try { outcome = await response.json(); }
-      catch { setMessage(`${handled} kişinin işlemi doğrulandı. Son grubun sonucunu Gönderimler bölümünden kontrol edip aynı seçimi tekrar deneyin.`); interrupted = true; break; }
-      if (![outcome.acceptedTotal,outcome.failedTotal,outcome.uncertainTotal].every((value)=>Number.isSafeInteger(value)&&value>=0)) {setMessage("Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");interrupted=true;break;}
-      sessionStorage.removeItem(attemptKey);
-      handled += chunk.length; providerAccepted += outcome.acceptedTotal;
-      if (outcome.failedTotal || outcome.uncertainTotal || !outcome.dispatchReady) {
-        setMessage(`${providerAccepted} e-posta hizmeti tarafından kabul edildi; ${outcome.failedTotal} gönderilemedi, ${outcome.uncertainTotal} gönderimin sonucu kontrol ediliyor. ${outcome.issue ?? "Ayrıntıları E-postalar bölümünden kontrol edin."}`);
-        interrupted = true;
-        break;
-      }
+  function selectPage(){
+    try{let next=draft;for(const person of candidates)if(!next.people.some((item)=>item.id===person.id))next=toggleCandidate(next,person);updateDraft(next);}
+    catch(error){setMessage(error instanceof Error?error.message:"Seçim sınırına ulaşıldı.");}
+  }
+  function searchNow(event:FormEvent){event.preventDefault();setPage(1);setAppliedSearch(search.trim());}
+
+  async function requestOutcome(url:string,body:unknown):Promise<MailDispatchOutcome>{
+    const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const value:unknown=await response.json();
+    if(!response.ok&&response.status!==202)throw new Error(typeof value==="object"&&value&&"error" in value&&typeof value.error==="string"?value.error:"Gönderim başlatılamadı.");
+    if(!validOutcome(value))throw new Error("Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");
+    return value;
+  }
+  function describe(outcome:MailDispatchOutcome){
+    return `E-posta hizmetinin kabul ettiği: ${outcome.acceptedTotal}. Teslim edildiği doğrulanan: ${outcome.deliveredTotal}. Sırada/beklemede: ${outcome.pending}. Gönderilemeyen: ${outcome.failedTotal}. Sonucu kontrol edilen: ${outcome.uncertainTotal}.`;
+  }
+  function finish(outcome:MailDispatchOutcome){
+    if(outcome.pending===0&&outcome.failedTotal===0&&outcome.uncertainTotal===0&&outcome.acceptedTotal===draft.people.length){
+      sessionStorage.removeItem(approvalAttemptKey);setAttempt(null);updateDraft(emptyApprovalDraft);
+      setMessage(`${describe(outcome)} Teslimat durumunu E-postalar bölümünden izleyin.`);
+    }else setMessage(`${describe(outcome)} ${outcome.issue??"Kalan işleri E-postalar bölümünden kontrol edin."}`);
+  }
+  async function continueBatch(batchId:string,first:MailDispatchOutcome){
+    let outcome=first;
+    const maxSteps=Math.ceil(draft.people.length/3)+2;
+    for(let step=0;step<maxSteps&&outcome.canContinue;step++){
+      const next=await requestOutcome("/api/panel/dispatch-mail",{batchId});
+      if(next.batchId!==batchId)throw new Error("Gönderim grubu uyuşmuyor.");
+      const decision=dispatchDecision(next,outcome.pending);
+      outcome=next;
+      setMessage(describe(outcome));
+      if(decision!=="continue")break;
     }
-    if (handled) {
-      const remaining = people.slice(handled);
-      persistSelection(remaining);
-      setPeople(remaining);
-      if (!interrupted && !remaining.length) setMessage(`${providerAccepted} e-posta Brevo tarafından kabul edildi. Gelen kutusuna teslimat durumunu Gönderimler bölümünden izleyin.`);
-    }
-    setBusy(false);
+    finish(outcome);
   }
-  const first = people.find((person) => assigned[person.id]);
-  const preview = first ? renderApprovalMail({ firstName: first.firstName, lastName: first.lastName,
-    committeeName: committees.find((committee) => committee.id === assigned[first.id])?.name ?? "" }) : null;
-  return <div className="ops-stack"><div className="ops-page-head"><div><h1>{operations.approval.title}</h1><p>Seçilen kişilerin komitesini belirleyin. Göndermeden önce listeyi kontrol edin.</p></div><span className="ops-pill" data-tone="good">{people.length} kişi</span></div>
-    {people.length ? <>
-      <div className="ops-step" aria-label="İşlem sırası"><span>1. Kişileri seç</span><span>→</span><strong>2. Komiteyi belirle ve e-postayı gönder</strong></div>
-      <section className="ops-card"><div className="ops-page-head"><div><h2>Seçilen kişiler</h2><p>Yanlış kişiyi seçtiyseniz yanındaki Kaldır düğmesine basın.</p></div><div className="ops-actions"><Link className="ops-button" href="/panel/basvurular">Başvurulara dön</Link><button type="button" onClick={clearPeople}>Tüm seçimi kaldır</button></div></div>
-        {people.length > 1 && <div className="ops-toolbar"><label>Herkese aynı komiteyi ata<select value={common} onChange={(event) => setCommon(event.target.value)}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></label><button type="button" disabled={!common} onClick={assignEveryone}>Herkese uygula</button></div>}
-        {!committees.length && <p role="alert" className="ops-error">Aktif komite yok. Önce <Link href="/panel/ayarlar">Ayarlar bölümünden komite ekleyin</Link>.</p>}
-        <div className="ops-person-list">{people.map((person) => <div className="ops-person" key={person.id}><div className="ops-person-details"><strong>{person.firstName} {person.lastName}</strong><span>{person.email}</span></div><label className="ops-committee-choice">Komite<select aria-label={`${person.firstName} ${person.lastName} komitesi`} value={assigned[person.id] ?? ""} onChange={(event) => setAssigned({ ...assigned, [person.id]: event.target.value })}><option value="">Komite seçin</option>{committees.map((committee) => <option key={committee.id} value={committee.id}>{committee.name}</option>)}</select></label><button type="button" onClick={() => removePerson(person.id)} aria-label={`${person.firstName} ${person.lastName} seçimini kaldır`}>Kaldır</button></div>)}</div>
-      </section>
-      <section className="ops-card"><h2>{operations.approval.preview}</h2>{preview ? <><strong>{preview.subject}</strong><div className="ops-preview">{preview.text}</div></> : <p className="ops-note">Önizleme için bir komite seçin.</p>}</section>
-      {message && <p role="status" className="ops-note">{message}</p>}
-      <div className="ops-actions ops-actions--end"><button className="ops-button--primary" disabled={busy || !committees.length || people.some((person) => !assigned[person.id])} onClick={send}>{busy ? "E-postalar gönderiliyor…" : `${people.length} kişinin kabul e-postasını gönder`}</button></div>
-    </> : <div className="ops-empty"><p>Henüz kimse seçilmedi.</p><p>Başvurular bölümünde onaylamak istediğiniz kişinin yanındaki “Bu kişiyi seç” düğmesine basın.</p><Link className="ops-button ops-button--primary" href="/panel/basvurular">Başvurulara git</Link></div>}
+  async function run(action:"send"|"check"|"resume"){
+    if(sendingRef.current)return;
+    sendingRef.current=true;setBusy(true);setMessage("");
+    try{
+      const selections=toSelections(draft);
+      const signature=JSON.stringify(selections);
+      let current=attempt;
+      if(current&&current.signature!==signature)throw new Error("Kayıtlı gönderim seçimi değişmiş. E-postalar bölümündeki grubu kontrol edin.");
+      if(!current){
+        if(action!=="send")throw new Error("Önce toplu gönderimi başlatın.");
+        current={signature,batchId:crypto.randomUUID()};sessionStorage.setItem(approvalAttemptKey,JSON.stringify(current));setAttempt(current);
+      }
+      let outcome:MailDispatchOutcome;
+      if(action==="check"){
+        const response=await fetch(`/api/panel/batches?batchId=${encodeURIComponent(current.batchId)}`,{cache:"no-store"});
+        const value:unknown=await response.json();
+        if(!response.ok)throw new Error(typeof value==="object"&&value&&"error" in value&&typeof value.error==="string"?value.error:"Gönderim durumu alınamadı.");
+        if(!validOutcome(value))throw new Error("Gönderim sonucu doğrulanamadı.");
+        outcome=value;
+      }else outcome=await requestOutcome("/api/panel/batches",{batchId:current.batchId,selections});
+      if(outcome.batchId!==current.batchId)throw new Error("Gönderim grubu uyuşmuyor.");
+      if(action==="check"){finish(outcome);return;}
+      if(action==="send"&&attempt){setMessage(`${describe(outcome)} Kalan gönderimleri sürdürmek için düğmeye ayrıca basın.`);return;}
+      await continueBatch(current.batchId,outcome);
+    }catch(error){setMessage(error instanceof Error?error.message:"Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");}
+    finally{sendingRef.current=false;setBusy(false);}
+  }
+
+  const chosen=committees.find((item)=>item.id===draft.committeeId);
+  const selectedIds=new Set(draft.people.map((item)=>item.id));
+  const example=draft.people[0];
+  const preview=chosen&&example?renderApprovalMail({firstName:example.firstName,lastName:example.lastName,committeeName:chosen.name}):null;
+  return <div className="ops-stack"><div className="ops-page-head"><div><h1>Toplu kabul</h1><p>Komiteyi seçin, bu komiteye kabul edilecek adayları işaretleyin ve toplu e-postayı gönderin.</p></div><span className="ops-pill" data-tone="good">{draft.people.length} aday</span></div>
+    <div className="ops-step"><strong>1. Komite</strong><span>→</span><strong>2. Adaylar</strong><span>→</span><strong>3. Toplu gönderim</strong></div>
+    {legacySelection&&<p className="ops-note">Başvurular ekranındaki eski seçim bu gönderime eklenmedi. <button type="button" onClick={()=>{sessionStorage.removeItem("aero-selected-applications");setLegacySelection(false);}}>Eski seçimi temizle</button></p>}
+    {message&&<p role="status" className="ops-note">{message}</p>}
+    <section className="ops-card"><h2>1. Komiteyi seçin</h2>
+      {committeeError?<p role="alert" className="ops-error">Komiteler yüklenemedi. Sayfayı yenileyin.</p>:!committees.length?<p>Aktif komite yok. <Link href="/panel/ayarlar">Ayarlar bölümünden komite ekleyin.</Link></p>:<label>Komite<select value={draft.committeeId} disabled={busy||Boolean(attempt)} onChange={(event)=>onCommittee(event.target.value)}><option value="">Komite seçin</option>{committees.map((item)=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+    </section>
+    {draft.committeeId&&<section className="ops-card"><h2>2. Adayları seçin</h2>
+      <form className="ops-toolbar" onSubmit={searchNow}><label>İsim veya e-posta ara<input value={search} onChange={(event)=>setSearch(event.target.value)} disabled={busy||Boolean(attempt)}/></label><button disabled={busy||Boolean(attempt)}>Ara</button><button type="button" disabled={busy||Boolean(attempt)||!candidates.length} onClick={selectPage}>Bu sayfayı seç</button></form>
+      {loading?<p>Adaylar yükleniyor…</p>:candidates.length?<ApprovalCandidates items={candidates} selectedIds={selectedIds} disabled={busy||Boolean(attempt)} onToggle={onToggle}/>:<p>Bu aramada onay bekleyen aday yok.</p>}
+      <div className="ops-pagination"><span>{total} aday · sayfa {page}</span><div className="ops-actions"><button type="button" disabled={page===1||loading} onClick={()=>setPage(page-1)}>Önceki</button><button type="button" disabled={page*50>=total||loading} onClick={()=>setPage(page+1)}>Sonraki</button></div></div>
+      <div className="ops-selection-summary"><strong>{draft.people.length} aday seçildi</strong><div className="ops-actions"><button type="button" disabled={busy||Boolean(attempt)||!draft.people.length} onClick={()=>updateDraft({...draft,people:[]})}>Seçimi temizle</button></div></div>
+      {draft.people.length>0&&<details><summary>Seçilenleri göster</summary><div className="ops-person-list">{draft.people.map((person)=><div className="ops-person" key={person.id}><span>{person.firstName} {person.lastName} · {person.email}</span><button type="button" disabled={busy||Boolean(attempt)} onClick={()=>onToggle(person)}>Kaldır</button></div>)}</div></details>}
+    </section>}
+    {draft.people.length>0&&<section className="ops-card"><h2>3. Kontrol edin ve gönderin</h2><p><strong>{chosen?.name??"Komite seçin"}</strong> · {draft.people.length} aday</p>
+      <h3>{operations.approval.preview}</h3>{preview&&<><strong>Örnek alıcı: {example.email}</strong><div className="ops-preview">{preview.text}</div></>}
+      <div className="ops-actions ops-actions--end">{attempt?<><button type="button" disabled={busy} onClick={()=>void run("check")}>Gönderim durumunu kontrol et</button><button type="button" className="ops-button--primary" disabled={busy} onClick={()=>void run("resume")}>Kalan gönderimleri sürdür</button></>:<button type="button" className="ops-button--primary" disabled={busy||!chosen} onClick={()=>void run("send")}>{busy?"Gönderiliyor…":`${draft.people.length} kişiye kabul e-postası gönder`}</button>}</div>
+    </section>}
   </div>;
 }

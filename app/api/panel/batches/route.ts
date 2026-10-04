@@ -14,11 +14,24 @@ export const maxDuration = 60;
 
 const bodySchema = z.object({
   batchId: z.string().uuid(),
-  selections: z.array(z.object({ applicationId: z.string().uuid(), version: z.number().int().positive(), committeeId: z.string().uuid() })).min(1).max(3),
+  selections: z.array(z.object({ applicationId: z.string().uuid(), version: z.number().int().positive(), committeeId: z.string().uuid() })).min(1).max(500),
 });
 
 export async function GET(request: NextRequest) {
   try {
+    const exactBatchId=request.nextUrl.searchParams.get("batchId");
+    if(exactBatchId){
+      if(!z.string().uuid().safeParse(exactBatchId).success)return json({error:"Grup kimliği geçersiz."},400);
+      const staff=await requireStaff("admin");const client=createAdminSupabase();
+      const {data:batch,error:batchError}=await client.from("mail_batches").select("id").eq("id",exactBatchId)
+        .eq("event_id",staff.eventId).eq("created_by",staff.userId).maybeSingle();
+      if(batchError)throw batchError;
+      if(!batch)return json({error:"Gönderim grubu bulunamadı."},404);
+      const {data:jobs,error:jobsError}=await client.from("mail_jobs").select("status,delivery_status,last_error").eq("batch_id",batch.id);
+      if(jobsError)throw jobsError;
+      const health=await callMailWorker({action:"health"});
+      return json(mailDispatchOutcome(batch.id,health,jobs??[]));
+    }
     const page = Number(request.nextUrl.searchParams.get("page") ?? "1");
     if (!Number.isSafeInteger(page) || page < 1 || page > 10000) return json({ error: "Sayfa geçersiz." }, 400);
     const staff = await requireStaff("admin");
@@ -59,7 +72,7 @@ export async function POST(request: NextRequest) {
     async function dispatchBatch() {
       const readiness = await callMailWorker({ action: "health" });
       if (!readiness.ready) return json({ error: readiness.error ?? "E-posta gönderimi şu anda hazır değil; gönderim ayarlarını kontrol edin.", code: readiness.code }, 503);
-      const dispatch = await callMailWorker({ batchId: submission.batchId, limit: submission.selections.length });
+      const dispatch = await callMailWorker({ batchId: submission.batchId, limit: 3 });
       const { data: jobs, error } = await client.from("mail_jobs").select("status,delivery_status,last_error")
         .eq("batch_id", submission.batchId);
       if (error) throw error;
@@ -72,19 +85,27 @@ export async function POST(request: NextRequest) {
       if (!data) return null;
       if (data.event_id !== staff.eventId || data.created_by !== staff.userId || data.request_hash !== requestHash)
         return json({ error: "Grup kimliği başka bir seçim için kullanılmış." }, 409);
-      return dispatchBatch();
+      const health = await callMailWorker({ action: "health" });
+      if (!health.ready) return json({ error: health.error ?? "E-posta servisi hazır değil.", code: health.code }, 503);
+      const { data: jobs, error: jobsError } = await client.from("mail_jobs").select("status,delivery_status,last_error")
+        .eq("batch_id", submission.batchId);
+      if (jobsError) throw jobsError;
+      return json(mailDispatchOutcome(submission.batchId, health, jobs ?? []));
     }
     const prior = await existingBatch();
     if (prior) return prior;
+    if (new Set(submission.selections.map((item) => item.committeeId)).size !== 1)
+      return json({ error: "Bir toplu gönderimde tek komite seçin." }, 400);
     const readiness = await callMailWorker({ action: "health" });
     if (!readiness.ready) return json({ error: readiness.error ?? "E-posta gönderimi şu anda hazır değil; gönderim ayarlarını kontrol edin.", code: readiness.code }, 503);
-    const [{ data: apps, error: appError }, { data: committees, error: committeeError }] = await Promise.all([
+    const appPages = await Promise.all(Array.from({length:Math.ceil(ids.length/100)},(_,index)=>
       client.from("applications").select("id,first_name,last_name,email,status,version")
-        .eq("event_id", staff.eventId).in("id", ids),
-      client.from("committees").select("id,name,active").eq("event_id", staff.eventId)
-        .in("id", submission.selections.map((item) => item.committeeId)),
-    ]);
+        .eq("event_id", staff.eventId).in("id", ids.slice(index*100,index*100+100))));
+    const { data: committees, error: committeeError } = await client.from("committees").select("id,name,active")
+      .eq("event_id", staff.eventId).in("id", [submission.selections[0].committeeId]);
+    const appError=appPages.find((result)=>result.error)?.error;
     if (appError || committeeError) throw appError ?? committeeError;
+    const apps=appPages.flatMap((result)=>result.data??[]);
     const appMap = new Map((apps ?? []).map((item) => [item.id, item]));
     const committeeMap = new Map((committees ?? []).map((item) => [item.id, item]));
     let stale = false;

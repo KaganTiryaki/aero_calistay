@@ -233,6 +233,22 @@ test('legacy mail delivery cannot grant acceptance or issue an unpaid QR',async(
  }finally{await s.pg.close();}
 });
 
+test('twelve pending applicants enter one idempotent acceptance batch with one committee',async()=>{
+ const s=await setup();try{
+  const created=(await s.pg.query("insert into applications(event_id,first_name,last_name,email) select $1,'Aday',n::text,'bulk-'||n||'@test.com' from generate_series(1,11) n returning id,email",[s.event])).rows;
+  const people=[{id:s.app,email:'p@test.com'},...created];
+  const batch=crypto.randomUUID(),hash='a'.repeat(64);
+  const jobs=people.map((person)=>({applicationId:person.id,version:1,committeeId:s.committee,email:person.email,subject:'Kabul',html:'Kabul',text:'Kabul'}));
+  await s.pg.query('select queue_approval_batch($1,$2,$3::jsonb,$4)',[batch,s.admin,JSON.stringify(jobs),hash]);
+  await s.pg.query('select queue_approval_batch($1,$2,$3::jsonb,$4)',[batch,s.admin,JSON.stringify(jobs),hash]);
+  const rows=(await s.pg.query("select application_id,kind,status from mail_jobs where batch_id=$1",[batch])).rows;
+  assert.equal(rows.length,12);assert.equal(new Set(rows.map(row=>row.application_id)).size,12);
+  assert.equal(rows.every(row=>row.kind==='acceptance'&&row.status==='queued'),true);
+  const assigned=(await s.pg.query("select count(*)::int n from applications where committee_id=$1 and status='accepted_pending_payment'",[s.committee])).rows[0].n;
+  assert.equal(assigned,12);
+ }finally{await s.pg.close();}
+});
+
 test('immediate mail dispatch claims the selected batch before older work',async()=>{
  const s=await setup();try{
   const other=(await s.pg.query("insert into applications(event_id,first_name,last_name,email) values($1,'Başka','Kişi','other-queue@test.com') returning id",[s.event])).rows[0].id;
