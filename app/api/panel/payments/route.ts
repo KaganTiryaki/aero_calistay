@@ -38,8 +38,7 @@ export async function GET(request: NextRequest) {
   } catch (error) { return participantFailure(error); }
 }
 const schema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("approve"), id: z.string().uuid(), version: z.number().int().positive(), bankReference: z.string().trim().min(1).max(200), amountMinor: z.number().int().positive(), transactionAt: z.string().datetime({ offset: true }), requestId: z.string().uuid() }),
-  z.object({ action: z.literal("correct"), id: z.string().uuid(), version: z.number().int().positive(), reason: z.string().trim().min(1).max(500) }),
+  z.object({ action: z.literal("approve"), id: z.string().uuid(), version: z.number().int().positive(), requestId: z.string().uuid() }),
 ]);
 export async function POST(request: NextRequest) {
   try {
@@ -47,9 +46,7 @@ export async function POST(request: NextRequest) {
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return json({ error: "Ödeme bilgilerini eksiksiz girin." }, 400);
     const input = parsed.data; const client = await createServerSupabase();
-    const result = input.action === "approve" ? await client.rpc("approve_payment", { p_submission_id: input.id, p_bank_reference: input.bankReference,
-      p_amount_minor: input.amountMinor, p_transaction_at: input.transactionAt, p_expected_version: input.version, p_request_id: input.requestId })
-      : await client.rpc("request_payment_correction", { p_submission_id: input.id, p_expected_version: input.version, p_reason: input.reason });
+    const result = await client.rpc("approve_payment_receipt", { p_submission_id: input.id, p_expected_version: input.version, p_request_id: input.requestId });
     if (result.error) throw result.error; return json({ ok: result.data });
   } catch (error) { return participantFailure(error); }
 }

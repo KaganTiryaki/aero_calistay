@@ -14,3 +14,11 @@ test('expected payment amount PATCH requires a positive integer, reason and appl
  for(const bad of [{...input,expectedAmountMinor:0},{...input,reason:''},{...input,applicationVersion:undefined}])assert.equal((await f.PATCH(f.request(bad))).status,400);
  assert.equal(calls.length,1);
 });
+
+test('receipt approval needs only the selected receipt version and request identity',async()=>{
+ const calls=[];const db={rpc:async(name,args)=>{calls.push({name,args});return {data:true,error:null};}};const f=loadPanelRoute('payments',{staff,db});
+ const input={action:'approve',id:selection.applicationId,version:2,requestId:'77777777-7777-4777-8777-777777777777'};
+ assert.equal((await f.POST(f.request(input))).status,200);
+ assert.equal(calls.length,1);assert.equal(calls[0].name,'approve_payment_receipt');
+ assert.equal(calls[0].args.p_submission_id,input.id);assert.equal(calls[0].args.p_expected_version,2);assert.equal(calls[0].args.p_request_id,input.requestId);
+});
