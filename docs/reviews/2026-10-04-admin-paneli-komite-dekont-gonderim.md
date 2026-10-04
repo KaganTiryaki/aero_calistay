@@ -8,7 +8,7 @@
 - `c8c6f6e`: Komiteyi önce seçme, adayları sayfalar arasında toplama, 500 aday sınırı, tek batch ve en fazla üç iletilik işçi adımları; salt okunur batch kontrolü ve belirsiz sonuçta devamın engellenmesi.
 - `c9f6547`: Son incelemede bulunan dört sorunu giderme: dekont önizlemesini seçili kayda bağlama, reddedilip oluşturulmayan gönderimi güvenle çözme, dekont durumunu sayfalamadan önce filtreleme, gönderim sürdürmeyi işin zamanı ve sağlayıcı kapasitesiyle eşleştirme.
 - `npm test`: 169/169 geçti. `npm run lint`, `npx tsc --noEmit`, `npm run build`, `git diff --check`: başarılı. Build'de mevcut `libheif-js` dinamik require uyarısı var; derleme tamamlandı.
-- `202610040010_payment_review_metadata.sql` bütün migration tarihçesiyle yerel PGlite üzerinde uygulandı; yeni `list_payment_reviews_by_status` işlevi mevcut RPC'yi değiştirmeden filtreyi sayfalamadan önce uygular. Ödeme/QR regresyonları geçti. Üretim veritabanına henüz uygulanmadı.
+- `202610040010_payment_review_metadata.sql` bütün migration tarihçesiyle yerel PGlite üzerinde uygulandı; yeni `list_payment_reviews_by_status` işlevi mevcut RPC'yi değiştirmeden filtreyi sayfalamadan önce uygular. Ödeme/QR regresyonları geçti. Kullanıcı onayıyla üretime de uygulandı; işlevin kurulu olduğu ve yalnız `authenticated` rolüne açıldığı sorguyla doğrulandı.
 
 ## Canlı sistemde salt okunur bulgular
 
@@ -21,8 +21,8 @@
 
 ## Yayın için kalan somut adımlar
 
-1. Yalnız `202610040010_payment_review_metadata.sql` ileri veritabanı değişikliğini üretime uygula; uygulanmış 003–009 dosyalarını değiştirme veya tüm geçmişi körlemesine yeniden yürütme.
-2. Dört yerel commit'i mevcut Vercel Production projesine yayınla. Yetkili bir yöneticiyle yerleşik tarayıcıda 390 px ve masaüstünde menü, mevcut dekont, PDF/JPEG önizleme ve seçim akışını kontrol et; ödeme onayı ya da gerçek e-posta göndermeden ekranları doğrula.
+1. İleri veritabanı değişikliği tamamlandı. Mevcut RPC korunuyor; yeni RPC için anonim erişimi kapalı.
+2. Uygulama commit'lerini mevcut Vercel Production projesine yayınla. İlk CLI denemesi `TEAM_ACCESS_REQUIRED` ile, commit yazarının doğrulanmış Vercel proje yetkisi olmadığı için derleme başlamadan engellendi; mevcut canlı site değişmedi. Yetkili yazar kimliğiyle yeniden dene. Başarılı yayın sonrası yerleşik tarayıcıda 390 px ve masaüstünde menü, mevcut dekont, PDF/JPEG önizleme ve seçim akışını kontrol et; ödeme onayı ya da gerçek e-posta göndermeden ekranları doğrula.
 3. Brevo'da `AERO_participant_delivery` adlı **Outbound webhook** oluştur: `https://www.aerocalistay.org/api/webhooks/brevo`; **Token authentication**, Vercel Production `BREVO_WEBHOOK_TOKEN` ile aynı gizli değer; **Send one at a time**; yalnız **Transactional email** teslim edildi, ertelendi, geçici/kalıcı geri döndü, geçersiz adres, engellendi, şikâyet, abonelikten çıkıldı ve hata olayları. Açılma ve tıklama olaylarını seçme. Vercel değişkeninin değeri salt okunur listede gösterilmiyor; kurulumda aynı değere erişilemiyorsa yeni rastgele token üretip Vercel ve Brevo'da birlikte güncelle. Anahtarı URL'ye veya rapora koyma.
 4. Gerekirse tek ve açıkça belirlenmiş test alıcısıyla kontrollü gerçek e-posta gönder; Brevo olayının `mail_events` içine işlendiğini ve yalnız eşleşen işin teslimat durumunu değiştirdiğini doğrula. Eski dört kaydı kanıtsız güncelleme.
 
@@ -30,4 +30,4 @@ Brevo'nun resmi belgeleri, yeni sihirbazda Token authentication ve tek tek gönd
 
 ## Açık doğrulama sınırı
 
-Yerleşik tarayıcıda bu çalışma anında AERO yönetici oturumu açık değildi. Üretim migration/yayın, Brevo webhook aktivasyonu ve gerçek posta testi yapılmadığı için son kullanıcı akışı üretimde doğrulanmış sayılmaz. Yerel derleme ve izole veritabanı testleri geçmiştir.
+Yerleşik tarayıcıda bu çalışma anında AERO yönetici oturumu açık değildi. Üretim yayını, Brevo webhook aktivasyonu ve gerçek posta testi henüz tamamlanmadığı için son kullanıcı akışı üretimde doğrulanmış sayılmaz. Yerel derleme ve izole veritabanı testleri geçmiştir.
