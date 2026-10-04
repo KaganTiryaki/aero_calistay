@@ -94,7 +94,7 @@ export function ApprovalClient() {
   async function requestOutcome(url:string,body:unknown):Promise<MailDispatchOutcome>{
     const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const value:unknown=await response.json();
-    if(!response.ok&&response.status!==202)throw new Error(typeof value==="object"&&value&&"error" in value&&typeof value.error==="string"?value.error:"Gönderim başlatılamadı.");
+    if(!response.ok&&response.status!==202){const failure=new Error(typeof value==="object"&&value&&"error" in value&&typeof value.error==="string"?value.error:"Gönderim başlatılamadı.") as Error&{status:number};failure.status=response.status;throw failure;}
     if(!validOutcome(value))throw new Error("Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");
     return value;
   }
@@ -123,6 +123,7 @@ export function ApprovalClient() {
   async function run(action:"send"|"check"|"resume"){
     if(sendingRef.current)return;
     sendingRef.current=true;setBusy(true);setMessage("");
+    let createdAttempt:Attempt|null=null;
     try{
       const selections=toSelections(draft);
       const signature=JSON.stringify(selections);
@@ -130,12 +131,13 @@ export function ApprovalClient() {
       if(current&&current.signature!==signature)throw new Error("Kayıtlı gönderim seçimi değişmiş. E-postalar bölümündeki grubu kontrol edin.");
       if(!current){
         if(action!=="send")throw new Error("Önce toplu gönderimi başlatın.");
-        current={signature,batchId:crypto.randomUUID()};sessionStorage.setItem(approvalAttemptKey,JSON.stringify(current));setAttempt(current);
+        current={signature,batchId:crypto.randomUUID()};createdAttempt=current;sessionStorage.setItem(approvalAttemptKey,JSON.stringify(current));setAttempt(current);
       }
       let outcome:MailDispatchOutcome;
       if(action==="check"){
         const response=await fetch(`/api/panel/batches?batchId=${encodeURIComponent(current.batchId)}`,{cache:"no-store"});
         const value:unknown=await response.json();
+        if(response.status===404){sessionStorage.removeItem(approvalAttemptKey);setAttempt(null);setMessage("Gönderim grubu oluşturulmamış. Seçimi düzenleyip yeniden gönderebilirsiniz.");return;}
         if(!response.ok)throw new Error(typeof value==="object"&&value&&"error" in value&&typeof value.error==="string"?value.error:"Gönderim durumu alınamadı.");
         if(!validOutcome(value))throw new Error("Gönderim sonucu doğrulanamadı.");
         outcome=value;
@@ -144,7 +146,14 @@ export function ApprovalClient() {
       if(action==="check"){finish(outcome);return;}
       if(action==="send"&&attempt){setMessage(`${describe(outcome)} Kalan gönderimleri sürdürmek için düğmeye ayrıca basın.`);return;}
       await continueBatch(current.batchId,outcome);
-    }catch(error){setMessage(error instanceof Error?error.message:"Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");}
+    }catch(error){
+      if(createdAttempt&&error instanceof Error&&"status" in error){
+        try{const check=await fetch(`/api/panel/batches?batchId=${encodeURIComponent(createdAttempt.batchId)}`,{cache:"no-store"});
+          if(check.status===404){sessionStorage.removeItem(approvalAttemptKey);setAttempt(null);setMessage(`${error.message} Gönderim grubu oluşturulmadı; seçimi düzenleyip tekrar deneyebilirsiniz.`);return;}
+        }catch{/* A lost response cannot establish whether a batch exists. */}
+      }
+      setMessage(error instanceof Error?error.message:"Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");
+    }
     finally{sendingRef.current=false;setBusy(false);}
   }
 

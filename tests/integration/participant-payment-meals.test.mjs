@@ -144,13 +144,13 @@ test('payment review pages reach receipts beyond 500 applications and stay event
   const otherApp=(await s.pg.query("insert into applications(event_id,first_name,last_name,email) values($1,'Başka','Kişi','other@test.com') returning id",[otherEvent])).rows[0].id;
   await s.pg.query("insert into payment_submissions(application_id,status) values($1,'under_review')",[otherApp]);
   await s.as(s.staff);
-  await assert.rejects(s.pg.query('select * from list_payment_reviews($1,0,50)',[s.event]),/FORBIDDEN/);
+  await assert.rejects(s.pg.query("select * from list_payment_reviews_by_status($1,0,50,'under_review')",[s.event]),/FORBIDDEN/);
   await s.pg.exec('reset role');
   const seen=new Set();
   const expected=(await s.pg.query("select s.id from payment_submissions s join applications a on a.id=s.application_id where a.event_id=$1 and s.status='under_review' order by s.created_at desc,s.id desc",[s.event])).rows.map(row=>row.id);
   await s.as(s.admin);
   for(let page=0;page<=10;page++) {
-   const rows=(await s.pg.query('select * from list_payment_reviews($1,$2,50)',[s.event,page])).rows;
+   const rows=(await s.pg.query("select * from list_payment_reviews_by_status($1,$2,50,'under_review')",[s.event,page])).rows;
    assert.equal(rows.length,page===10?1:51);
    assert.deepEqual(rows.slice(0,50).map(row=>row.id),expected.slice(page*50,page*50+50));
    for(const row of rows.slice(0,50)) {
@@ -162,9 +162,15 @@ test('payment review pages reach receipts beyond 500 applications and stay event
    if(page===10) assert.equal(rows.length,1);
   }
   assert.equal(seen.size,501);
-  await assert.rejects(s.pg.query('select * from list_payment_reviews($1,-1,50)',[s.event]),/INVALID_PAGE/);
-  await assert.rejects(s.pg.query('select * from list_payment_reviews($1,0,101)',[s.event]),/INVALID_PAGE/);
-  await assert.rejects(s.pg.query('select * from list_payment_reviews($1,0,50)',[otherEvent]),/FORBIDDEN/);
+  await s.pg.exec('reset role');
+  const approved=(await s.pg.query("insert into payment_submissions(application_id,status) values($1,'approved') returning id",[s.app])).rows[0].id;
+  await s.as(s.admin);
+  const filtered=(await s.pg.query("select * from list_payment_reviews_by_status($1,0,50,'approved')",[s.event])).rows;
+  assert.deepEqual(filtered.map(row=>row.id),[approved]);
+  await assert.rejects(s.pg.query("select * from list_payment_reviews_by_status($1,-1,50,'under_review')",[s.event]),/INVALID_PAGE/);
+  await assert.rejects(s.pg.query("select * from list_payment_reviews_by_status($1,0,101,'under_review')",[s.event]),/INVALID_PAGE/);
+  await assert.rejects(s.pg.query("select * from list_payment_reviews_by_status($1,0,50,'invalid')",[s.event]),/INVALID_PAGE/);
+  await assert.rejects(s.pg.query("select * from list_payment_reviews_by_status($1,0,50,'under_review')",[otherEvent]),/FORBIDDEN/);
  } finally {await s.pg.close();}
 });
 

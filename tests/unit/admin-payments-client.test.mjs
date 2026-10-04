@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { loadPanelRoute, staff, selection } from '../helpers/panel-route.mjs';
+import { component } from '../helpers/client-component.mjs';
 const { NextRequest } = createRequire(import.meta.url)('next/server');
 
 const receiptId = '66666666-6666-4666-8666-666666666666';
@@ -49,4 +50,26 @@ test('signed receipt access rejects other events, incomplete uploads and malform
  }
  const {db,signed}=routeDb();const route=loadPanelRoute('payments',{db,staff});
  assert.equal((await route.GET(request('&download=yes'))).status,400);assert.equal(signed.length,0);
+});
+
+test('a late signed URL cannot replace the preview of a newer receipt',async()=>{
+ const pending=new Map();
+ const receipt=(id,name)=>({id,version:1,status:'under_review',created_at:'2026-10-04T00:00:00Z',application:{id,version:1,first_name:name,last_name:'Test',email:`${name}@example.com`,committee_name:null,payment_amount_minor:100,payment_currency:'TRY'}});
+ const a=receipt('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','A');
+ const b=receipt('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','B');
+ const fetch=async(url)=>{
+  if(url.startsWith('/api/panel/payments?receipt='))return await new Promise(resolve=>pending.set(url.split('receipt=')[1],resolve));
+  if(url.startsWith('/api/panel/payments?page='))return {ok:true,json:async()=>({items:[a,b],hasMore:false})};
+  if(url==='/api/panel/payment-settings')return {ok:true,json:async()=>({})};
+  throw new Error(url);
+ };
+ const c=component('../../components/panel/PaymentsClient.tsx','PaymentsClient',{fetch});
+ c.render();c.effects.forEach(fn=>fn());await new Promise(resolve=>setImmediate(resolve));
+ const viewButtons=c.nodes(c.render(),'button').filter(node=>node.props.children==='view');
+ viewButtons[0].props.onClick();viewButtons[1].props.onClick();
+ pending.get(b.id)({ok:true,json:async()=>({url:'https://example.com/B.pdf',mime:'application/pdf'})});
+ await new Promise(resolve=>setImmediate(resolve));
+ pending.get(a.id)({ok:true,json:async()=>({url:'https://example.com/A.pdf',mime:'application/pdf'})});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(c.nodes(c.render(),'iframe')[0]?.props.src,'https://example.com/B.pdf');
 });

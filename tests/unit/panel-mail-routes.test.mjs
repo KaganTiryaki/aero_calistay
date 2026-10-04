@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { loadPanelRoute, panelDb, staff, batchId, selection, ready } from '../helpers/panel-route.mjs';
+import {canContinueMailJobs,providerCanSend} from '../../lib/mail/status.ts';
 const {NextRequest}=createRequire(import.meta.url)('next/server');
 
 test('unavailable Brevo leaves a new application untouched and returns the real diagnosis', async () => {
@@ -67,6 +68,20 @@ test('checking one batch by GET never creates or dispatches it',async()=>{
   assert.deepEqual(JSON.parse(JSON.stringify(calls)),[{action:'health'}]);assert.equal(db.mutations.length,0);
 });
 
+test('batch status does not offer continuation before retry time',async()=>{
+  const db=panelDb({batch:{id:batchId,event_id:staff.eventId,created_by:staff.userId},jobs:[{status:'queued',delivery_status:'unknown',last_error:null,next_attempt_at:new Date(Date.now()+60_000).toISOString()}]});
+  const route=loadPanelRoute('batches',{db,staff,worker:async()=>ready});
+  const response=await route.GET(new NextRequest(`https://test.example.com/api/panel/batches?batchId=${batchId}`));
+  assert.equal(response.status,200);assert.equal((await response.json()).canContinue,false);
+});
+
+test('a persisted batch owned by another session is not reported as nonexistent',async()=>{
+  const db=panelDb({batch:{id:batchId,event_id:staff.eventId,created_by:'99999999-9999-4999-8999-999999999999'}});
+  const route=loadPanelRoute('batches',{db,staff,worker:async()=>ready});
+  const response=await route.GET(new NextRequest(`https://test.example.com/api/panel/batches?batchId=${batchId}`));
+  assert.equal(response.status,409);
+});
+
 test('four candidates create one batch and the first worker step is capped at three',async()=>{
   const people=Array.from({length:4},(_,index)=>({id:`44444444-4444-4444-8444-${String(index).padStart(12,'0')}`,first_name:'Test',last_name:String(index),email:`person${index}@example.com`,status:'pending',version:1}));
   const selections=people.map((person)=>({applicationId:person.id,version:1,committeeId:selection.committeeId}));
@@ -119,6 +134,27 @@ test('manual continuation does not send queued jobs while another result is unce
   let calls=0;const route=loadPanelRoute('dispatch-mail',{db,staff,worker:async()=>{calls++;return ready;}});
   assert.equal((await route.POST(route.request({batchId}))).status,409);
   assert.equal(calls,0);
+});
+
+test('continuation waits for a due job and available provider capacity',async()=>{
+ const now=new Date('2026-10-04T12:00:00Z');
+ const job=(status,next_attempt_at)=>({status,next_attempt_at,delivery_status:'unknown',last_error:null});
+ assert.equal(canContinueMailJobs([job('queued','2026-10-04T12:05:00Z')],now),false);
+ assert.equal(canContinueMailJobs([job('quota_wait','2026-10-04T11:55:00Z')],now),true);
+ const state={send_blocked_until:null,approval_budget:10,reserved_today:0,provider_remaining:20,auth_reserve:2,sent_day:'2026-10-04'};
+ assert.equal(providerCanSend({...state,send_blocked_until:'2026-10-04T12:05:00Z'},now),false);
+ assert.equal(providerCanSend({...state,reserved_today:10},now),false);
+ assert.equal(providerCanSend({...state,provider_remaining:2},now),false);
+ assert.equal(providerCanSend(state,now),true);
+});
+
+test('future retry and blocked provider cannot be manually dispatched',async()=>{
+ const future=panelDb({batch:{id:batchId},jobs:[{status:'queued',delivery_status:'unknown',last_error:null,next_attempt_at:new Date(Date.now()+60_000).toISOString()}]});
+ let calls=0;const first=loadPanelRoute('dispatch-mail',{db:future,staff,worker:async()=>{calls++;return ready;}});
+ assert.equal((await first.POST(first.request({batchId}))).status,409);assert.equal(calls,0);
+ const blocked=panelDb({batch:{id:batchId},jobs:[{status:'queued',delivery_status:'unknown',last_error:null,next_attempt_at:new Date(Date.now()-60_000).toISOString()}],capacity:{send_blocked_until:new Date(Date.now()+60_000).toISOString(),approval_budget:10,reserved_today:0,provider_remaining:null,auth_reserve:0,sent_day:null}});
+ const second=loadPanelRoute('dispatch-mail',{db:blocked,staff,worker:async()=>{calls++;return ready;}});
+ assert.equal((await second.POST(second.request({batchId}))).status,409);assert.equal(calls,1);
 });
 
 test('invalid or missing batches never trigger sending', async () => {

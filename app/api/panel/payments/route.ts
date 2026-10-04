@@ -27,9 +27,11 @@ export async function GET(request: NextRequest) {
     }
     const rawPage = request.nextUrl.searchParams.get("page") ?? "0";
     if (!/^(0|[1-9]\d{0,4})$/.test(rawPage) || Number(rawPage) > 10000) return json({ error: "Geçersiz sayfa." }, 400);
+    const status=request.nextUrl.searchParams.get("status")??"under_review";
+    if(!["under_review","approved","correction_required"].includes(status))return json({error:"Geçersiz dekont durumu."},400);
     const page = Number(rawPage); const pageSize = 50;
-    const { data, error } = await (await createServerSupabase()).rpc("list_payment_reviews", {
-      p_event_id: staff.eventId, p_page: page, p_page_size: pageSize,
+    const { data, error } = await (await createServerSupabase()).rpc("list_payment_reviews_by_status", {
+      p_event_id: staff.eventId, p_page: page, p_page_size: pageSize,p_status:status,
     });
     if (error) throw error;
     return json({ items: (data ?? []).slice(0, pageSize), page, hasMore: (data ?? []).length > pageSize });

@@ -8,7 +8,7 @@ import { renderApprovalMail } from "@/lib/mail/approval-template";
 import { failure, json, protectMutation } from "@/lib/http";
 import { startAdminActivity } from "@/lib/activity/server";
 import { callMailWorker } from "@/lib/mail/dispatch";
-import { canContinueMailJobs, mailDispatchOutcome } from "@/lib/mail/status";
+import { canContinueMailJobs, mailDispatchOutcome, providerCanSend } from "@/lib/mail/status";
 
 export const maxDuration = 60;
 
@@ -23,14 +23,16 @@ export async function GET(request: NextRequest) {
     if(exactBatchId){
       if(!z.string().uuid().safeParse(exactBatchId).success)return json({error:"Grup kimliği geçersiz."},400);
       const staff=await requireStaff("admin");const client=createAdminSupabase();
-      const {data:batch,error:batchError}=await client.from("mail_batches").select("id").eq("id",exactBatchId)
-        .eq("event_id",staff.eventId).eq("created_by",staff.userId).maybeSingle();
+      const {data:batch,error:batchError}=await client.from("mail_batches").select("id,event_id,created_by").eq("id",exactBatchId).maybeSingle();
       if(batchError)throw batchError;
       if(!batch)return json({error:"Gönderim grubu bulunamadı."},404);
-      const {data:jobs,error:jobsError}=await client.from("mail_jobs").select("status,delivery_status,last_error").eq("batch_id",batch.id);
+      if(batch.event_id!==staff.eventId||batch.created_by!==staff.userId)return json({error:"Gönderim grubu bu oturumla eşleşmiyor."},409);
+      const {data:jobs,error:jobsError}=await client.from("mail_jobs").select("status,delivery_status,last_error,next_attempt_at").eq("batch_id",batch.id);
       if(jobsError)throw jobsError;
       const health=await callMailWorker({action:"health"});
-      return json(mailDispatchOutcome(batch.id,health,jobs??[]));
+      const {data:capacity,error:capacityError}=await client.from("mail_provider_state").select("send_blocked_until,approval_budget,reserved_today,provider_remaining,auth_reserve,sent_day").eq("id",1).single();
+      if(capacityError)throw capacityError;
+      return json(mailDispatchOutcome(batch.id,{...health,blocked:health.blocked||!providerCanSend(capacity)},jobs??[]));
     }
     const page = Number(request.nextUrl.searchParams.get("page") ?? "1");
     if (!Number.isSafeInteger(page) || page < 1 || page > 10000) return json({ error: "Sayfa geçersiz." }, 400);
@@ -43,17 +45,20 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
     const visibleBatches = (batches ?? []).slice(0, 10);
     const ids = visibleBatches.map((item) => item.id);
-    const jobs: { batch_id: string; status: string; delivery_status: string; last_error: string | null }[] = [];
+    const jobs: { batch_id: string; status: string; delivery_status: string; last_error: string | null; next_attempt_at:string|null }[] = [];
     if (ids.length) for (let offset = 0; ; offset += 500) {
       const { data, error: jobsError } = await client.from("mail_jobs")
-        .select("id,batch_id,kind,recipient_name,recipient_email,committee_name,status,delivery_status,last_error,reopened_at,created_at")
+        .select("id,batch_id,kind,recipient_name,recipient_email,committee_name,status,delivery_status,last_error,next_attempt_at,reopened_at,created_at")
         .in("batch_id", ids).order("created_at", { ascending: false }).order("id")
         .range(offset, offset + 499);
       if (jobsError) throw jobsError;
       jobs.push(...(data ?? []));
       if (!data || data.length < 500) break;
     }
-    const canContinueByBatch = Object.fromEntries(ids.map((id) => [id, canContinueMailJobs(jobs.filter((job) => job.batch_id === id))]));
+    const due=ids.some((id)=>canContinueMailJobs(jobs.filter((job)=>job.batch_id===id)));
+    let available=false;
+    if(due){const [health,{data:capacity,error:capacityError}]=await Promise.all([callMailWorker({action:"health"}),client.from("mail_provider_state").select("send_blocked_until,approval_budget,reserved_today,provider_remaining,auth_reserve,sent_day").eq("id",1).single()]);if(capacityError)throw capacityError;available=health.ready&&!health.blocked&&providerCanSend(capacity);}
+    const canContinueByBatch = Object.fromEntries(ids.map((id) => [id, available&&canContinueMailJobs(jobs.filter((job) => job.batch_id === id))]));
     return json({ batches: visibleBatches, jobs, canContinueByBatch, hasMore: (batches ?? []).length > 10 });
   } catch (error) { return failure(error); }
 }
@@ -73,7 +78,7 @@ export async function POST(request: NextRequest) {
       const readiness = await callMailWorker({ action: "health" });
       if (!readiness.ready) return json({ error: readiness.error ?? "E-posta gönderimi şu anda hazır değil; gönderim ayarlarını kontrol edin.", code: readiness.code }, 503);
       const dispatch = await callMailWorker({ batchId: submission.batchId, limit: 3 });
-      const { data: jobs, error } = await client.from("mail_jobs").select("status,delivery_status,last_error")
+      const { data: jobs, error } = await client.from("mail_jobs").select("status,delivery_status,last_error,next_attempt_at")
         .eq("batch_id", submission.batchId);
       if (error) throw error;
       return json(mailDispatchOutcome(submission.batchId, dispatch, jobs ?? []), dispatch.ready ? 200 : 202);
@@ -87,10 +92,12 @@ export async function POST(request: NextRequest) {
         return json({ error: "Grup kimliği başka bir seçim için kullanılmış." }, 409);
       const health = await callMailWorker({ action: "health" });
       if (!health.ready) return json({ error: health.error ?? "E-posta servisi hazır değil.", code: health.code }, 503);
-      const { data: jobs, error: jobsError } = await client.from("mail_jobs").select("status,delivery_status,last_error")
+      const { data: jobs, error: jobsError } = await client.from("mail_jobs").select("status,delivery_status,last_error,next_attempt_at")
         .eq("batch_id", submission.batchId);
       if (jobsError) throw jobsError;
-      return json(mailDispatchOutcome(submission.batchId, health, jobs ?? []));
+      const {data:capacity,error:capacityError}=await client.from("mail_provider_state").select("send_blocked_until,approval_budget,reserved_today,provider_remaining,auth_reserve,sent_day").eq("id",1).single();
+      if(capacityError)throw capacityError;
+      return json(mailDispatchOutcome(submission.batchId,{...health,blocked:health.blocked||!providerCanSend(capacity)}, jobs ?? []));
     }
     const prior = await existingBatch();
     if (prior) return prior;
