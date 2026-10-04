@@ -8,7 +8,7 @@ import { renderApprovalMail } from "@/lib/mail/approval-template";
 import { failure, json, protectMutation } from "@/lib/http";
 import { startAdminActivity } from "@/lib/activity/server";
 import { callMailWorker } from "@/lib/mail/dispatch";
-import { summarizeMailJobs } from "@/lib/mail/status";
+import { canContinueMailJobs, mailDispatchOutcome } from "@/lib/mail/status";
 
 export const maxDuration = 60;
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
     const visibleBatches = (batches ?? []).slice(0, 10);
     const ids = visibleBatches.map((item) => item.id);
-    const jobs = [];
+    const jobs: { batch_id: string; status: string; delivery_status: string; last_error: string | null }[] = [];
     if (ids.length) for (let offset = 0; ; offset += 500) {
       const { data, error: jobsError } = await client.from("mail_jobs")
         .select("id,batch_id,kind,recipient_name,recipient_email,committee_name,status,delivery_status,last_error,reopened_at,created_at")
@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
       jobs.push(...(data ?? []));
       if (!data || data.length < 500) break;
     }
-    return json({ batches: visibleBatches, jobs, hasMore: (batches ?? []).length > 10 });
+    const canContinueByBatch = Object.fromEntries(ids.map((id) => [id, canContinueMailJobs(jobs.filter((job) => job.batch_id === id))]));
+    return json({ batches: visibleBatches, jobs, canContinueByBatch, hasMore: (batches ?? []).length > 10 });
   } catch (error) { return failure(error); }
 }
 
@@ -62,9 +63,7 @@ export async function POST(request: NextRequest) {
       const { data: jobs, error } = await client.from("mail_jobs").select("status,delivery_status,last_error")
         .eq("batch_id", submission.batchId);
       if (error) throw error;
-      return json({ batchId: submission.batchId, dispatchReady: dispatch.ready,
-        ...summarizeMailJobs(jobs ?? []), code: dispatch.code, error: dispatch.error,
-      }, dispatch.ready ? 200 : 202);
+      return json(mailDispatchOutcome(submission.batchId, dispatch, jobs ?? []), dispatch.ready ? 200 : 202);
     }
     async function existingBatch() {
       const { data, error } = await client.from("mail_batches")

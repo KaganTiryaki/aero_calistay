@@ -64,13 +64,14 @@ export function ApprovalClient() {
         interrupted = true;
         break;
       }
-      let outcome: { providerAccepted: number; failed: number; unresolved: number; dispatchReady: boolean; firstError: string | null };
+      let outcome: { acceptedTotal: number; failedTotal: number; uncertainTotal: number; dispatchReady: boolean; issue: string | null };
       try { outcome = await response.json(); }
       catch { setMessage(`${handled} kişinin işlemi doğrulandı. Son grubun sonucunu Gönderimler bölümünden kontrol edip aynı seçimi tekrar deneyin.`); interrupted = true; break; }
+      if (![outcome.acceptedTotal,outcome.failedTotal,outcome.uncertainTotal].every((value)=>Number.isSafeInteger(value)&&value>=0)) {setMessage("Gönderim sonucu doğrulanamadı. E-postalar bölümünü kontrol edin.");interrupted=true;break;}
       sessionStorage.removeItem(attemptKey);
-      handled += chunk.length; providerAccepted += outcome.providerAccepted;
-      if (outcome.failed || outcome.unresolved || !outcome.dispatchReady) {
-        setMessage(`${providerAccepted} e-posta Brevo tarafından kabul edildi; ${outcome.failed} hatalı, ${outcome.unresolved} sonuç bekliyor. ${outcome.firstError ?? "Ayrıntıları Gönderimler bölümünden kontrol edin."}`);
+      handled += chunk.length; providerAccepted += outcome.acceptedTotal;
+      if (outcome.failedTotal || outcome.uncertainTotal || !outcome.dispatchReady) {
+        setMessage(`${providerAccepted} e-posta hizmeti tarafından kabul edildi; ${outcome.failedTotal} gönderilemedi, ${outcome.uncertainTotal} gönderimin sonucu kontrol ediliyor. ${outcome.issue ?? "Ayrıntıları E-postalar bölümünden kontrol edin."}`);
         interrupted = true;
         break;
       }

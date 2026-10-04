@@ -60,6 +60,10 @@ test('manual retry checks the event boundary before health and sends at most thr
   const response = await route.POST(route.request({ batchId }));
   assert.equal(response.status, 200);
   assert.deepEqual(JSON.parse(JSON.stringify(calls)), [{ action: 'health' }, { batchId, limit: 3 }]);
+  const body=await response.json();
+  assert.equal(body.batchId,batchId);
+  assert.equal(typeof body.dispatchReady,'boolean');
+  assert.equal(typeof body.canContinue,'boolean');
   assert.ok(db.queries[0].filters.some(([field, value]) => field === 'event_id' && value === staff.eventId));
 });
 
