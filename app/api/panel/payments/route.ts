@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   try {
     protectMutation(request); const disabled=participantGate("payment");if(disabled)return disabled; await requireStaff("admin");
     const parsed = schema.safeParse(await request.json());
-    if (!parsed.success) return json({ error: "Ödeme bilgilerini eksiksiz girin." }, 400);
+    if (!parsed.success) return json({ error: "Geçersiz dekont onayı." }, 400);
     const input = parsed.data; const client = await createServerSupabase();
     const result = await client.rpc("approve_payment_receipt", { p_submission_id: input.id, p_expected_version: input.version, p_request_id: input.requestId });
     if (result.error) throw result.error; return json({ ok: result.data });

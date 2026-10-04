@@ -363,8 +363,8 @@ export const operations = {
   payments: {
     title: "Dekontlar ve ödemeler", settings: "Ödeme ayarları", settingsHelp: "Bu ayarlar yeni ilk kabullere uygulanır. Önceden kabul edilenlerin ödeme tutarı değişmez.",
     portal: "Katılımcı adresi (https://…/katilimci)", save: "Kaydet", saved: "Ayarlar kaydedildi.", list: "Dekontlar", empty: "İncelenecek dekont yok.",
-    view: "İncele", bankReference: "Bankadaki benzersiz işlem referansı", transactionAt: "Bankadaki işlem tarihi", approve: "Bankadan kontrol ettim — ödemeyi onayla",
-    reason: "Düzeltme gerekçesi", correct: "Düzeltme iste", success: "Karar kaydedildi.", refresh: "Listeyi yenile", previous: "Önceki sayfa", next: "Sonraki sayfa", page: "Sayfa", warning: "Dekont tek başına ödeme kanıtı değildir. Bankaya gelen tutarı ve işlem referansını kontrol edin.",
+    view: "İncele", approve: "Dekontu kabul et",
+    success: "Dekont kabul edildi; başvuru kesin kabul edildi.", refresh: "Listeyi yenile", previous: "Önceki sayfa", next: "Sonraki sayfa", page: "Sayfa", warning: "Dekontu kabul ettiğinizde başvuru kesin kabul edilir ve QR kodu açılır.",
   },
   meals: { title: "Yemek öğünleri", name: "Öğün adı", opens: "Başlangıç", closes: "Bitiş", add: "Öğün ekle", open: "Geçişi aç", close: "Geçişi kapat", active: "Aktif", inactive: "Kapalı", help: "Aynı anda tek öğün açık olabilir. Yeni öğünü açmadan önce mevcut öğünü kapatın.", saved: "Öğün kaydedildi." },
   mail: {

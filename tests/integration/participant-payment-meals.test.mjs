@@ -109,6 +109,22 @@ test('admin fixes a missing expected amount with version and audit; staff, stale
  }finally{await s.pg.close();}
 });
 
+test('one-click receipt approval is idempotent and does not invent a bank transaction',async()=>{
+ const s=await setup();try{
+  const id=await receipt(s);await upload(s,id);await s.as(s.admin);
+  const requestId=crypto.randomUUID();
+  assert.equal((await s.pg.query('select approve_payment_receipt($1,1,$2) ok',[id,requestId])).rows[0].ok,true);
+  assert.equal((await s.pg.query('select approve_payment_receipt($1,1,$2) ok',[id,requestId])).rows[0].ok,true);
+  await assert.rejects(s.pg.query('select approve_payment_receipt($1,1,$2)',[id,crypto.randomUUID()]),/REQUEST_CONFLICT/);
+  await s.pg.exec('reset role');
+  const review=(await s.pg.query('select bank_reference,amount_minor,transaction_at,review_source from payment_reviews where submission_id=$1',[id])).rows[0];
+  assert.deepEqual([review.bank_reference,review.amount_minor,review.transaction_at,review.review_source],[null,null,null,'receipt']);
+  assert.equal((await s.pg.query('select status from applications where id=$1',[s.app])).rows[0].status,'confirmed');
+  assert.equal((await s.pg.query('select count(*)::integer n from qr_credentials where application_id=$1',[s.app])).rows[0].n,1);
+  assert.equal((await s.pg.query("select count(*)::integer n from mail_jobs where application_id=$1 and kind='confirmation'",[s.app])).rows[0].n,1);
+ }finally{await s.pg.close();}
+});
+
 test('closed rollout gates block direct database acceptance and payment mutations',async()=>{
  const s=await setup();try{
   await s.pg.query('update events set participant_acceptance_enabled=false where id=$1',[s.event]);await s.as(s.admin);

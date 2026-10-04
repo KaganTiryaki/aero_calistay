@@ -85,7 +85,7 @@ export function PaymentsClient() {
     {selected && <section className="ops-card"><h2>{selected.application.first_name} {selected.application.last_name}</h2>
     <div className="ops-actions"><button type="button" onClick={()=>void view(selected)}>Önizlemeyi yenile</button><button type="button" onClick={()=>void openFile()}>Yeni sekmede aç</button><button type="button" onClick={()=>void openFile(true)}>İndir</button></div>
     {preview?.receiptId===selected.id && <div className="ops-receipt-preview">{preview.mime === "application/pdf" ? <iframe title="Dekont PDF önizlemesi" src={preview.url}/> : <object aria-label="Yüklenen dekont" data={preview.url} type={preview.mime}>Görsel açılamadı. Yeni sekmede açın veya indirin.</object>}</div>}
-    {selected.status === "under_review" && <button type="button" onClick={() => void approveReceipt()} disabled={busy}>Dekontu kabul et</button>}
+    {selected.status === "under_review" && <button type="button" onClick={() => void approveReceipt()} disabled={busy}>{copy.approve}</button>}
     </section>}
     <details className="ops-card"><summary>{copy.settings}</summary><p>{copy.settingsHelp}</p><form className="ops-form" onSubmit={save}>
       <label>{common.iban} (isteğe bağlı)<input value={iban} onChange={(event) => setIban(event.target.value)} /></label>
