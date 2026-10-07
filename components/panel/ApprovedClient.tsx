@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { operations } from "@/lib/content";
 import { useApproved } from "./useApproved";
 import { ActionFeedback } from "@/components/operations/ActionFeedback";
+import { MotionProvider } from "@/components/motion/MotionProvider";
 import { Lightbox, type LightboxPhoto } from "@/components/ui/Lightbox";
 import type { ActionFeedbackState } from "@/lib/operations/action-feedback";
 
@@ -33,6 +34,6 @@ export function ApprovedClient() {
       <td data-label="QR indir"><div className="ops-actions"><a className="ops-button" href={`/api/panel/qr?id=${person.id}&format=svg`} download={`aero-${person.id}.svg`}>QR indir (SVG)</a><a className="ops-button" href={`/api/panel/qr?id=${person.id}&format=png`} download={`aero-${person.id}.png`}>QR indir (PNG)</a></div></td>
       <td data-label="İşlem"><div className="ops-actions"><button disabled={pending!==null||loading} onClick={() => action(person.id, "rotateQr")}>{pending===person.id?"İşleniyor…":operations.approved.rotate}</button><button disabled={pending!==null||loading} className="ops-button--danger" onClick={() => action(person.id, "cancel")}>{operations.approved.cancel}</button></div></td>
     </tr>;})}</tbody></table></div>}
-    <Lightbox photos={qrPreview?[qrPreview]:[]} index={qrPreview?0:null} onClose={()=>setQrPreview(null)} onNavigate={()=>{}} />
+    {qrPreview&&<MotionProvider><Lightbox photos={[qrPreview]} index={0} onClose={()=>setQrPreview(null)} onNavigate={()=>{}} /></MotionProvider>}
   </div>;
 }
