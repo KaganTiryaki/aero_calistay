@@ -360,7 +360,7 @@ export const operations = {
     chooseFile: "Geçerli bir dosya seçin.", uploaded: "Dekont alındı. Ödemeniz kontrol ediliyor.", activateHelp: "Bu bağlantı e-postanızı doğrular; ikinci bir doğrulama maili gönderilmez. Aşağıdaki düğmeye bastıktan sonra şifrenizi belirleyebilirsiniz.",
   },
   payments: {
-    title: "Dekontlar ve ödemeler", settings: "Ödeme ayarları", settingsHelp: "Bu ayarlar yeni ilk kabullere uygulanır. Önceden kabul edilenlerin ödeme tutarı değişmez.",
+    title: "Dekontlar ve ödemeler", settings: "Ödeme ayarları", settingsHelp: "Dekontu kabul etmek için ayrıca tutar girmeniz gerekmez. IBAN ve son ödeme tarihi yeni ilk kabullere uygulanır.",
     portal: "Katılımcı adresi (https://…/katilimci)", save: "Kaydet", saved: "Ayarlar kaydedildi.", list: "Dekontlar", empty: "İncelenecek dekont yok.",
     view: "İncele", approve: "Dekontu kabul et",
     success: "Dekont kabul edildi; başvuru kesin kabul edildi.", refresh: "Listeyi yenile", previous: "Önceki sayfa", next: "Sonraki sayfa", page: "Sayfa", warning: "Dekontu kabul ettiğinizde başvuru kesin kabul edilir ve QR kodu açılır.",

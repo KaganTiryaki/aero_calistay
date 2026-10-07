@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { operations } from "@/lib/content";
 import { ActionFeedback } from "@/components/operations/ActionFeedback";
 import { refreshFailureAfterAction, type ActionFeedbackState } from "@/lib/operations/action-feedback";
-type Receipt = { id: string; version: number; status: "under_review" | "approved" | "correction_required"; created_at: string; application: { id:string;version:number;first_name: string; last_name: string; email: string; committee_name: string|null; payment_amount_minor: number|null; payment_currency: string } };
+type Receipt = { id: string; version: number; status: "under_review" | "approved" | "correction_required"; created_at: string; application: { id:string;version:number;first_name: string; last_name: string; email: string; committee_name: string|null } };
 type Preview = {url:string;mime:string;fileName:string;expiresAt:string};
 export function PaymentsClient() {
   const copy = operations.payments; const common = operations.participant;
@@ -19,7 +19,7 @@ export function PaymentsClient() {
   const [settingsFeedback,setSettingsFeedback]=useState<ActionFeedbackState|null>(null);
   const [settingsError,setSettingsError]=useState("");const [settingsReady,setSettingsReady]=useState(false);
   const [hasLoaded,setHasLoaded]=useState(false);const approving=useRef(false);
-  const [iban, setIban] = useState(""); const [amount, setAmount] = useState(""); const [deadline, setDeadline] = useState(""); const [portal, setPortal] = useState("");
+  const [iban, setIban] = useState(""); const [deadline, setDeadline] = useState(""); const [portal, setPortal] = useState("");
   async function load(targetPage = page,targetFilter = filter,after:ActionFeedbackState|null=null) {
     const request=++listRequest.current;setLoading(true);
     try {
@@ -35,7 +35,7 @@ export function PaymentsClient() {
   async function loadSettings(){
     setSettingsError("");
     try{const response=await fetch("/api/panel/payment-settings",{cache:"no-store"});if(!response.ok)throw new Error();const settings=await response.json();
-      setIban(settings.payment_iban??"");setAmount(settings.payment_amount_minor?String(settings.payment_amount_minor/100):"");setPortal(settings.participant_portal_url??`${window.location.origin}/katilimci`);
+      setIban(settings.payment_iban??"");setPortal(settings.participant_portal_url??`${window.location.origin}/katilimci`);
       if(settings.payment_deadline){const value=new Date(settings.payment_deadline);setDeadline(new Date(value.getTime()-value.getTimezoneOffset()*60000).toISOString().slice(0,16));}else setDeadline("");setSettingsReady(true);
     }catch{setSettingsError("Ödeme ayarları yüklenemedi. Dekontları incelemeye devam edebilirsiniz.");}
   }
@@ -47,7 +47,7 @@ export function PaymentsClient() {
   }
   async function save(event: FormEvent) {
     event.preventDefault(); setBusy(true);
-    try { await post("/api/panel/payment-settings", { iban:iban.trim()||null, amountMinor:amount.trim()?Math.round(Number(amount)*100):null, deadline:deadline?new Date(deadline).toISOString():null, portalUrl: portal }, "PATCH"); setSettingsFeedback({kind:"success",title:"Ödeme ayarları kaydedildi",description:"Yeni ayarlar kayıt edildi."}); }
+    try { await post("/api/panel/payment-settings", { iban:iban.trim()||null, deadline:deadline?new Date(deadline).toISOString():null, portalUrl: portal }, "PATCH"); setSettingsFeedback({kind:"success",title:"Ödeme ayarları kaydedildi",description:"Yeni ayarlar kayıt edildi."}); }
     catch (error) { setSettingsFeedback({kind:"error",title:"Ayarlar kaydedilemedi",description:error instanceof Error ? error.message : common.error}); } setBusy(false);
   }
   async function approveReceipt() {
@@ -104,7 +104,6 @@ export function PaymentsClient() {
     </section>}
     <details className="ops-card"><summary>{copy.settings}</summary><p>{copy.settingsHelp}</p>{settingsError&&<p role="alert" className="ops-error">{settingsError}<button type="button" onClick={loadSettings}>Ayarları tekrar yükle</button></p>}{!settingsReady&&!settingsError&&<p>Ayarlar yükleniyor…</p>}{settingsFeedback&&<ActionFeedback id="payment-settings-result" feedback={settingsFeedback} onDismiss={()=>setSettingsFeedback(null)}/>}<form className="ops-form" onSubmit={save}><fieldset disabled={!settingsReady||busy} className="ops-form">
       <label>{common.iban} (isteğe bağlı)<input value={iban} onChange={(event) => setIban(event.target.value)} /></label>
-      <label>{common.amount} (isteğe bağlı)<input type="number" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} /></label>
       <label>{common.deadline} (isteğe bağlı)<input type="datetime-local" value={deadline} onChange={(event) => setDeadline(event.target.value)} /></label>
       <label>{copy.portal}<input required type="url" value={portal} onChange={(event) => setPortal(event.target.value)} /></label><button disabled={busy}>{copy.save}</button>
     </fieldset></form></details>

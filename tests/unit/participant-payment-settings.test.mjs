@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {loadPanelRoute,staff,selection} from '../helpers/panel-route.mjs';
-test('payment settings accept absent IBAN, amount and deadline without losing the portal',async()=>{
+test('payment settings do not write a payment amount',async()=>{
  const saved=[];const db={from:()=>({update:value=>({eq:async(...scope)=>{saved.push({value,scope});return {error:null};}})})};
- const f=loadPanelRoute('payment-settings',{staff,db});const response=await f.PATCH(f.request({iban:null,amountMinor:null,deadline:null,portalUrl:'https://example.com/katilimci'}));
- assert.equal(response.status,200);assert.equal(saved[0].value.payment_deadline,null);assert.equal(saved[0].value.payment_iban,null);assert.equal(saved[0].value.payment_amount_minor,null);assert.deepEqual(saved[0].scope,['id',staff.eventId]);
+ const f=loadPanelRoute('payment-settings',{staff,db});const response=await f.PATCH(f.request({iban:null,deadline:null,portalUrl:'https://example.com/katilimci'}));
+ assert.equal(response.status,200);assert.equal(saved[0].value.payment_deadline,null);assert.equal(saved[0].value.payment_iban,null);assert.equal('payment_amount_minor' in saved[0].value,false);assert.deepEqual(saved[0].scope,['id',staff.eventId]);
 });
 test('expected payment amount PATCH requires a positive integer, reason and application version',async()=>{
  const calls=[];const db={rpc:async(name,args)=>{calls.push({name,args});return {data:true,error:null};}};const f=loadPanelRoute('payments',{staff,db});
