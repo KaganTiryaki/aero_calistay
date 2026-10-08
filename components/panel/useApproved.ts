@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type ApprovedPerson = { id: string; first_name: string; last_name: string; email: string; committee_name: string; approved_at: string; manual_code: string; checked_in_at: string | null; delivery_status: string };
+export type ApprovedPerson = { id: string; first_name: string; last_name: string; email: string; committee_name: string; approved_at: string; manual_code: string; checked_in_at: string | null; email_status: { label: string; tone: "good" | "wait" | "bad" | "neutral"; detail: string | null } };
 
 export function useApproved() {
   const [people, setPeople] = useState<ApprovedPerson[]>([]);

@@ -6,6 +6,10 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { json, protectMutation } from "@/lib/http";
 import { participantFailure } from "@/lib/participant/server";
+import { callMailWorker } from "@/lib/mail/dispatch";
+import { canContinueMailJobs, providerCanSend } from "@/lib/mail/status";
+
+export const maxDuration = 60;
 export async function GET(request: NextRequest) {
   try {
     const staff = await requireStaff("admin"); const client = createAdminSupabase();
@@ -42,12 +46,41 @@ const schema = z.discriminatedUnion("action", [
 ]);
 export async function POST(request: NextRequest) {
   try {
-    protectMutation(request); const disabled=participantGate("payment");if(disabled)return disabled; await requireStaff("admin");
+    protectMutation(request); const disabled=participantGate("payment");if(disabled)return disabled; const staff = await requireStaff("admin");
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return json({ error: "Geçersiz dekont onayı." }, 400);
     const input = parsed.data; const client = await createServerSupabase();
     const result = await client.rpc("approve_payment_receipt", { p_submission_id: input.id, p_expected_version: input.version, p_request_id: input.requestId });
-    if (result.error) throw result.error; return json({ ok: result.data });
+    if (result.error) throw result.error;
+    if (result.data) try {
+      const admin = createAdminSupabase();
+      const { data: submission, error: submissionError } = await admin.from("payment_submissions")
+        .select("application_id").eq("id", input.id).maybeSingle();
+      if (submissionError) throw submissionError;
+      if (submission) {
+        const { data: application, error: applicationError } = await admin.from("applications")
+          .select("version").eq("id", submission.application_id).eq("event_id", staff.eventId).maybeSingle();
+        if (applicationError) throw applicationError;
+        if (application) {
+          const { data: job, error: jobError } = await admin.from("mail_jobs")
+            .select("batch_id,status,delivery_status,last_error,next_attempt_at")
+            .eq("application_id", submission.application_id).eq("kind", "confirmation")
+            .eq("approval_version", application.version).maybeSingle();
+          if (jobError) throw jobError;
+          if (job && canContinueMailJobs([job])) {
+            const [health, capacityResult] = await Promise.all([
+              callMailWorker({ action: "health" }),
+              admin.from("mail_provider_state").select("send_blocked_until,approval_budget,reserved_today,provider_remaining,auth_reserve,sent_day").eq("id", 1).single(),
+            ]);
+            if (capacityResult.error) throw capacityResult.error;
+            if (health.ready && !health.blocked && providerCanSend(capacityResult.data)) {
+              await callMailWorker({ batchId: job.batch_id, limit: 1 });
+            }
+          }
+        }
+      }
+    } catch { console.error("Receipt approved; confirmation email dispatch could not be completed."); }
+    return json({ ok: result.data });
   } catch (error) { return participantFailure(error); }
 }
 export async function PATCH(request: NextRequest) {
